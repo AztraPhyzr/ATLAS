@@ -6,6 +6,15 @@
   <meta name="theme-color" content="#f4f1eb">
   <meta name="description" content="Explore pivotal moments in modern history with History Atlas.">
   <title>History Atlas — A living timeline</title>
+  <script>
+    try {
+      if (localStorage.getItem("history-atlas-theme-v1") === "dark") {
+        document.documentElement.dataset.theme = "dark";
+      }
+    } catch (error) {
+      console.error("Could not read the saved color theme from this browser.", error);
+    }
+  </script>
   <link rel="icon" type="image/png" href="history-atlas-logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,9 +30,42 @@
       --accent: #bd543a;
       --accent-dark: #923d2b;
       --white: #fffefa;
+      --text-secondary: #52534d;
+      --surface-muted: #ebe6dc;
+      --surface-soft: #e9e4da;
+      --index-color: #99988f;
+      --chat-bubble: #f0ede6;
+      --chat-user-bubble: #e5eee5;
+      --error: #a23828;
+      --inverse-background: #20211e;
+      --inverse-foreground: #fffefa;
+      --inverse-muted: #c7c6bd;
+      --accent-foreground: #fffefa;
       --serif: "Playfair Display", Georgia, serif;
       --sans: "DM Sans", Arial, sans-serif;
       --mono: "DM Mono", monospace;
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --paper: #171916;
+      --paper-deep: #22251f;
+      --ink: #e9e7df;
+      --muted: #aaa99f;
+      --line: #41443d;
+      --accent: #e08768;
+      --accent-dark: #e89b7e;
+      --white: #252822;
+      --text-secondary: #d0cec5;
+      --surface-muted: #292c26;
+      --surface-soft: #30332d;
+      --index-color: #aaa89e;
+      --chat-bubble: #30332d;
+      --chat-user-bubble: #304035;
+      --error: #f09b86;
+      --inverse-background: #e9e7df;
+      --inverse-foreground: #20211e;
+      --inverse-muted: #5b5e56;
+      --accent-foreground: #20211e;
     }
 
     * { box-sizing: border-box; }
@@ -35,6 +77,11 @@
       font-family: var(--sans);
       font-size: 15px;
       line-height: 1.6;
+    }
+    body, .topbar, .sidebar, .event-nav, .sidebar-contribution, .user-note,
+    .community-incident, .gallery-card, .modal, .field input, .field textarea,
+    .chat-panel, .chat-message, .quick-prompts button, .language-select, .theme-toggle {
+      transition: background-color .25s ease, color .25s ease, border-color .25s ease;
     }
     button, input, textarea { font: inherit; }
     button { color: inherit; }
@@ -82,12 +129,30 @@
       max-width: 140px;
       min-height: 38px;
       border: 1px solid var(--line);
-      border-radius: 2px;
+      border-radius: 10px;
       background: var(--white);
       color: var(--ink);
       padding: 6px 8px;
       font-size: 12px;
     }
+    .theme-toggle {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--white);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .theme-toggle:hover { background: var(--paper-deep); }
+    .theme-toggle-icon { font-size: 15px; line-height: 1; }
     .top-link, .account-button {
       border: 0;
       background: transparent;
@@ -98,12 +163,12 @@
       font-weight: 600;
     }
     .account-button.primary {
-      background: var(--ink);
-      color: var(--white);
-      border-radius: 2px;
+      background: var(--inverse-background);
+      color: var(--inverse-foreground);
+      border-radius: 10px;
       padding: 10px 16px;
     }
-    .account-button.primary:hover { background: var(--accent-dark); }
+    .account-button.primary:hover { background: var(--accent-dark); color: var(--accent-foreground); }
     .sidebar-toggle {
       display: grid;
       width: 38px;
@@ -115,6 +180,7 @@
       padding: 0;
       cursor: pointer;
       color: var(--accent-dark);
+      border-radius: 10px;
     }
     .sidebar-toggle:hover { background: var(--white); }
     .sidebar-toggle span {
@@ -173,11 +239,11 @@
       background: transparent;
       text-align: left;
       cursor: pointer;
-      color: #4c4d47;
+      color: var(--text-secondary);
       font-size: 12px;
       transition: background .18s, color .18s;
     }
-    .event-nav:hover { background: #e9e4da; color: var(--ink); }
+    .event-nav:hover { background: var(--surface-soft); color: var(--ink); }
     .event-nav[aria-current="true"] {
       background: var(--white);
       color: var(--accent-dark);
@@ -186,17 +252,17 @@
     .event-nav.contribution-nav {
       grid-template-columns: 30px 1fr;
       padding: 9px 10px;
-      color: #4c4d47;
+      color: var(--text-secondary);
       font-size: 12px;
     }
-    .event-nav.contribution-nav:hover { background: #e9e4da; color: var(--ink); }
+    .event-nav.contribution-nav:hover { background: var(--surface-soft); color: var(--ink); }
     .event-nav span:last-child {
       min-width: 0;
       white-space: normal;
       overflow-wrap: anywhere;
       word-break: normal;
     }
-    .event-index { color: #99988f; font: 10px var(--mono); }
+    .event-index { color: var(--index-color); font: 10px var(--mono); }
     .sidebar-note {
       margin: 34px 10px 0;
       padding-top: 16px;
@@ -221,12 +287,15 @@
       text-transform: uppercase;
     }
     .sidebar-contribution {
+      position: relative;
       padding: 9px;
+      border-radius: 10px;
       background: var(--white);
-      color: #52534d;
+      color: var(--text-secondary);
       font-size: 10px;
       line-height: 1.5;
       overflow-wrap: anywhere;
+      transition: transform .25s ease;
     }
     .sidebar-contribution strong {
       display: block;
@@ -244,6 +313,7 @@
       width: 100%;
       max-height: 120px;
       margin-top: 7px;
+      border-radius: 10px;
       object-fit: cover;
     }
 
@@ -332,7 +402,7 @@
     .event-summary {
       max-width: 760px;
       margin: 0 0 30px;
-      color: #4f504a;
+      color: var(--text-secondary);
       font: 500 17px/1.75 var(--serif);
     }
     .facts {
@@ -375,16 +445,20 @@
       border-radius: 50%;
     }
     .timeline-item time { color: var(--accent-dark); font: 10px var(--mono); }
-    .timeline-item p { margin: 5px 0 0; color: #585951; font-size: 11px; line-height: 1.6; }
+    .timeline-item p { margin: 5px 0 0; color: var(--text-secondary); font-size: 11px; line-height: 1.6; }
     .gallery {
       display: grid;
       grid-template-columns: 1.2fr 1fr;
       gap: 12px;
     }
     .gallery-card {
+      position: relative;
       min-width: 0;
       margin: 0;
+      overflow: hidden;
+      border-radius: 10px;
       background: var(--paper-deep);
+      transition: transform .25s ease;
     }
     .gallery-image {
       width: 100%;
@@ -393,7 +467,7 @@
       object-fit: cover;
       background: linear-gradient(135deg, #918a7b, #d1c6b3);
     }
-    .gallery-card figcaption { padding: 9px 11px 11px; color: var(--muted); font-size: 10px; }
+    .gallery-card figcaption { padding: 9px 11px 11px; border-radius: 0 0 10px 10px; color: var(--muted); font-size: 10px; }
     .source-line {
       margin: 19px 0 0;
       color: var(--muted);
@@ -404,26 +478,42 @@
     .user-note {
       padding: 13px 15px;
       border-left: 2px solid var(--accent);
-      background: #ebe6dc;
-      color: #52534d;
+      background: var(--surface-muted);
+      color: var(--text-secondary);
       font-size: 12px;
       white-space: pre-wrap;
     }
     .user-gallery { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
-    .user-gallery img { width: 110px; height: 82px; object-fit: cover; }
+    .user-gallery-item { width: 140px; margin: 0; overflow: hidden; border-radius: 10px; background: var(--paper-deep); transition: transform .25s ease; }
+    .user-gallery-item img { width: 100%; height: 92px; border-radius: 10px; object-fit: cover; transition: transform .25s ease; }
+    .user-gallery-item figcaption { padding: 6px 8px 8px; color: var(--muted); font-size: 10px; line-height: 1.45; }
     .community-incidents { display: grid; gap: 12px; }
     .community-incident {
+      position: relative;
       display: grid;
       grid-template-columns: minmax(0, 1fr) 150px;
       gap: 14px;
       padding: 14px;
       border: 1px solid var(--line);
+      border-radius: 10px;
       background: var(--white);
+      overflow: hidden;
+      transition: transform .25s ease;
+    }
+    @media (hover: hover) {
+      .gallery-card:hover,
+      .community-incident:hover,
+      .sidebar-contribution:hover,
+      .user-gallery-item:hover,
+      .user-gallery img:hover {
+        z-index: 1;
+        transform: scale(1.025);
+      }
     }
     .community-incident h4 { margin: 0 0 3px; font: 600 18px var(--serif); }
     .community-incident time { color: var(--accent-dark); font: 10px var(--mono); }
-    .community-incident p { margin: 8px 0 0; color: #52534d; font-size: 12px; white-space: pre-wrap; }
-    .community-incident img { width: 100%; height: 110px; object-fit: cover; }
+    .community-incident p { margin: 8px 0 0; color: var(--text-secondary); font-size: 12px; white-space: pre-wrap; }
+    .community-incident img { width: 100%; height: 110px; border-radius: 10px; object-fit: cover; }
     .editor-link {
       border: 1px solid var(--line);
       background: transparent;
@@ -456,14 +546,14 @@
       padding: 13px 17px;
       border: 0;
       border-radius: 30px;
-      background: var(--ink);
-      color: white;
+      background: var(--inverse-background);
+      color: var(--inverse-foreground);
       box-shadow: 0 8px 28px rgba(30,30,26,.2);
       cursor: pointer;
       font-size: 12px;
       font-weight: 600;
     }
-    .chat-launcher:hover { background: var(--accent-dark); }
+    .chat-launcher:hover { background: var(--accent-dark); color: var(--accent-foreground); }
     .chat-dot { width: 7px; height: 7px; border-radius: 50%; background: #89c9a0; }
     .chat-panel {
       position: fixed;
@@ -476,6 +566,7 @@
       grid-template-rows: auto 1fr auto auto;
       overflow: hidden;
       border: 1px solid var(--line);
+      border-radius: 14px;
       background: var(--white);
       box-shadow: 0 14px 50px rgba(30,30,26,.18);
       opacity: 0;
@@ -491,9 +582,9 @@
       pointer-events: auto;
       transform: translateY(0) scale(1);
     }
-    .chat-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 15px 11px 17px; background: var(--ink); color: white; }
+    .chat-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 15px 11px 17px; background: var(--inverse-background); color: var(--inverse-foreground); }
     .chat-header strong { display: block; font: 500 17px var(--serif); }
-    .chat-header span { color: #c7c6bd; font-size: 10px; }
+    .chat-header span { color: var(--inverse-muted); font-size: 10px; }
     .chat-mascot { width: 58px; height: 58px; flex: 0 0 auto; border: 2px solid rgba(255,255,255,.55); border-radius: 50%; background: #f0ede6; object-fit: cover; object-position: center 18%; }
     .chat-panel.open .chat-mascot { animation: mascot-slide-in .55s ease-out both; }
     @keyframes mascot-slide-in {
@@ -504,13 +595,13 @@
     .chat-message {
       max-width: 88%;
       padding: 9px 11px;
-      background: #f0ede6;
-      color: #454640;
+      background: var(--chat-bubble);
+      color: var(--text-secondary);
       font-size: 11px;
       line-height: 1.55;
       white-space: pre-wrap;
     }
-    .chat-message.user { align-self: flex-end; background: #e5eee5; }
+    .chat-message.user { align-self: flex-end; background: var(--chat-user-bubble); }
     .chat-word { display: inline-block; animation: chat-word-reveal .24s ease-out both; animation-delay: calc(var(--word-index) * 22ms); }
     @keyframes chat-word-reveal {
       from { opacity: 0; transform: translateY(5px); }
@@ -522,13 +613,13 @@
       border-radius: 15px;
       background: transparent;
       padding: 5px 9px;
-      color: #62635d;
+      color: var(--text-secondary);
       cursor: pointer;
       font-size: 9px;
     }
     .chat-form { display: flex; border-top: 1px solid var(--line); }
     .chat-form input { min-width: 0; flex: 1; border: 0; padding: 12px; outline: none; font-size: 11px; }
-    .chat-form button { border: 0; background: var(--accent); color: white; padding: 0 16px; cursor: pointer; font-size: 11px; }
+    .chat-form button { border: 0; background: var(--accent); color: var(--accent-foreground); padding: 0 16px; cursor: pointer; font-size: 11px; }
 
     .modal-backdrop {
       position: fixed;
@@ -571,22 +662,36 @@
     .modal-submit {
       margin-top: 8px;
       border: 0;
-      background: var(--ink);
-      color: white;
+      background: var(--inverse-background);
+      color: var(--inverse-foreground);
       padding: 11px 16px;
       cursor: pointer;
       font-size: 12px;
       font-weight: 600;
     }
-    .modal-submit:hover { background: var(--accent-dark); }
-    .form-error { min-height: 18px; margin: 8px 0 0; color: #a23828; font-size: 11px; }
+    .modal-submit:hover { background: var(--accent-dark); color: var(--accent-foreground); }
+    .form-error { min-height: 18px; margin: 8px 0 0; color: var(--error); font-size: 11px; }
     .signed-in { display: none; }
     .signed-in.visible { display: block; }
     #editorForm { display: none; }
     #editorForm.visible { display: block; }
-    .empty-image-preview { max-width: 100%; max-height: 160px; display: none; margin-top: 8px; object-fit: contain; }
+    .image-editor-list { display: grid; gap: 10px; margin-top: 10px; }
+    .image-editor-card {
+      display: grid;
+      grid-template-columns: 92px minmax(0, 1fr);
+      gap: 10px;
+      padding: 9px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-muted);
+    }
+    .image-editor-card img { width: 92px; height: 76px; border-radius: 8px; object-fit: cover; }
+    .image-editor-fields { min-width: 0; }
+    .image-editor-fields label { display: block; margin-bottom: 4px; color: var(--muted); font-size: 10px; }
+    .image-editor-fields textarea { width: 100%; min-height: 54px; resize: vertical; }
+    .image-editor-remove { grid-column: 2; justify-self: start; }
     .incident-editor-list { display: grid; gap: 12px; }
-    .incident-editor-card { padding: 13px; border: 1px solid var(--line); background: #ebe6dc; }
+    .incident-editor-card { padding: 13px; border: 1px solid var(--line); background: var(--surface-muted); }
     .incident-editor-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     .incident-editor-head strong { font: 500 16px var(--serif); }
     .incident-remove {
@@ -621,6 +726,8 @@
       .account-button.primary { padding: 8px 11px; }
       .top-actions { gap: 5px; }
       .language-select { width: 92px; padding: 5px 4px; font-size: 10px; }
+      .theme-toggle { width: 38px; padding: 5px; }
+      .theme-toggle-label { display: none; }
       .page-layout { display: grid; grid-template-columns: minmax(96px, 30vw) minmax(0, 1fr); min-height: calc(100vh - 60px); }
       .page-layout.sidebar-collapsed { grid-template-columns: 0fr minmax(0, 1fr); }
       .sidebar { min-width: 0; padding: 15px 6px; border-right: 1px solid var(--line); border-bottom: 0; }
@@ -655,6 +762,8 @@
       .gallery-image { height: 180px; }
       .community-incident { grid-template-columns: 1fr; }
       .community-incident img { max-width: 240px; }
+      .image-editor-card { grid-template-columns: 72px minmax(0, 1fr); }
+      .image-editor-card img { width: 72px; height: 64px; }
       .section-title h3 { font-size: 21px; }
       footer { flex-direction: column; gap: 5px; }
       .chat-launcher { right: 14px; bottom: 14px; }
@@ -663,9 +772,11 @@
     @media (max-width: 360px) {
       .topbar { padding-right: 8px; padding-left: 8px; }
       .top-actions { gap: 3px; }
-      .language-select { width: 82px; }
-      .account-button { padding: 5px 6px; }
-      .account-button.primary { padding: 6px 7px; }
+      .brand-logo { max-width: 78px; }
+      .sidebar-toggle, .theme-toggle { width: 32px; }
+      .language-select { width: 76px; }
+      .account-button { padding: 4px 5px; font-size: 9px; }
+      .account-button.primary { padding: 5px 6px; }
       .hero h1 { font-size: clamp(34px, 11vw, 39px); }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -681,6 +792,10 @@
     <div class="top-actions">
       <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Show chapters" title="Show chapters" data-i18n-aria="showChapters" data-i18n-title="showChapters" aria-expanded="false" aria-controls="atlasSidebar">
         <span></span><span></span><span></span>
+      </button>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode" aria-pressed="false">
+        <span class="theme-toggle-icon" id="themeToggleIcon" aria-hidden="true">☾</span>
+        <span class="theme-toggle-label" id="themeToggleLabel">Dark</span>
       </button>
       <label class="visually-hidden" for="languageSelect" data-i18n="language">Language</label>
       <select class="language-select" id="languageSelect" aria-label="Language" data-i18n-aria="language">
@@ -749,7 +864,7 @@
           <h3 data-i18n="momentsThatMattered">Moments that mattered</h3>
           <div class="top-actions">
             <button class="editor-link" id="addTimelineButton" type="button" hidden data-i18n="addTimelineEvent">Add timeline event</button>
-            <button class="editor-link" id="addInfoButton" type="button" hidden data-i18n="addInformation">Add information</button>
+            <button class="editor-link" id="editInfoButton" type="button" hidden data-i18n="editInformation">Edit information</button>
             <button class="editor-link" id="deleteEventButton" type="button" hidden data-i18n="deleteEvent">Delete event</button>
           </div>
         </div>
@@ -872,15 +987,19 @@
             <label for="editorNote" data-i18n="addFactNote">Add a fact, source note or reflection</label>
             <textarea id="editorNote" maxlength="1200" placeholder="Add context for future readers…" data-i18n-placeholder="contextPlaceholder"></textarea>
           </div>
+          <div class="field" id="editorFactsField" hidden>
+            <label for="editorFacts" data-i18n="eventFactsLabel">Key facts (one per line, as label | details)</label>
+            <textarea id="editorFacts" maxlength="2400" placeholder="Steam power | Improved engines powered factories and transport." data-i18n-placeholder="eventFactsPlaceholder"></textarea>
+          </div>
           <div class="field">
             <label for="editorSource" data-i18n="sourceOptional">Source, link or citation text (optional)</label>
             <textarea id="editorSource" maxlength="500" placeholder="Paste a web link or type a source/reference…" data-i18n-placeholder="sourcePlaceholder"></textarea>
           </div>
           <div class="field">
-            <label for="editorImage" data-i18n="addImageOptional">Add your own image (optional)</label>
-            <input id="editorImage" type="file" accept="image/*">
+            <label for="editorImages" data-i18n="addImagesOptional">Add supporting images (optional)</label>
+            <input id="editorImages" type="file" accept="image/*" multiple>
             <span class="file-hint" data-i18n="imageFileHint">Image files only, up to 2 MB. Saved locally in this browser.</span>
-            <img class="empty-image-preview" id="imagePreview" alt="Preview of the selected image" data-i18n-alt="imagePreview">
+            <div class="image-editor-list" id="imageEditorList"></div>
           </div>
         </div>
         <div class="field">
@@ -1051,7 +1170,8 @@
       accounts: "history-atlas-demo-accounts-v1",
       session: "history-atlas-demo-session-v1",
       contributions: "history-atlas-contributions-v1",
-      language: "history-atlas-language-v1"
+      language: "history-atlas-language-v1",
+      theme: "history-atlas-theme-v1"
     };
     const imageCache = new Map();
     let heroImageTimer = null;
@@ -1061,10 +1181,18 @@
     let selectedContribution = null;
     let accountMode = "signup";
     let timelineTarget = null;
+    let editingInformationPageId = null;
+    let editingEventId = null;
+    let existingInformationImages = [];
+    const imageFileByCard = new WeakMap();
     const languageOrder = ["en", "zh", "ja", "ko", "ru", "de", "id", "es", "el", "it", "th", "ms", "hi"];
     // Translation values follow languageOrder; event and contribution text intentionally stays as entered.
     const translations = {
       language: ["Language", "语言", "言語", "언어", "Язык", "Sprache", "Bahasa", "Idioma", "Γλώσσα", "Lingua", "ภาษา", "Bahasa", "भाषा"],
+      darkMode: ["Dark", "深色", "ダーク", "다크", "Тёмная", "Dunkel", "Gelap", "Oscuro", "Σκοτεινή", "Scuro", "มืด", "Gelap", "गहरा"],
+      lightMode: ["Light", "浅色", "ライト", "라이트", "Светлая", "Hell", "Cerah", "Claro", "Φωτεινή", "Chiaro", "สว่าง", "Cerah", "हल्का"],
+      switchToDarkMode: ["Switch to dark mode", "切换到深色模式", "ダークモードに切り替え", "다크 모드로 전환", "Переключить на тёмную тему", "Zum dunklen Modus wechseln", "Tukar kepada mod gelap", "Cambiar al modo oscuro", "Εναλλαγή σε σκοτεινή λειτουργία", "Passa alla modalità scura", "เปลี่ยนเป็นโหมดมืด", "Tukar kepada mod gelap", "डार्क मोड पर जाएँ"],
+      switchToLightMode: ["Switch to light mode", "切换到浅色模式", "ライトモードに切り替え", "라이트 모드로 전환", "Переключить на светлую тему", "Zum hellen Modus wechseln", "Tukar kepada mod cerah", "Cambiar al modo claro", "Εναλλαγή σε φωτεινή λειτουργία", "Passa alla modalità chiara", "เปลี่ยนเป็นโหมดสว่าง", "Tukar kepada mod cerah", "लाइट मोड पर जाएँ"],
       hideChapters: ["Hide chapters", "隐藏章节", "章を隠す", "장 숨기기", "Скрыть главы", "Kapitel ausblenden", "Sembunyikan bab", "Ocultar capítulos", "Απόκρυψη κεφαλαίων", "Nascondi capitoli", "ซ่อนบท", "Sembunyikan bab", "अध्याय छिपाएँ"],
       showChapters: ["Show chapters", "显示章节", "章を表示", "장 표시", "Показать главы", "Kapitel anzeigen", "Tampilkan bab", "Mostrar capítulos", "Εμφάνιση κεφαλαίων", "Mostra capitoli", "แสดงบท", "Paparkan bab", "अध्याय दिखाएँ"],
       chooseEvent: ["Choose a historical event", "选择一个历史事件", "歴史上の出来事を選択", "역사적 사건 선택", "Выберите историческое событие", "Historisches Ereignis auswählen", "Pilih peristiwa sejarah", "Elige un acontecimiento histórico", "Επιλέξτε ένα ιστορικό γεγονός", "Scegli un evento storico", "เลือกเหตุการณ์ทางประวัติศาสตร์", "Pilih peristiwa sejarah", "ऐतिहासिक घटना चुनें"],
@@ -1124,7 +1252,12 @@
       contributeChapter: ["Contribute to this chapter", "为本章贡献内容", "この章に投稿", "이 장에 기여하기", "Добавить материал в эту главу", "Zu diesem Kapitel beitragen", "Sumbang kepada bab ini", "Contribuir a este capítulo", "Συνεισφέρετε σε αυτό το κεφάλαιο", "Contribuisci a questo capitolo", "ร่วมให้ข้อมูลในบทนี้", "Sumbang kepada bab ini", "इस अध्याय में योगदान दें"],
       createIndependentEntry: ["Create an independent historical entry", "创建独立历史条目", "独立した歴史記事を作成", "독립 역사 항목 만들기", "Создать отдельную историческую статью", "Eigenständigen historischen Eintrag erstellen", "Cipta entri sejarah bebas", "Crear una entrada histórica independiente", "Δημιουργία ανεξάρτητης ιστορικής καταχώρισης", "Crea una voce storica indipendente", "สร้างรายการประวัติศาสตร์อิสระ", "Cipta entri sejarah bebas", "स्वतंत्र ऐतिहासिक प्रविष्टि बनाएँ"],
       atlasEditor: ["Atlas editor", "历史图册编辑器", "アトラス編集", "아틀라스 편집기", "Редактор атласа", "Atlas-Editor", "Editor atlas", "Editor del atlas", "Επεξεργαστής άτλαντα", "Editor dell'atlante", "ตัวแก้ไขแอตลาส", "Editor atlas", "एटलस संपादक"],
-      contributionPrivacy: ["Your notes and image are saved in this browser only. Contributions are not published or shared with other visitors.", "你的笔记和图片仅保存在此浏览器中。贡献内容不会发布或与其他访客共享。", "メモと画像はこのブラウザー内だけに保存されます。投稿内容は公開されたり、他の訪問者と共有されたりしません。", "메모와 이미지는 이 브라우저에만 저장됩니다. 기여 내용은 게시되거나 다른 방문자와 공유되지 않습니다.", "Заметки и изображения хранятся только в этом браузере. Материалы не публикуются и не передаются другим посетителям.", "Deine Notizen und Bilder werden nur in diesem Browser gespeichert. Beiträge werden nicht veröffentlicht oder mit anderen Besuchern geteilt.", "Nota dan imej anda disimpan dalam pelayar ini sahaja. Sumbangan tidak diterbitkan atau dikongsi dengan pelawat lain.", "Tus notas e imágenes solo se guardan en este navegador. Las contribuciones no se publican ni se comparten con otros visitantes.", "Οι σημειώσεις και οι εικόνες σας αποθηκεύονται μόνο σε αυτό το πρόγραμμα περιήγησης. Οι συνεισφορές δεν δημοσιεύονται ούτε κοινοποιούνται.", "Le tue note e immagini vengono salvate solo in questo browser. I contributi non vengono pubblicati né condivisi.", "บันทึกและรูปภาพจะเก็บไว้ในเบราว์เซอร์นี้เท่านั้น ข้อมูลที่ส่งมาจะไม่เผยแพร่หรือแชร์กับผู้เข้าชมคนอื่น", "Nota dan imej anda disimpan dalam pelayar ini sahaja. Sumbangan tidak diterbitkan atau dikongsi dengan pelawat lain.", "आपके नोट और चित्र केवल इस ब्राउज़र में सहेजे जाते हैं। योगदान प्रकाशित या अन्य आगंतुकों के साथ साझा नहीं किए जाते।"],
+      editInformation: ["Edit information", "编辑信息", "情報を編集", "정보 편집", "Изменить информацию", "Information bearbeiten", "Edit maklumat", "Editar información", "Επεξεργασία πληροφοριών", "Modifica informazioni", "แก้ไขข้อมูล", "Edit maklumat", "जानकारी संपादित करें"],
+      contributionPrivacy: ["Your notes and images are saved in this browser only. Contributions are not published or shared with other visitors.", "你的笔记和图片仅保存在此浏览器中。贡献内容不会发布或与其他访客共享。", "メモと画像はこのブラウザー内だけに保存されます。投稿内容は公開されたり、他の訪問者と共有されたりしません。", "메모와 이미지는 이 브라우저에만 저장됩니다. 기여 내용은 게시되거나 다른 방문자와 공유되지 않습니다.", "Заметки и изображения хранятся только в этом браузере. Материалы не публикуются и не передаются другим посетителям.", "Deine Notizen und Bilder werden nur in diesem Browser gespeichert. Beiträge werden nicht veröffentlicht oder mit anderen Besuchern geteilt.", "Nota dan imej anda disimpan dalam pelayar ini sahaja. Sumbangan tidak diterbitkan atau dikongsi dengan pelawat lain.", "Tus notas e imágenes solo se guardan en este navegador. Las contribuciones no se publican ni se comparten con otros visitantes.", "Οι σημειώσεις και οι εικόνες σας αποθηκεύονται μόνο σε αυτό το πρόγραμμα περιήγησης. Οι συνεισφορές δεν δημοσιεύονται ούτε κοινοποιούνται.", "Le tue note e immagini vengono salvate solo in questo browser. I contributi non vengono pubblicati né condivisi.", "บันทึกและรูปภาพจะเก็บไว้ในเบราว์เซอร์นี้เท่านั้น ข้อมูลที่ส่งมาจะไม่เผยแพร่หรือแชร์กับผู้เข้าชมคนอื่น", "Nota dan imej anda disimpan dalam pelayar ini sahaja. Sumbangan tidak diterbitkan atau dikongsi dengan pelawat lain.", "आपके नोट और चित्र केवल इस ब्राउज़र में सहेजे जाते हैं। योगदान प्रकाशित या अन्य आगंतुकों के साथ साझा नहीं किए जाते।"],
+      eventFactsLabel: ["Key facts (one per line: label | details)", "重要事实（每行一项：标签 | 详情）", "重要な事実（1行に1項目：ラベル | 詳細）", "주요 사실 (한 줄에 하나: 레이블 | 세부 정보)", "Ключевые факты (по одному в строке: название | описание)", "Wichtige Fakten (eine pro Zeile: Bezeichnung | Details)", "Fakta utama (satu setiap baris: label | butiran)", "Datos clave (uno por línea: etiqueta | detalles)", "Βασικά στοιχεία (ένα ανά γραμμή: ετικέτα | λεπτομέρειες)", "Fatti chiave (uno per riga: etichetta | dettagli)", "ข้อเท็จจริงสำคัญ (บรรทัดละหนึ่งรายการ: ป้ายกำกับ | รายละเอียด)", "Fakta utama (satu setiap baris: label | butiran)", "मुख्य तथ्य (प्रति पंक्ति एक: लेबल | विवरण)"],
+      eventFactsPlaceholder: ["Steam power | Improved engines powered factories and transport.", "蒸汽动力 | 改良后的发动机为工厂和交通运输提供动力。", "蒸気動力 | 改良されたエンジンが工場や交通機関を動かした。", "증기 동력 | 개선된 엔진은 공장과 운송 수단을 움직였습니다.", "Паровая энергия | Усовершенствованные двигатели приводили в действие фабрики и транспорт.", "Dampfkraft | Verbesserte Motoren trieben Fabriken und Verkehr an.", "Kuasa wap | Enjin yang ditambah baik menggerakkan kilang dan pengangkutan.", "Energía de vapor | Los motores mejorados impulsaron fábricas y transportes.", "Ατμός | Οι βελτιωμένες μηχανές τροφοδότησαν εργοστάσια και μεταφορές.", "Energia a vapore | Motori migliorati alimentarono fabbriche e trasporti.", "พลังไอน้ำ | เครื่องยนต์ที่พัฒนาขึ้นช่วยขับเคลื่อนโรงงานและการขนส่ง", "Kuasa wap | Enjin yang ditambah baik menggerakkan kilang dan pengangkutan.", "भाप शक्ति | बेहतर इंजनों ने कारखानों और परिवहन को चलाया।"],
+      dates: ["Dates", "日期", "日付", "날짜", "Даты", "Daten", "Tarikh", "Fechas", "Ημερομηνίες", "Date", "วันที่", "Tarikh", "तिथियाँ"],
+      eventSummaryLabel: ["Summary", "摘要", "概要", "요약", "Краткое описание", "Zusammenfassung", "Ringkasan", "Resumen", "Περίληψη", "Riepilogo", "สรุป", "Ringkasan", "सारांश"],
       title: ["Title", "标题", "タイトル", "제목", "Название", "Titel", "Tajuk", "Título", "Τίτλος", "Titolo", "ชื่อเรื่อง", "Tajuk", "शीर्षक"],
       informationTitlePlaceholder: ["Give this information a title", "为此信息添加标题", "この情報にタイトルを付ける", "이 정보의 제목을 입력하세요", "Укажите название этой информации", "Gib dieser Information einen Titel", "Berikan tajuk untuk maklumat ini", "Pon un título a esta información", "Δώστε τίτλο σε αυτές τις πληροφορίες", "Dai un titolo a queste informazioni", "ตั้งชื่อข้อมูลนี้", "Berikan tajuk untuk maklumat ini", "इस जानकारी को शीर्षक दें"],
       category: ["Category", "类别", "カテゴリー", "분류", "Категория", "Kategorie", "Kategori", "Categoría", "Κατηγορία", "Categoria", "หมวดหมู่", "Kategori", "श्रेणी"],
@@ -1138,9 +1271,11 @@
       contextPlaceholder: ["Add context for future readers…", "为未来读者补充背景…", "後から読む人のために背景を追加…", "나중에 읽을 사람을 위해 맥락을 추가하세요…", "Добавьте контекст для будущих читателей…", "Füge Kontext für zukünftige Leser hinzu …", "Tambah konteks untuk pembaca akan datang…", "Añade contexto para futuros lectores…", "Προσθέστε πλαίσιο για μελλοντικούς αναγνώστες…", "Aggiungi un contesto per i lettori futuri…", "เพิ่มบริบทสำหรับผู้อ่านในอนาคต…", "Tambah konteks untuk pembaca akan datang…", "आगे के पाठकों के लिए संदर्भ जोड़ें…"],
       sourceOptional: ["Source, link or citation text (optional)", "来源、链接或引用文字（可选）", "出典、リンク、または引用文（任意）", "출처, 링크 또는 인용문 (선택 사항)", "Источник, ссылка или текст цитаты (необязательно)", "Quelle, Link oder Zitat (optional)", "Sumber, pautan atau teks petikan (pilihan)", "Fuente, enlace o cita (opcional)", "Πηγή, σύνδεσμος ή κείμενο παραπομπής (προαιρετικό)", "Fonte, link o testo della citazione (facoltativo)", "แหล่งที่มา ลิงก์ หรือข้อความอ้างอิง (ไม่บังคับ)", "Sumber, pautan atau teks petikan (pilihan)", "स्रोत, लिंक या उद्धरण (वैकल्पिक)"],
       sourcePlaceholder: ["Paste a web link or type a source/reference…", "粘贴网页链接或输入来源/参考资料…", "ウェブリンクを貼り付けるか、出典・参考資料を入力…", "웹 링크를 붙여 넣거나 출처/참고 자료를 입력하세요…", "Вставьте ссылку или укажите источник/литературу…", "Füge einen Weblink ein oder gib eine Quelle an …", "Tampal pautan web atau taip sumber/rujukan…", "Pega un enlace web o escribe una fuente o referencia…", "Επικολλήστε σύνδεσμο ή πληκτρολογήστε πηγή/αναφορά…", "Incolla un link o digita una fonte/riferimento…", "วางลิงก์เว็บหรือพิมพ์แหล่งอ้างอิง…", "Tampal pautan web atau taip sumber/rujukan…", "वेब लिंक चिपकाएँ या स्रोत/संदर्भ लिखें…"],
-      addImageOptional: ["Add your own image (optional)", "添加自己的图片（可选）", "画像を追加（任意）", "이미지 추가 (선택 사항)", "Добавить изображение (необязательно)", "Eigenes Bild hinzufügen (optional)", "Tambah imej sendiri (pilihan)", "Añadir tu propia imagen (opcional)", "Προσθήκη δικής σας εικόνας (προαιρετικό)", "Aggiungi la tua immagine (facoltativo)", "เพิ่มรูปภาพของคุณ (ไม่บังคับ)", "Tambah imej sendiri (pilihan)", "अपना चित्र जोड़ें (वैकल्पिक)"],
-      imageFileHint: ["Image files only, up to 2 MB. Saved locally in this browser.", "仅限图片文件，最大2 MB。保存在此浏览器中。", "画像ファイルのみ、最大2 MB。このブラウザー内に保存されます。", "이미지 파일만 가능하며 최대 2MB입니다. 이 브라우저에 저장됩니다.", "Только изображения размером до 2 МБ. Сохраняются в этом браузере.", "Nur Bilddateien bis 2 MB. Speicherung erfolgt lokal in diesem Browser.", "Fail imej sahaja, sehingga 2 MB. Disimpan secara setempat dalam pelayar ini.", "Solo archivos de imagen, hasta 2 MB. Se guardan localmente en este navegador.", "Μόνο αρχεία εικόνας έως 2 MB. Αποθηκεύονται τοπικά σε αυτό το πρόγραμμα περιήγησης.", "Solo immagini fino a 2 MB. Salvate localmente in questo browser.", "ไฟล์รูปภาพเท่านั้น ขนาดไม่เกิน 2 MB บันทึกไว้ในเบราว์เซอร์นี้", "Fail imej sahaja, sehingga 2 MB. Disimpan secara setempat dalam pelayar ini.", "केवल 2 MB तक की छवि फ़ाइलें। इसी ब्राउज़र में स्थानीय रूप से सहेजी जाएँगी।"],
-      imagePreview: ["Preview of the selected image", "所选图片预览", "選択した画像のプレビュー", "선택한 이미지 미리보기", "Предпросмотр выбранного изображения", "Vorschau des ausgewählten Bildes", "Pratonton imej yang dipilih", "Vista previa de la imagen seleccionada", "Προεπισκόπηση επιλεγμένης εικόνας", "Anteprima dell'immagine selezionata", "ตัวอย่างรูปภาพที่เลือก", "Pratonton imej yang dipilih", "चुने गए चित्र का पूर्वावलोकन"],
+      addImagesOptional: ["Add supporting images (optional)", "添加支持图片（可选）", "補足画像を追加（任意）", "보조 이미지 추가 (선택 사항)", "Добавить иллюстрации (необязательно)", "Unterstützende Bilder hinzufügen (optional)", "Tambah imej sokongan (pilihan)", "Añadir imágenes de apoyo (opcional)", "Προσθήκη υποστηρικτικών εικόνων (προαιρετικό)", "Aggiungi immagini di supporto (facoltativo)", "เพิ่มภาพประกอบ (ไม่บังคับ)", "Tambah imej sokongan (pilihan)", "जुड़े हुए चित्र जोड़ें (वैकल्पिक)"],
+      imageInformation: ["Information about this image (optional)", "图片说明（可选）", "この画像の説明（任意）", "이 이미지에 대한 설명 (선택 사항)", "Описание изображения (необязательно)", "Informationen zu diesem Bild (optional)", "Maklumat tentang imej ini (pilihan)", "Información sobre esta imagen (opcional)", "Πληροφορίες για αυτήν την εικόνα (προαιρετικό)", "Informazioni sull'immagine (facoltativo)", "ข้อมูลเกี่ยวกับภาพนี้ (ไม่บังคับ)", "Maklumat tentang imej ini (pilihan)", "इस चित्र के बारे में जानकारी (वैकल्पिक)"],
+      imageInformationPlaceholder: ["Add a caption or supporting information…", "添加图片说明或补充信息…", "キャプションや補足情報を追加…", "캡션 또는 추가 설명을 입력하세요…", "Добавьте подпись или пояснение…", "Füge eine Bildunterschrift oder zusätzliche Informationen hinzu …", "Tambah kapsyen atau maklumat sokongan…", "Añade un pie de foto o información complementaria…", "Προσθέστε λεζάντα ή συμπληρωματικές πληροφορίες…", "Aggiungi una didascalia o informazioni aggiuntive…", "เพิ่มคำบรรยายหรือข้อมูลประกอบ…", "Tambah kapsyen atau maklumat sokongan…", "शीर्षक या अतिरिक्त जानकारी जोड़ें…"],
+      removeImage: ["Remove this image", "移除此图片", "この画像を削除", "이 이미지 삭제", "Удалить изображение", "Dieses Bild entfernen", "Alih keluar imej ini", "Quitar esta imagen", "Αφαίρεση αυτής της εικόνας", "Rimuovi questa immagine", "ลบภาพนี้", "Alih keluar imej ini", "यह चित्र हटाएँ"],
+      imageFileHint: ["Image files only, up to 2 MB each. Saved locally in this browser.", "仅限图片文件，每个最大2 MB。保存在此浏览器中。", "画像ファイルのみ、各最大2 MB。このブラウザー内に保存されます。", "이미지 파일만 가능하며 각 파일은 최대 2MB입니다. 이 브라우저에 저장됩니다.", "Только изображения размером до 2 МБ каждое. Сохраняются в этом браузере.", "Nur Bilddateien bis 2 MB pro Bild. Speicherung erfolgt lokal in diesem Browser.", "Fail imej sahaja, sehingga 2 MB setiap satu. Disimpan secara setempat dalam pelayar ini.", "Solo archivos de imagen, hasta 2 MB cada uno. Se guardan localmente en este navegador.", "Μόνο αρχεία εικόνας έως 2 MB το καθένα. Αποθηκεύονται τοπικά σε αυτό το πρόγραμμα περιήγησης.", "Solo immagini fino a 2 MB ciascuna. Salvate localmente in questo browser.", "ไฟล์รูปภาพเท่านั้น ไม่เกิน 2 MB ต่อไฟล์ บันทึกไว้ในเบราว์เซอร์นี้", "Fail imej sahaja, sehingga 2 MB setiap satu. Disimpan secara setempat dalam pelayar ini.", "केवल 2 MB तक की चित्र फ़ाइलें। इसी ब्राउज़र में स्थानीय रूप से सहेजी जाएँगी।"],
       timelineOptional: ["Timeline events (optional)", "时间线事件（可选）", "年表の出来事（任意）", "타임라인 사건 (선택 사항)", "События хронологии (необязательно)", "Zeitleistenereignisse (optional)", "Peristiwa garis masa (pilihan)", "Eventos de la cronología (opcional)", "Γεγονότα χρονολογίου (προαιρετικό)", "Eventi della cronologia (facoltativo)", "เหตุการณ์ในเส้นเวลา (ไม่บังคับ)", "Peristiwa garis masa (pilihan)", "समयरेखा की घटनाएँ (वैकल्पिक)"],
       timelineHelp: ["Add dated moments to this page. Timeline events are shown in date order.", "为此页面添加日期事件。时间线事件将按日期排序。", "このページに日付付きの出来事を追加します。年表は日付順に表示されます。", "이 페이지에 날짜가 있는 순간을 추가하세요. 타임라인은 날짜순으로 표시됩니다.", "Добавьте события с датами. Они будут расположены в хронологическом порядке.", "Füge datierte Ereignisse hinzu. Sie werden chronologisch angezeigt.", "Tambah peristiwa bertarikh pada halaman ini. Peristiwa dipaparkan mengikut tarikh.", "Añade momentos con fecha. Los eventos se mostrarán en orden cronológico.", "Προσθέστε στιγμές με ημερομηνία. Τα γεγονότα εμφανίζονται χρονολογικά.", "Aggiungi eventi con data. Saranno mostrati in ordine cronologico.", "เพิ่มเหตุการณ์พร้อมวันที่ โดยจะแสดงตามลำดับเวลา", "Tambah peristiwa bertarikh pada halaman ini. Peristiwa dipaparkan mengikut tarikh.", "इस पृष्ठ पर तारीख़ वाले पल जोड़ें। घटनाएँ तारीख़ के क्रम में दिखाई जाएँगी।"],
       saveThisBrowser: ["Save to this browser", "保存到此浏览器", "このブラウザーに保存", "이 브라우저에 저장", "Сохранить в этом браузере", "In diesem Browser speichern", "Simpan dalam pelayar ini", "Guardar en este navegador", "Αποθήκευση σε αυτό το πρόγραμμα περιήγησης", "Salva in questo browser", "บันทึกในเบราว์เซอร์นี้", "Simpan dalam pelayar ini", "इस ब्राउज़र में सहेजें"],
@@ -1168,6 +1303,7 @@
       communityNote: ["Community note", "社区笔记", "コミュニティのメモ", "커뮤니티 메모", "Заметка сообщества", "Community-Notiz", "Catatan komuniti", "Nota de la comunidad", "Σημείωση κοινότητας", "Nota della comunità", "บันทึกจากชุมชน", "Catatan komuniti", "समुदाय का नोट"]
     };
     const languageSelect = document.getElementById("languageSelect");
+    const themeToggle = document.getElementById("themeToggle");
     let currentLanguage = "en";
 
     function t(key) {
@@ -1194,12 +1330,39 @@
       });
     }
 
+    function updateThemeToggle() {
+      const isDark = document.documentElement.dataset.theme === "dark";
+      const labelKey = isDark ? "lightMode" : "darkMode";
+      const actionKey = isDark ? "switchToLightMode" : "switchToDarkMode";
+      themeToggle.setAttribute("aria-pressed", String(isDark));
+      themeToggle.setAttribute("aria-label", t(actionKey));
+      themeToggle.title = t(actionKey);
+      document.getElementById("themeToggleIcon").textContent = isDark ? "☀" : "☾";
+      document.getElementById("themeToggleLabel").textContent = t(labelKey);
+      document.querySelector('meta[name="theme-color"]').content = isDark ? "#171916" : "#f4f1eb";
+    }
+
+    function setTheme(theme, persist = true) {
+      document.documentElement.dataset.theme = theme;
+      updateThemeToggle();
+      if (!persist) return;
+      try {
+        localStorage.setItem(storageKeys.theme, theme);
+      } catch (error) {
+        console.error("Could not save the selected color theme in this browser.", error);
+      }
+    }
+    themeToggle.addEventListener("click", () => {
+      setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+    });
+
     function setLanguage(language) {
       if (!languageOrder.includes(language)) throw new Error(`Unsupported Atlas language: ${language}`);
       currentLanguage = language;
       languageSelect.value = language;
       document.documentElement.lang = language === "zh" ? "zh-CN" : language;
       translateUI();
+      updateThemeToggle();
       const sidebarLabel = t(sidebarToggle.getAttribute("aria-expanded") === "true" ? "hideChapters" : "showChapters");
       sidebarToggle.setAttribute("aria-label", sidebarLabel);
       sidebarToggle.title = sidebarLabel;
@@ -1222,12 +1385,13 @@
     languageSelect.value = currentLanguage;
     document.documentElement.lang = currentLanguage === "zh" ? "zh-CN" : currentLanguage;
     translateUI();
+    updateThemeToggle();
 
     const eventList = document.getElementById("eventList");
     const hero = document.getElementById("hero");
     const heroCredit = document.getElementById("heroCredit");
     const editorButton = document.getElementById("editorButton");
-    const addInfoButton = document.getElementById("addInfoButton");
+    const editInfoButton = document.getElementById("editInfoButton");
     const addTimelineButton = document.getElementById("addTimelineButton");
     const deleteEventButton = document.getElementById("deleteEventButton");
     const heroImageLayers = [...document.querySelectorAll(".hero-image-layer")];
@@ -1262,7 +1426,7 @@
       document.getElementById("loginButton").hidden = Boolean(email);
       document.getElementById("signupButton").hidden = Boolean(email);
       editorButton.hidden = !email;
-      addInfoButton.hidden = !email;
+      editInfoButton.hidden = !email || (!selectedContribution && !selectedEvent);
       deleteEventButton.hidden = !email || (!selectedContribution && !selectedEvent);
       updateTimelineControls();
       editorButton.textContent = t("editAtlas");
@@ -1272,9 +1436,10 @@
       const timeline = document.getElementById("eventTimeline");
       const hasMoments = timeline.children.length > 0;
       document.getElementById("timelineHeading").hidden =
-        !hasMoments && (!selectedContribution || !currentUser());
+        !hasMoments && (!currentUser() || (!selectedContribution && !selectedEvent));
       timeline.hidden = !hasMoments;
       addTimelineButton.hidden = !currentUser() || !selectedEvent;
+      editInfoButton.hidden = !currentUser() || (!selectedContribution && !selectedEvent);
       deleteEventButton.hidden = !currentUser() || (!selectedContribution && !selectedEvent);
     }
 
@@ -1282,8 +1447,8 @@
       const contributions = readJson(storageKeys.contributions, {});
       const informationPages = collectInformationPages(contributions);
       const navigationItems = availableEvents().map(event => ({
-        year: firstYear(event.dates),
-        name: event.name,
+        year: incidentYear(getEventDetails(event).dates),
+        name: getEventDetails(event).name,
         eventId: event.id,
         type: "event"
       }));
@@ -1337,6 +1502,12 @@
         });
       }
       return pages;
+    }
+
+    function getEventDetails(event) {
+      if (!event) return null;
+      const overrides = readJson(storageKeys.contributions, {})[event.id]?.eventDetails;
+      return overrides ? { ...event, ...overrides, id: event.id, related: event.related, page: event.page } : event;
     }
 
     function selectContribution(pageId) {
@@ -1408,13 +1579,22 @@
 
     function renderContributions() {
       const all = readJson(storageKeys.contributions, {});
-      const contributions = all[selectedEvent.id] || { notes: [], images: [], incidents: [] };
+      const storedContributions = all[selectedEvent.id] || {};
+      const contributions = {
+        ...storedContributions,
+        notes: Array.isArray(storedContributions.notes) ? storedContributions.notes : [],
+        images: Array.isArray(storedContributions.images) ? storedContributions.images : [],
+        incidents: Array.isArray(storedContributions.incidents) ? storedContributions.incidents : []
+      };
       const communitySection = document.getElementById("communitySection");
       const userNotes = document.getElementById("userNotes");
       const userGallery = document.getElementById("userGallery");
       const incidents = contributions.incidents || [];
       const notes = contributions.notes;
-      const images = contributions.images;
+      const eventImages = Array.isArray(all[selectedEvent.id]?.eventDetails?.images)
+        ? all[selectedEvent.id].eventDetails.images
+        : [];
+      const images = [...contributions.images, ...eventImages];
       const sidebarContributions = document.getElementById("sidebarContributions");
       const sidebarContributionList = document.getElementById("sidebarContributionList");
       const sidebarItems = [
@@ -1436,13 +1616,13 @@
           markup: `<article class="sidebar-contribution"><strong>${escapeHtml(image.name)}</strong><img src="${escapeHtml(image.data)}" alt="${escapeHtml(image.name)}"></article>`
         }))
       ].sort((first, second) => first.year - second.year).map(item => item.markup);
-      document.getElementById("sidebarContributionHeading").textContent = `${t("addedInformation")} · ${selectedEvent.name}`;
+      document.getElementById("sidebarContributionHeading").textContent = `${t("addedInformation")} · ${getEventDetails(selectedEvent).name}`;
       sidebarContributions.hidden = sidebarItems.length === 0;
       sidebarContributionList.innerHTML = sidebarItems.join("");
       communitySection.hidden = notes.length === 0;
       userNotes.innerHTML = notes.map(note => `<div class="user-note">${escapeHtml(note)}</div>`).join("");
       userGallery.innerHTML = images.map(image =>
-        `<img src="${escapeHtml(image.data)}" alt="${escapeHtml(image.name)}" title="${escapeHtml(image.name)}">`
+        `<figure class="user-gallery-item"><img src="${escapeHtml(image.data)}" alt="${escapeHtml(image.name)}" title="${escapeHtml(image.name)}"><figcaption><strong>${escapeHtml(image.name)}</strong>${image.description ? `<br>${escapeHtml(image.description)}` : ""}</figcaption></figure>`
       ).join("");
       document.getElementById("communityIncidentsSection").hidden = incidents.length === 0;
       document.getElementById("communityIncidents").innerHTML = incidents.slice().sort((first, second) =>
@@ -1475,7 +1655,7 @@
         layer.style.backgroundImage = "";
       });
       const renderVersion = ++heroRenderVersion;
-      const event = selectedEvent;
+      const event = selectedEvent ? getEventDetails(selectedEvent) : null;
       const contribution = selectedContribution?.entry;
       if (!event && !contribution) {
         document.getElementById("eventCategory").textContent = "";
@@ -1536,18 +1716,27 @@
       const communityIncidentsSection = document.getElementById("communityIncidentsSection");
       const userGallery = document.getElementById("userGallery");
       if (contribution) {
-        const backgroundImage = contribution.image?.data || fallbackImage(contribution.title, selectedContribution.index);
+        const supportingImages = Array.isArray(contribution.images)
+          ? contribution.images
+          : contribution.image ? [contribution.image] : [];
+        const leadImage = supportingImages[0];
+        const backgroundImage = leadImage?.data || fallbackImage(contribution.title, selectedContribution.index);
         hero.style.backgroundImage = `linear-gradient(180deg, rgba(23,24,21,.2), rgba(23,24,21,.64)), url("${backgroundImage}")`;
-        heroCredit.href = contribution.image?.data || "#event-detail";
-        heroCredit.textContent = contribution.image
-          ? `${t("imageLabel")} ${contribution.image.name}`
+        heroCredit.href = leadImage?.data || "#event-detail";
+        heroCredit.textContent = leadImage
+          ? `${t("imageLabel")} ${leadImage.name}`
           : t("communitySubmittedEntry");
         communitySection.hidden = true;
         communityIncidentsSection.hidden = true;
         userGallery.hidden = true;
         document.getElementById("sidebarContributions").hidden = true;
-        galleryHeading.hidden = true;
-        gallery.innerHTML = "";
+        galleryHeading.hidden = supportingImages.length === 0;
+        gallery.innerHTML = supportingImages.map(image =>
+          `<figure class="gallery-card">
+            <img class="gallery-image" src="${escapeHtml(image.data)}" alt="${escapeHtml(image.name)}">
+            <figcaption><strong>${escapeHtml(image.name)}</strong>${image.description ? `<br>${escapeHtml(image.description)}` : ""}</figcaption>
+          </figure>`
+        ).join("");
         return;
       }
       communitySection.hidden = false;
@@ -1556,12 +1745,13 @@
       heroCredit.href = wikiUrl(event.page);
       heroCredit.textContent = `${t("imageAndOverview")} ${event.name}`;
       galleryHeading.hidden = false;
+      const eventIndex = events.findIndex(candidate => candidate.id === event.id);
       gallery.innerHTML = [0, 1].map(index =>
-        `<figure class="gallery-card"><img class="gallery-image" src="${fallbackImage(event.name, events.indexOf(event) + index)}" alt="${escapeHtml(event.name)} historical illustration"><figcaption>${escapeHtml(t("loadingArchivalImage"))}</figcaption></figure>`
+        `<figure class="gallery-card"><img class="gallery-image" src="${fallbackImage(event.name, eventIndex + index)}" alt="${escapeHtml(event.name)} historical illustration"><figcaption>${escapeHtml(t("loadingArchivalImage"))}</figcaption></figure>`
       ).join("");
 
       const images = await loadEventImages(event);
-      if (renderVersion !== heroRenderVersion || event !== selectedEvent || contribution !== selectedContribution?.entry) return;
+      if (renderVersion !== heroRenderVersion || event.id !== selectedEvent?.id || contribution !== selectedContribution?.entry) return;
       let imageIndex = 0;
       let activeLayerIndex = -1;
       const showHeroImage = () => {
@@ -1603,6 +1793,11 @@
 
     function closeModal(id) {
       document.getElementById(id).classList.remove("open");
+      if (id === "editorModal") {
+        clearImageEditorList();
+        editingInformationPageId = null;
+        editingEventId = null;
+      }
     }
 
     function setAccountMode(mode) {
@@ -1622,25 +1817,65 @@
       openModal("accountModal");
     }
 
-    function openEditor() {
+    function openEditor(pageId = null, eventId = null) {
       if (!currentUser()) {
         setAccountMode("signup");
         openAccount();
         document.getElementById("accountError").textContent = "Create a demo account to open the editor.";
         return;
       }
-      document.getElementById("editorChapterName").textContent = t("createIndependentEntry");
-      document.getElementById("editorContributionTitle").value = "";
-      regionSelect.value = "";
-      topicSelect.value = "";
-      document.getElementById("editorIncidentDate").value = "";
-      document.getElementById("editorNote").value = "";
-      document.getElementById("editorSource").value = "";
+      editingInformationPageId = pageId;
+      editingEventId = eventId;
+      clearImageEditorList();
       document.getElementById("pageTimelineList").replaceChildren();
-      document.getElementById("editorImage").value = "";
-      document.getElementById("imagePreview").removeAttribute("src");
-      document.getElementById("imagePreview").style.display = "none";
+      document.getElementById("editorImages").value = "";
       document.getElementById("editorError").textContent = "";
+      const all = readJson(storageKeys.contributions, {});
+      const page = pageId
+        ? collectInformationPages(all).find(entry => entry.id === pageId)
+        : null;
+      const event = eventId ? events.find(entry => entry.id === eventId) : null;
+      const eventDetails = event ? getEventDetails(event) : null;
+      if (pageId && !page) {
+        console.error(`Could not find information page ${pageId} to edit.`);
+        return;
+      }
+      if (eventId && !event) {
+        console.error(`Could not find historical event ${eventId} to edit.`);
+        return;
+      }
+      document.getElementById("editorChapterName").textContent = eventDetails?.name || t("createIndependentEntry");
+      document.getElementById("editorTitle").textContent = page || event ? t("editInformation") : t("atlasEditor");
+      document.getElementById("editorContributionTitle").value = page?.title || eventDetails?.name || "";
+      const [region, topic] = String(page?.category || eventDetails?.category || "").split(" · ");
+      regionSelect.value = region || "";
+      topicSelect.value = topic || "";
+      document.getElementById("editorIncidentDate").value = page?.date || eventDetails?.dates || "";
+      document.getElementById("editorNote").value = page?.description || eventDetails?.summary || "";
+      document.getElementById("editorSource").value = page?.source || eventDetails?.source || "";
+      const factsField = document.getElementById("editorFactsField");
+      factsField.hidden = !event;
+      document.getElementById("editorFacts").value = event
+        ? (eventDetails.facts || []).map(([label, detail]) => `${label} | ${detail}`).join("\n")
+        : "";
+      const dateLabel = document.querySelector('label[for="editorIncidentDate"]');
+      dateLabel.dataset.i18n = event ? "dates" : "incidentDate";
+      dateLabel.textContent = t(dateLabel.dataset.i18n);
+      const summaryLabel = document.querySelector('label[for="editorNote"]');
+      summaryLabel.dataset.i18n = event ? "eventSummaryLabel" : "addFactNote";
+      summaryLabel.textContent = t(summaryLabel.dataset.i18n);
+      document.getElementById("pageTimelineList").innerHTML = "";
+      const existingEventTimeline = event
+        ? [...(eventDetails.moments || []).map(([date, description]) => ({ date, description })),
+          ...(all.eventTimelines?.[event.id] || [])]
+        : [];
+      const timelineEntries = page?.timeline || existingEventTimeline;
+      timelineEntries.forEach(entry => addTimelineEntryWithValues("pageTimelineList", entry));
+      existingInformationImages = Array.isArray(page?.images)
+        ? page.images.slice()
+        : page?.image ? [page.image]
+          : Array.isArray(eventDetails?.images) ? eventDetails.images.slice() : [];
+      existingInformationImages.forEach((image, index) => appendImageEditorCard(image, null, index));
       document.getElementById("editorForm").classList.add("visible");
       openModal("editorModal");
     }
@@ -1653,15 +1888,18 @@
       setAccountMode("signup");
       openAccount();
     });
-    editorButton.addEventListener("click", openEditor);
-    addInfoButton.addEventListener("click", openEditor);
+    editorButton.addEventListener("click", () => openEditor());
+    editInfoButton.addEventListener("click", () => {
+      if (selectedContribution) openEditor(selectedContribution.id);
+      else if (selectedEvent) openEditor(null, selectedEvent.id);
+    });
     deleteEventButton.addEventListener("click", () => {
       if (!selectedContribution && !selectedEvent) {
         console.error("Cannot delete an event because no event is selected.");
         return;
       }
       const deletingContribution = Boolean(selectedContribution);
-      const title = selectedContribution?.entry.title || selectedEvent.name;
+      const title = selectedContribution?.entry.title || getEventDetails(selectedEvent).name;
       if (!window.confirm(t("confirmDeleteEvent").replace("{title}", title))) return;
 
       const all = readJson(storageKeys.contributions, {});
@@ -1728,7 +1966,7 @@
         contributionId: selectedContribution?.id || null
       };
       document.getElementById("timelineModalChapter").textContent =
-        selectedContribution?.entry.title || selectedEvent.name;
+        selectedContribution?.entry.title || getEventDetails(selectedEvent).name;
       document.getElementById("chapterTimelineList").replaceChildren();
       document.getElementById("timelineError").textContent = "";
       openModal("timelineModal");
@@ -1742,6 +1980,15 @@
     document.getElementById("addPageTimelineButton").addEventListener("click", () => {
       addTimelineEntry(document.getElementById("pageTimelineList"));
     });
+    function addTimelineEntryWithValues(listId, entry) {
+      const container = document.getElementById(listId);
+      const template = document.getElementById("timelineEntryTemplate");
+      container.append(template.content.cloneNode(true));
+      const card = container.lastElementChild;
+      translateUI(card);
+      card.querySelector("[data-timeline-date]").value = entry.date || "";
+      card.querySelector("[data-timeline-description]").value = entry.description || "";
+    }
     document.getElementById("addChapterTimelineButton").addEventListener("click", () => {
       addTimelineEntry(document.getElementById("chapterTimelineList"));
     });
@@ -1799,27 +2046,70 @@
       closeModal("accountModal");
     });
 
-    document.getElementById("editorImage").addEventListener("change", event => {
-      const file = event.target.files?.[0];
-      const preview = document.getElementById("imagePreview");
+    function clearImageEditorList() {
+      const list = document.getElementById("imageEditorList");
+      list.querySelectorAll(".image-editor-card img").forEach(image => {
+        if (image.src.startsWith("blob:")) URL.revokeObjectURL(image.src);
+      });
+      list.replaceChildren();
+      existingInformationImages = [];
+    }
+
+    function appendImageEditorCard(image, file = null, existingIndex = null) {
+      const card = document.createElement("div");
+      card.className = "image-editor-card";
+      if (existingIndex !== null) card.dataset.existingIndex = String(existingIndex);
+      const preview = document.createElement("img");
+      preview.src = file ? URL.createObjectURL(file) : image.data;
+      preview.alt = image.name || file?.name || "";
+      if (file) imageFileByCard.set(card, file);
+
+      const fields = document.createElement("div");
+      fields.className = "image-editor-fields";
+      const name = document.createElement("strong");
+      name.textContent = file?.name || image.name || t("imageLabel");
+      const descriptionId = `image-information-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const label = document.createElement("label");
+      label.htmlFor = descriptionId;
+      label.textContent = t("imageInformation");
+      const description = document.createElement("textarea");
+      description.id = descriptionId;
+      description.maxLength = 500;
+      description.placeholder = t("imageInformationPlaceholder");
+      description.value = image.description || "";
+      fields.append(name, label, description);
+
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "incident-remove image-editor-remove";
+      remove.textContent = t("remove");
+      remove.setAttribute("aria-label", t("removeImage"));
+      remove.addEventListener("click", () => {
+        if (preview.src.startsWith("blob:")) URL.revokeObjectURL(preview.src);
+        card.remove();
+      });
+      card.append(preview, fields, remove);
+      document.getElementById("imageEditorList").append(card);
+    }
+
+    document.getElementById("editorImages").addEventListener("change", event => {
+      const files = [...event.target.files];
       const error = document.getElementById("editorError");
       error.textContent = "";
-      if (!file) {
-        preview.style.display = "none";
-        return;
+      const rejectedFiles = [];
+      for (const file of files) {
+        if (!file.type.startsWith("image/")) {
+          rejectedFiles.push(`${file.name}: choose an image file.`);
+          continue;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+          rejectedFiles.push(`${file.name}: larger than 2 MB.`);
+          continue;
+        }
+        appendImageEditorCard({ name: file.name, description: "" }, file);
       }
-      if (!file.type.startsWith("image/")) {
-        event.target.value = "";
-        error.textContent = "Choose an image file.";
-        return;
-      }
-      if (file.size > 2 * 1024 * 1024) {
-        event.target.value = "";
-        error.textContent = "That image is larger than 2 MB. Choose a smaller file.";
-        return;
-      }
-      preview.src = URL.createObjectURL(file);
-      preview.style.display = "block";
+      if (rejectedFiles.length) error.textContent = rejectedFiles.join(" ");
+      event.target.value = "";
     });
 
     function readImageAsDataUrl(file) {
@@ -1858,14 +2148,22 @@
       const incidentDate = document.getElementById("editorIncidentDate").value.trim();
       const note = document.getElementById("editorNote").value.trim();
       const source = document.getElementById("editorSource").value.trim();
-      const imageFile = document.getElementById("editorImage").files?.[0];
+      const factsText = document.getElementById("editorFacts").value.trim();
+      const imageCards = [...document.querySelectorAll("#imageEditorList .image-editor-card")];
       const timelineEntries = readTimelineEntries("pageTimelineList");
       const hasIncompleteTimelineEntry = timelineEntries.some(entry => {
         const hasContent = entry.date || entry.description;
         return hasContent && (!entry.date || !entry.description);
       });
       const timeline = timelineEntries.filter(entry => entry.date && entry.description);
-      const hasInformation = title || category || incidentDate || note || source || imageFile || timeline.length > 0;
+      const facts = factsText ? factsText.split("\n").map(line => {
+        const separator = line.indexOf("|");
+        return separator === -1
+          ? null
+          : [line.slice(0, separator).trim(), line.slice(separator + 1).trim()];
+      }) : [];
+      const hasInvalidFact = facts.some(fact => !fact || !fact[0] || !fact[1]);
+      const hasInformation = title || category || incidentDate || note || source || factsText || imageCards.length > 0 || timeline.length > 0;
       if (hasInformation && (!title || !category || !incidentDate)) {
         error.textContent = "Add a title, category and the date the incident occurred for this information.";
         return;
@@ -1874,25 +2172,95 @@
         error.textContent = "Complete the date and description for each timeline event, or remove the empty entry.";
         return;
       }
+      if (editingEventId && hasInvalidFact) {
+        error.textContent = "Write each key fact as a label, a vertical bar (|), and its details.";
+        return;
+      }
       if (!hasInformation) {
         error.textContent = "Add a title, category, date, note or image before saving.";
         return;
       }
 
-      const saveContribution = informationImage => {
+      const saveContribution = async () => {
+        const images = await Promise.all(imageCards.map(async card => {
+          const file = imageFileByCard.get(card);
+          const existingIndex = Number(card.dataset.existingIndex);
+          const existingImage = Number.isInteger(existingIndex) ? existingInformationImages[existingIndex] : null;
+          const description = card.querySelector("textarea").value.trim();
+          const data = file ? await readImageAsDataUrl(file) : existingImage?.data;
+          if (!data) throw new Error("An image entry is missing its stored image data.");
+          return {
+            name: file?.name || existingImage?.name || t("imageLabel"),
+            data,
+            description
+          };
+        }));
         const all = readJson(storageKeys.contributions, {});
+        if (editingEventId) {
+          const baseEvent = events.find(event => event.id === editingEventId);
+          if (!baseEvent) {
+            console.error(`Could not find historical event ${editingEventId} to update.`);
+            error.textContent = "This historical event could not be found to update.";
+            return;
+          }
+          const previous = all[editingEventId] || {};
+          all[editingEventId] = {
+            ...previous,
+            eventDetails: {
+              ...(previous.eventDetails || {}),
+              name: title,
+              category,
+              dates: incidentDate,
+              summary: note,
+              source,
+              facts,
+              moments: timeline
+                .sort((first, second) => incidentYear(first.date) - incidentYear(second.date))
+                .map(moment => [moment.date, moment.description]),
+              images
+            }
+          };
+          if (all.eventTimelines) delete all.eventTimelines[editingEventId];
+          try {
+            localStorage.setItem(storageKeys.contributions, JSON.stringify(all));
+          } catch (storageError) {
+            console.error("Could not save this event edit in local browser storage.", storageError);
+            error.textContent = "The browser could not save these changes. Try smaller images or clear some browser storage.";
+            return;
+          }
+          selectedEvent = baseEvent;
+          selectedContribution = null;
+          renderNav();
+          renderEvent();
+          clearImageEditorList();
+          editingEventId = null;
+          closeModal("editorModal");
+          return;
+        }
+        all.informationPages = collectInformationPages(all);
+        const existingIndex = editingInformationPageId
+          ? all.informationPages.findIndex(page => page.id === editingInformationPageId)
+          : -1;
+        if (editingInformationPageId && existingIndex === -1) {
+          console.error(`Could not find information page ${editingInformationPageId} to update.`);
+          error.textContent = "This information could not be found to update. Close the editor and try again.";
+          return;
+        }
+        const id = editingInformationPageId || `page-${Date.now()}-${Math.random().toString(36).slice(2)}`;
         const savedInformation = {
-          id: `page-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+          ...(existingIndex === -1 ? {} : all.informationPages[existingIndex]),
+          id,
           title,
           category,
           date: incidentDate,
           description: note,
           source,
           timeline: timeline.sort((first, second) => incidentYear(first.date) - incidentYear(second.date)),
-          image: informationImage ? { name: imageFile.name, data: informationImage } : null
+          images,
+          image: images[0] || null
         };
-        all.informationPages = collectInformationPages(all);
-        all.informationPages.push(savedInformation);
+        if (existingIndex === -1) all.informationPages.push(savedInformation);
+        else all.informationPages[existingIndex] = savedInformation;
         for (const event of events) {
           if (all[event.id]?.information) delete all[event.id].information;
         }
@@ -1906,19 +2274,20 @@
         selectedContribution = {
           entry: savedInformation,
           id: savedInformation.id,
-          index: all.informationPages.length - 1
+          index: all.informationPages.findIndex(page => page.id === savedInformation.id)
         };
         renderEvent();
         renderNav();
+        clearImageEditorList();
+        editingInformationPageId = null;
         closeModal("editorModal");
       };
 
       try {
-        const imageData = imageFile ? await readImageAsDataUrl(imageFile) : null;
-        saveContribution(imageData);
+        await saveContribution();
       } catch (readError) {
         console.error("A selected contribution image could not be read.", readError);
-        error.textContent = "An image could not be read. Please try another file.";
+        error.textContent = "An image could not be read or has no saved image data. Please try another file.";
       }
     });
 
@@ -2012,7 +2381,10 @@
           : "Create a demo account first, then choose “Edit atlas” in the top-right corner to attach an image. Contributions stay in this browser.";
       }
       if (text.includes("about") || text.includes("event") || text.includes("history") || text.includes("tell")) {
-        return `${selectedEvent.name} (${selectedEvent.dates}): ${selectedEvent.summary}`;
+        const event = getEventDetails(selectedEvent);
+        return event
+          ? `${event.name} (${event.dates}): ${event.summary}`
+          : "There are no historical events available right now.";
       }
       if (text.includes("hello") || text.includes("hi ")) {
         return "Hello! Pick a chapter from the event index, or ask me about this event.";
