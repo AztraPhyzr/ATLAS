@@ -80,7 +80,7 @@
     }
     body, .topbar, .sidebar, .event-nav, .sidebar-contribution, .user-note,
     .community-incident, .gallery-card, .modal, .field input, .field textarea,
-    .chat-panel, .chat-message, .quick-prompts button, .language-select, .theme-toggle {
+    .chat-panel, .chat-message, .quick-prompts button, .language-trigger, .language-option, .theme-toggle {
       transition: background-color .25s ease, color .25s ease, border-color .25s ease;
     }
     button, input, textarea { font: inherit; }
@@ -125,16 +125,57 @@
       white-space: nowrap;
       border: 0;
     }
-    .language-select {
-      max-width: 140px;
+    .language-picker { position: relative; }
+    .language-trigger {
+      min-width: 116px;
       min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 10px;
       border: 1px solid var(--line);
       border-radius: 10px;
       background: var(--white);
       color: var(--ink);
-      padding: 6px 8px;
+      cursor: pointer;
       font-size: 12px;
+      text-align: left;
+      transition: background-color .25s ease, color .25s ease, border-color .25s ease;
     }
+    .language-trigger:hover, .language-trigger[aria-expanded="true"] { background: var(--paper-deep); }
+    .language-trigger-chevron { color: var(--muted); font-size: 10px; }
+    .language-short-label { display: none; }
+    .language-menu {
+      position: absolute;
+      z-index: 15;
+      top: calc(100% + 7px);
+      right: 0;
+      width: 190px;
+      max-height: min(60vh, 380px);
+      overflow-y: auto;
+      display: grid;
+      gap: 2px;
+      padding: 6px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+      box-shadow: 0 12px 34px rgba(0,0,0,.2);
+    }
+    .language-menu[hidden] { display: none; }
+    .language-option {
+      width: 100%;
+      padding: 8px 10px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 12px;
+      text-align: left;
+    }
+    .language-option:hover, .language-option:focus-visible { background: var(--paper-deep); }
+    .language-option[aria-selected="true"] { background: var(--surface-muted); color: var(--accent-dark); font-weight: 700; }
     .theme-toggle {
       min-height: 38px;
       display: inline-flex;
@@ -235,7 +276,7 @@
       width: 100%;
       padding: 9px 10px;
       border: 0;
-      border-radius: 2px;
+      border-radius: 10px;
       background: transparent;
       text-align: left;
       cursor: pointer;
@@ -460,12 +501,26 @@
       background: var(--paper-deep);
       transition: transform .25s ease;
     }
+    .gallery-image-frame {
+      position: relative;
+      height: 190px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background: transparent;
+    }
     .gallery-image {
       width: 100%;
-      height: 190px;
+      height: 100%;
       display: block;
-      object-fit: cover;
-      background: linear-gradient(135deg, #918a7b, #d1c6b3);
+      object-fit: contain;
+      background: transparent;
+    }
+    .gallery-image-frame > a {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
     }
     .gallery-card figcaption { padding: 9px 11px 11px; border-radius: 0 0 10px 10px; color: var(--muted); font-size: 10px; }
     .source-line {
@@ -516,6 +571,7 @@
     .community-incident img { width: 100%; height: 110px; border-radius: 10px; object-fit: cover; }
     .editor-link {
       border: 1px solid var(--line);
+      border-radius: 10px;
       background: transparent;
       padding: 8px 12px;
       color: var(--accent-dark);
@@ -602,7 +658,7 @@
       white-space: pre-wrap;
     }
     .chat-message.user { align-self: flex-end; background: var(--chat-user-bubble); }
-    .chat-word { display: inline-block; animation: chat-word-reveal .24s ease-out both; animation-delay: calc(var(--word-index) * 22ms); }
+    .chat-word { display: inline-block; animation: chat-word-reveal .12s ease-out both; animation-delay: calc(var(--word-index) * 6ms); }
     @keyframes chat-word-reveal {
       from { opacity: 0; transform: translateY(5px); }
       to { opacity: 1; transform: translateY(0); }
@@ -636,9 +692,24 @@
       max-height: min(90vh, 760px);
       overflow: auto;
       padding: 26px;
+      border-radius: 14px;
       background: var(--paper);
       box-shadow: 0 18px 70px rgba(0,0,0,.24);
     }
+    .confirm-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 9px; }
+    .confirm-cancel {
+      margin-top: 8px;
+      padding: 10px 15px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--white);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .confirm-cancel:hover { background: var(--paper-deep); }
+    .confirm-actions .modal-submit { margin-top: 8px; }
     .modal-head { display: flex; align-items: start; justify-content: space-between; gap: 15px; }
     .modal-head h2 { margin: 3px 0 10px; font: 600 29px var(--serif); }
     .modal-close { border: 0; background: transparent; cursor: pointer; font-size: 23px; line-height: 1; }
@@ -647,11 +718,12 @@
     .modal-tab { padding: 0 0 9px; border: 0; border-bottom: 2px solid transparent; background: transparent; cursor: pointer; color: var(--muted); font-size: 12px; }
     .modal-tab[aria-selected="true"] { border-color: var(--accent); color: var(--ink); font-weight: 700; }
     .field { display: grid; gap: 6px; margin: 13px 0; }
+    .field[hidden] { display: none; }
     .field label { font-size: 11px; font-weight: 600; }
     .field input, .field textarea {
       width: 100%;
       border: 1px solid var(--line);
-      border-radius: 0;
+      border-radius: 10px;
       background: var(--white);
       padding: 10px 11px;
       color: var(--ink);
@@ -662,6 +734,7 @@
     .modal-submit {
       margin-top: 8px;
       border: 0;
+      border-radius: 10px;
       background: var(--inverse-background);
       color: var(--inverse-foreground);
       padding: 11px 16px;
@@ -725,7 +798,9 @@
       .account-button { padding: 7px 9px; font-size: 11px; }
       .account-button.primary { padding: 8px 11px; }
       .top-actions { gap: 5px; }
-      .language-select { width: 92px; padding: 5px 4px; font-size: 10px; }
+      .language-trigger { min-width: 38px; width: 38px; justify-content: center; padding: 5px; }
+      .language-full-label, .language-trigger-chevron { display: none; }
+      .language-short-label { display: inline; font-size: 10px; font-weight: 700; }
       .theme-toggle { width: 38px; padding: 5px; }
       .theme-toggle-label { display: none; }
       .page-layout { display: grid; grid-template-columns: minmax(96px, 30vw) minmax(0, 1fr); min-height: calc(100vh - 60px); }
@@ -759,7 +834,7 @@
       .fact, .fact + .fact { padding: 12px 0; border-left: 0; }
       .fact + .fact { border-top: 1px solid var(--line); }
       .gallery { grid-template-columns: 1fr; }
-      .gallery-image { height: 180px; }
+      .gallery-image-frame { height: 180px; }
       .community-incident { grid-template-columns: 1fr; }
       .community-incident img { max-width: 240px; }
       .image-editor-card { grid-template-columns: 72px minmax(0, 1fr); }
@@ -774,7 +849,7 @@
       .top-actions { gap: 3px; }
       .brand-logo { max-width: 78px; }
       .sidebar-toggle, .theme-toggle { width: 32px; }
-      .language-select { width: 76px; }
+      .language-trigger { min-width: 32px; width: 32px; }
       .account-button { padding: 4px 5px; font-size: 9px; }
       .account-button.primary { padding: 5px 6px; }
       .hero h1 { font-size: clamp(34px, 11vw, 39px); }
@@ -797,26 +872,19 @@
         <span class="theme-toggle-icon" id="themeToggleIcon" aria-hidden="true">☾</span>
         <span class="theme-toggle-label" id="themeToggleLabel">Dark</span>
       </button>
-      <label class="visually-hidden" for="languageSelect" data-i18n="language">Language</label>
-      <select class="language-select" id="languageSelect" aria-label="Language" data-i18n-aria="language">
-        <option value="zh">Chinese (中文)</option>
-        <option value="en">English</option>
-        <option value="de">German (Deutsch)</option>
-        <option value="el">Greek (Ελληνικά)</option>
-        <option value="hi">Hindi (हिन्दी)</option>
-        <option value="id">Indonesian (Bahasa Indonesia)</option>
-        <option value="it">Italian (Italiano)</option>
-        <option value="ja">Japanese (日本語)</option>
-        <option value="ko">Korean (한국어)</option>
-        <option value="ms">Malay (Bahasa Melayu)</option>
-        <option value="ru">Russian (Русский)</option>
-        <option value="es">Spanish (Español)</option>
-        <option value="th">Thai (ไทย)</option>
-      </select>
+      <div class="language-picker" id="languagePicker">
+        <button class="language-trigger" id="languageTrigger" type="button" aria-label="Language: English" aria-haspopup="listbox" aria-expanded="false" aria-controls="languageMenu">
+          <span class="language-full-label" id="languageFullLabel">English</span>
+          <span class="language-short-label" id="languageShortLabel" aria-hidden="true">EN</span>
+          <span class="language-trigger-chevron" aria-hidden="true">▾</span>
+        </button>
+        <div class="language-menu" id="languageMenu" role="listbox" aria-label="Language" hidden></div>
+      </div>
       <a class="top-link" href="#event-detail" data-i18n="exploreAtlas">Explore the atlas</a>
       <button class="account-button" id="loginButton" type="button" data-i18n="login">Log in</button>
       <button class="account-button primary" id="signupButton" type="button" data-i18n="signUp">Sign up</button>
       <button class="account-button" id="editorButton" type="button" hidden data-i18n="editAtlas">Edit atlas</button>
+      <button class="account-button" id="headerLogoutButton" type="button" hidden data-i18n="logout">Log out</button>
     </div>
   </header>
 
@@ -930,7 +998,7 @@
         </div>
         <button class="modal-close" type="button" data-close="accountModal" aria-label="Close" data-i18n-aria="close">&times;</button>
       </div>
-      <p class="modal-copy" data-i18n="accountPrivacy">This standalone demo stores an email on this device only. It does not verify your identity or send information to a server.</p>
+      <p class="modal-copy" data-i18n="accountPrivacy">This standalone demo stores account details on this device only. Passwords are stored as salted hashes; this is not secure server authentication. Older demo accounts will set a password the first time they log in.</p>
       <div class="modal-tabs" role="tablist" aria-label="Account action" data-i18n-aria="accountAction">
         <button class="modal-tab" id="tabLogin" type="button" role="tab" aria-selected="false" data-i18n="login">Log in</button>
         <button class="modal-tab" id="tabSignup" type="button" role="tab" aria-selected="true" data-i18n="createAccount">Create an account</button>
@@ -940,6 +1008,14 @@
           <label for="accountEmail" data-i18n="emailAddress">Email address</label>
           <input id="accountEmail" type="email" autocomplete="email" required maxlength="160" placeholder="you@example.com">
         </div>
+        <div class="field">
+          <label for="accountPassword" data-i18n="password">Password (at least 8 characters)</label>
+          <input id="accountPassword" type="password" autocomplete="new-password" required minlength="8" maxlength="128">
+        </div>
+        <div class="field" id="accountPasswordConfirmField">
+          <label for="accountPasswordConfirm" data-i18n="confirmPassword">Confirm password</label>
+          <input id="accountPasswordConfirm" type="password" autocomplete="new-password" required minlength="8" maxlength="128">
+        </div>
         <button class="modal-submit" id="accountSubmit" type="submit" data-i18n="createDemoAccount">Create demo account</button>
         <p class="form-error" id="accountError" role="status"></p>
       </form>
@@ -947,6 +1023,23 @@
         <p class="modal-copy" id="signedInText"></p>
         <button class="modal-submit" id="openEditorFromAccount" type="button" data-i18n="openEditor">Open the editor</button>
         <button class="modal-submit" id="logoutButton" type="button" data-i18n="logout">Log out</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="logoutConfirmModal" role="presentation">
+    <section class="modal" role="alertdialog" aria-modal="true" aria-labelledby="logoutConfirmTitle" aria-describedby="logoutConfirmMessage">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow" data-i18n="atlasWorkspace">Your atlas workspace</p>
+          <h2 id="logoutConfirmTitle" data-i18n="logout">Log out</h2>
+        </div>
+        <button class="modal-close" type="button" data-close="logoutConfirmModal" aria-label="Close" data-i18n-aria="close">&times;</button>
+      </div>
+      <p class="modal-copy" id="logoutConfirmMessage" data-i18n="confirmLogout">Are you sure you want to log out?</p>
+      <div class="confirm-actions">
+        <button class="confirm-cancel" id="cancelLogoutButton" type="button" data-close="logoutConfirmModal" data-i18n="cancel">Cancel</button>
+        <button class="modal-submit" id="confirmLogoutButton" type="button" data-i18n="logout">Log out</button>
       </div>
     </section>
   </div>
@@ -1242,13 +1335,17 @@
       atlasWorkspace: ["Your atlas workspace", "你的历史图册工作区", "アトラスのワークスペース", "아틀라스 작업 공간", "Рабочее пространство атласа", "Dein Atlas-Arbeitsbereich", "Ruang kerja atlas anda", "Tu espacio de trabajo del atlas", "Ο χώρος εργασίας του άτλαντά σας", "Il tuo spazio di lavoro dell'atlante", "พื้นที่ทำงานของแอตลาส", "Ruang kerja atlas anda", "आपका एटलस कार्यक्षेत्र"],
       welcomeAtlas: ["Welcome to the atlas", "欢迎来到历史图册", "アトラスへようこそ", "아틀라스에 오신 것을 환영합니다", "Добро пожаловать в атлас", "Willkommen beim Atlas", "Selamat datang ke atlas", "Te damos la bienvenida al atlas", "Καλώς ήρθατε στον άτλαντα", "Benvenuto nell'atlante", "ยินดีต้อนรับสู่แอตลาส", "Selamat datang ke atlas", "एटलस में आपका स्वागत है"],
       close: ["Close", "关闭", "閉じる", "닫기", "Закрыть", "Schließen", "Tutup", "Cerrar", "Κλείσιμο", "Chiudi", "ปิด", "Tutup", "बंद करें"],
-      accountPrivacy: ["This standalone demo stores an email on this device only. It does not verify your identity or send information to a server.", "此独立演示仅在本设备上保存电子邮件，不会验证身份，也不会向服务器发送信息。", "この単独デモはメールアドレスをこの端末だけに保存します。本人確認やサーバーへの情報送信は行いません。", "이 독립형 데모는 이메일을 이 기기에만 저장합니다. 신원을 확인하거나 서버로 정보를 전송하지 않습니다.", "Эта автономная демонстрация хранит адрес электронной почты только на этом устройстве. Личность не проверяется, данные на сервер не отправляются.", "Diese eigenständige Demo speichert eine E-Mail nur auf diesem Gerät. Sie überprüft weder deine Identität noch sendet sie Informationen an einen Server.", "Demo kendiri ini menyimpan e-mel pada peranti ini sahaja. Identiti tidak disahkan dan maklumat tidak dihantar ke pelayan.", "Esta demostración independiente solo guarda el correo en este dispositivo. No verifica tu identidad ni envía información a un servidor.", "Αυτή η αυτόνομη επίδειξη αποθηκεύει το email μόνο σε αυτήν τη συσκευή. Δεν επαληθεύει την ταυτότητά σας ούτε στέλνει στοιχεία σε διακομιστή.", "Questa demo indipendente salva l'email solo su questo dispositivo. Non verifica la tua identità né invia informazioni a un server.", "เดโมแบบแยกนี้จะเก็บอีเมลไว้ในอุปกรณ์นี้เท่านั้น ไม่มีการยืนยันตัวตนหรือส่งข้อมูลไปยังเซิร์ฟเวอร์", "Demo kendiri ini menyimpan e-mel pada peranti ini sahaja. Identiti tidak disahkan dan maklumat tidak dihantar ke pelayan.", "यह स्वतंत्र डेमो ईमेल केवल इसी डिवाइस पर रखता है। यह पहचान सत्यापित नहीं करता और सर्वर पर जानकारी नहीं भेजता।"],
+      accountPrivacy: ["This browser-only demo stores accounts on this device. Passwords are salted and hashed, but this is not secure server authentication. Older demo accounts set a password when they next log in.", "此浏览器演示仅在本设备上保存账户。密码经过加盐哈希处理，但这并非安全的服务器身份验证。旧演示账户下次登录时需要设置密码。", "このブラウザーデモはアカウントをこの端末にのみ保存します。パスワードはソルト付きハッシュで保存されますが、安全なサーバー認証ではありません。既存のデモアカウントは次回ログイン時にパスワードを設定します。", "이 브라우저 데모는 계정을 이 기기에만 저장합니다. 비밀번호는 솔트를 적용해 해시로 저장하지만 안전한 서버 인증은 아닙니다. 기존 데모 계정은 다음 로그인 시 비밀번호를 설정합니다.", "Эта браузерная демонстрация хранит учетные записи только на этом устройстве. Пароли хранятся в виде хешей с солью, но это не является безопасной серверной аутентификацией. Для старых демо-аккаунтов пароль задается при следующем входе.", "Diese Browserdemo speichert Konten nur auf diesem Gerät. Passwörter werden gesalzen und gehasht gespeichert, dies ist jedoch keine sichere Serverauthentifizierung. Für ältere Demokonten wird beim nächsten Anmelden ein Passwort festgelegt.", "Demo dalam pelayar ini menyimpan akaun pada peranti ini sahaja. Kata laluan disimpan sebagai cincangan bersalt, tetapi ini bukan pengesahan pelayan yang selamat. Akaun demo lama menetapkan kata laluan apabila log masuk seterusnya.", "Esta demostración en el navegador guarda las cuentas solo en este dispositivo. Las contraseñas se almacenan con sal y hash, pero esto no es autenticación segura en un servidor. Las cuentas de demostración antiguas crearán una contraseña al iniciar sesión la próxima vez.", "Αυτή η επίδειξη στο πρόγραμμα περιήγησης αποθηκεύει λογαριασμούς μόνο σε αυτήν τη συσκευή. Οι κωδικοί αποθηκεύονται με salt και hash, αλλά αυτό δεν αποτελεί ασφαλή έλεγχο ταυτότητας διακομιστή. Οι παλιοί δοκιμαστικοί λογαριασμοί θα ορίσουν κωδικό στην επόμενη σύνδεση.", "Questa demo nel browser salva gli account solo su questo dispositivo. Le password sono memorizzate con salt e hash, ma non si tratta di un'autenticazione server sicura. Gli account demo esistenti imposteranno una password al prossimo accesso.", "เดโมในเบราว์เซอร์นี้จัดเก็บบัญชีไว้ในอุปกรณ์นี้เท่านั้น รหัสผ่านจะถูกแฮชพร้อม salt แต่นี่ไม่ใช่การยืนยันตัวตนผ่านเซิร์ฟเวอร์ที่ปลอดภัย บัญชีเดิมจะตั้งรหัสผ่านเมื่อลงชื่อเข้าใช้ครั้งถัดไป", "Demo dalam pelayar ini menyimpan akaun pada peranti ini sahaja. Kata laluan disimpan sebagai cincangan bersalt, tetapi ini bukan pengesahan pelayan yang selamat. Akaun demo lama menetapkan kata laluan apabila log masuk seterusnya.", "यह ब्राउज़र डेमो खाते केवल इसी डिवाइस पर रखता है। पासवर्ड नमक के साथ हैश करके रखे जाते हैं, लेकिन यह सुरक्षित सर्वर प्रमाणीकरण नहीं है। पुराने डेमो खाते अगली बार लॉग इन करते समय पासवर्ड सेट करेंगे।"],
       accountAction: ["Account action", "账户操作", "アカウント操作", "계정 작업", "Действие с аккаунтом", "Kontoaktion", "Tindakan akaun", "Acción de cuenta", "Ενέργεια λογαριασμού", "Azione account", "การดำเนินการบัญชี", "Tindakan akaun", "खाता कार्रवाई"],
       createAccount: ["Create an account", "创建账户", "アカウントを作成", "계정 만들기", "Создать аккаунт", "Konto erstellen", "Cipta akaun", "Crear una cuenta", "Δημιουργία λογαριασμού", "Crea un account", "สร้างบัญชี", "Cipta akaun", "खाता बनाएँ"],
       emailAddress: ["Email address", "电子邮件地址", "メールアドレス", "이메일 주소", "Адрес электронной почты", "E-Mail-Adresse", "Alamat e-mel", "Correo electrónico", "Διεύθυνση email", "Indirizzo email", "ที่อยู่อีเมล", "Alamat e-mel", "ईमेल पता"],
+      password: ["Password (at least 8 characters)", "密码（至少 8 个字符）", "パスワード（8文字以上）", "비밀번호 (8자 이상)", "Пароль (не менее 8 символов)", "Passwort (mindestens 8 Zeichen)", "Kata laluan (sekurang-kurangnya 8 aksara)", "Contraseña (al menos 8 caracteres)", "Κωδικός πρόσβασης (τουλάχιστον 8 χαρακτήρες)", "Password (almeno 8 caratteri)", "รหัสผ่าน (อย่างน้อย 8 ตัวอักษร)", "Kata laluan (sekurang-kurangnya 8 aksara)", "पासवर्ड (कम से कम 8 अक्षर)"],
+      confirmPassword: ["Confirm password", "确认密码", "パスワードを確認", "비밀번호 확인", "Подтвердите пароль", "Passwort bestätigen", "Sahkan kata laluan", "Confirmar contraseña", "Επιβεβαίωση κωδικού πρόσβασης", "Conferma password", "ยืนยันรหัสผ่าน", "Sahkan kata laluan", "पासवर्ड की पुष्टि करें"],
       createDemoAccount: ["Create demo account", "创建演示账户", "デモアカウントを作成", "데모 계정 만들기", "Создать демо-аккаунт", "Demo-Konto erstellen", "Cipta akaun demo", "Crear cuenta de demostración", "Δημιουργία δοκιμαστικού λογαριασμού", "Crea account demo", "สร้างบัญชีเดโม", "Cipta akaun demo", "डेमो खाता बनाएँ"],
       openEditor: ["Open the editor", "打开编辑器", "エディターを開く", "편집기 열기", "Открыть редактор", "Editor öffnen", "Buka editor", "Abrir el editor", "Άνοιγμα του επεξεργαστή", "Apri l'editor", "เปิดตัวแก้ไข", "Buka editor", "संपादक खोलें"],
       logout: ["Log out", "退出登录", "ログアウト", "로그아웃", "Выйти", "Abmelden", "Log keluar", "Cerrar sesión", "Αποσύνδεση", "Esci", "ออกจากระบบ", "Log keluar", "लॉग आउट"],
+      confirmLogout: ["Are you sure you want to log out?", "确定要退出登录吗？", "ログアウトしてもよろしいですか？", "로그아웃하시겠습니까?", "Вы уверены, что хотите выйти?", "Möchtest du dich wirklich abmelden?", "Adakah anda pasti mahu log keluar?", "¿Seguro que quieres cerrar sesión?", "Είστε βέβαιοι ότι θέλετε να αποσυνδεθείτε;", "Vuoi davvero uscire?", "คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ?", "Adakah anda pasti mahu log keluar?", "क्या आप वाकई लॉग आउट करना चाहते हैं?"],
+      cancel: ["Cancel", "取消", "キャンセル", "취소", "Отмена", "Abbrechen", "Batal", "Cancelar", "Ακύρωση", "Annulla", "ยกเลิก", "Batal", "रद्द करें"],
       contributeChapter: ["Contribute to this chapter", "为本章贡献内容", "この章に投稿", "이 장에 기여하기", "Добавить материал в эту главу", "Zu diesem Kapitel beitragen", "Sumbang kepada bab ini", "Contribuir a este capítulo", "Συνεισφέρετε σε αυτό το κεφάλαιο", "Contribuisci a questo capitolo", "ร่วมให้ข้อมูลในบทนี้", "Sumbang kepada bab ini", "इस अध्याय में योगदान दें"],
       createIndependentEntry: ["Create an independent historical entry", "创建独立历史条目", "独立した歴史記事を作成", "독립 역사 항목 만들기", "Создать отдельную историческую статью", "Eigenständigen historischen Eintrag erstellen", "Cipta entri sejarah bebas", "Crear una entrada histórica independiente", "Δημιουργία ανεξάρτητης ιστορικής καταχώρισης", "Crea una voce storica indipendente", "สร้างรายการประวัติศาสตร์อิสระ", "Cipta entri sejarah bebas", "स्वतंत्र ऐतिहासिक प्रविष्टि बनाएँ"],
       atlasEditor: ["Atlas editor", "历史图册编辑器", "アトラス編集", "아틀라스 편집기", "Редактор атласа", "Atlas-Editor", "Editor atlas", "Editor del atlas", "Επεξεργαστής άτλαντα", "Editor dell'atlante", "ตัวแก้ไขแอตลาส", "Editor atlas", "एटलस संपादक"],
@@ -1302,15 +1399,115 @@
       loadingArchivalImage: ["Loading an archival image…", "正在加载档案图片…", "アーカイブ画像を読み込み中…", "기록 보관 이미지 불러오는 중…", "Загрузка архивного изображения…", "Archivbild wird geladen …", "Memuatkan imej arkib…", "Cargando una imagen de archivo…", "Φόρτωση αρχειακής εικόνας…", "Caricamento di un'immagine d'archivio…", "กำลังโหลดภาพ архив…", "Memuatkan imej arkib…", "अभिलेखीय चित्र लोड हो रहा है…"],
       communityNote: ["Community note", "社区笔记", "コミュニティのメモ", "커뮤니티 메모", "Заметка сообщества", "Community-Notiz", "Catatan komuniti", "Nota de la comunidad", "Σημείωση κοινότητας", "Nota della comunità", "บันทึกจากชุมชน", "Catatan komuniti", "समुदाय का नोट"]
     };
-    const languageSelect = document.getElementById("languageSelect");
+    const languagePicker = document.getElementById("languagePicker");
+    const languageTrigger = document.getElementById("languageTrigger");
+    const languageMenu = document.getElementById("languageMenu");
+    const languageFullLabel = document.getElementById("languageFullLabel");
+    const languageShortLabel = document.getElementById("languageShortLabel");
     const themeToggle = document.getElementById("themeToggle");
     let currentLanguage = "en";
+    const languageOptions = [
+      ["zh", "Chinese (中文)", "中"],
+      ["en", "English", "EN"],
+      ["de", "German (Deutsch)", "DE"],
+      ["el", "Greek (Ελληνικά)", "EL"],
+      ["hi", "Hindi (हिन्दी)", "HI"],
+      ["id", "Indonesian (Bahasa Indonesia)", "ID"],
+      ["it", "Italian (Italiano)", "IT"],
+      ["ja", "Japanese (日本語)", "日"],
+      ["ko", "Korean (한국어)", "KO"],
+      ["ms", "Malay (Bahasa Melayu)", "MS"],
+      ["ru", "Russian (Русский)", "RU"],
+      ["es", "Spanish (Español)", "ES"],
+      ["th", "Thai (ไทย)", "TH"]
+    ];
+    const languageOptionButtons = new Map();
+    for (const [code, label] of languageOptions) {
+      const option = document.createElement("button");
+      option.className = "language-option";
+      option.type = "button";
+      option.setAttribute("role", "option");
+      option.dataset.language = code;
+      option.textContent = label;
+      option.tabIndex = -1;
+      option.addEventListener("click", () => {
+        setLanguage(code);
+        closeLanguageMenu();
+        languageTrigger.focus();
+      });
+      languageMenu.append(option);
+      languageOptionButtons.set(code, option);
+    }
 
     function t(key) {
       const values = translations[key];
       if (!values) throw new Error(`Missing translation key: ${key}`);
       return values[languageOrder.indexOf(currentLanguage)] || values[0];
     }
+
+    function updateLanguagePicker() {
+      const selected = languageOptions.find(([code]) => code === currentLanguage);
+      if (!selected) throw new Error(`Unsupported Atlas language: ${currentLanguage}`);
+      const [code, label, shortLabel] = selected;
+      languageFullLabel.textContent = label;
+      languageShortLabel.textContent = shortLabel;
+      languageTrigger.setAttribute("aria-label", `${t("language")}: ${label}`);
+      languageMenu.setAttribute("aria-label", t("language"));
+      for (const [optionCode, option] of languageOptionButtons) {
+        option.setAttribute("aria-selected", String(optionCode === code));
+      }
+    }
+
+    function openLanguageMenu(focusSelected = true) {
+      languageMenu.hidden = false;
+      languageTrigger.setAttribute("aria-expanded", "true");
+      if (focusSelected) languageOptionButtons.get(currentLanguage).focus();
+    }
+
+    function closeLanguageMenu() {
+      languageMenu.hidden = true;
+      languageTrigger.setAttribute("aria-expanded", "false");
+    }
+
+    languageTrigger.addEventListener("click", () => {
+      if (languageMenu.hidden) openLanguageMenu();
+      else closeLanguageMenu();
+    });
+    languageTrigger.addEventListener("keydown", event => {
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        openLanguageMenu();
+      }
+    });
+    languagePicker.addEventListener("focusout", event => {
+      if (!languagePicker.contains(event.relatedTarget)) closeLanguageMenu();
+    });
+    languageMenu.addEventListener("keydown", event => {
+      const options = [...languageOptionButtons.values()];
+      const currentIndex = options.indexOf(document.activeElement);
+      let nextIndex = currentIndex;
+      if (event.key === "ArrowDown") nextIndex = (currentIndex + 1) % options.length;
+      else if (event.key === "ArrowUp") nextIndex = (currentIndex - 1 + options.length) % options.length;
+      else if (event.key === "Home") nextIndex = 0;
+      else if (event.key === "End") nextIndex = options.length - 1;
+      else if (event.key === "Escape") {
+        event.preventDefault();
+        closeLanguageMenu();
+        languageTrigger.focus();
+        return;
+      } else return;
+      event.preventDefault();
+      options[nextIndex].focus();
+    });
+    document.addEventListener("pointerdown", event => {
+      if (!languagePicker.contains(event.target)) closeLanguageMenu();
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && !languageMenu.hidden) {
+        closeLanguageMenu();
+        languageTrigger.focus();
+      }
+    });
 
     function translateUI(root = document) {
       root.querySelectorAll("[data-i18n]").forEach(element => {
@@ -1359,7 +1556,7 @@
     function setLanguage(language) {
       if (!languageOrder.includes(language)) throw new Error(`Unsupported Atlas language: ${language}`);
       currentLanguage = language;
-      languageSelect.value = language;
+      updateLanguagePicker();
       document.documentElement.lang = language === "zh" ? "zh-CN" : language;
       translateUI();
       updateThemeToggle();
@@ -1375,14 +1572,13 @@
         console.error("Could not save the selected Atlas language in this browser.", error);
       }
     }
-    languageSelect.addEventListener("change", () => setLanguage(languageSelect.value));
     try {
       const savedLanguage = localStorage.getItem(storageKeys.language);
       if (languageOrder.includes(savedLanguage)) currentLanguage = savedLanguage;
     } catch (error) {
       console.error("Could not read the selected Atlas language from this browser.", error);
     }
-    languageSelect.value = currentLanguage;
+    updateLanguagePicker();
     document.documentElement.lang = currentLanguage === "zh" ? "zh-CN" : currentLanguage;
     translateUI();
     updateThemeToggle();
@@ -1426,6 +1622,7 @@
       document.getElementById("loginButton").hidden = Boolean(email);
       document.getElementById("signupButton").hidden = Boolean(email);
       editorButton.hidden = !email;
+      document.getElementById("headerLogoutButton").hidden = !email;
       editInfoButton.hidden = !email || (!selectedContribution && !selectedEvent);
       deleteEventButton.hidden = !email || (!selectedContribution && !selectedEvent);
       updateTimelineControls();
@@ -1641,6 +1838,45 @@
       })[char]);
     }
 
+    function supportingImageMarkup(source, alt, link = "") {
+      const image = `<img class="gallery-image" src="${escapeHtml(source)}" alt="${escapeHtml(alt)}">`;
+      const foreground = /^https?:\/\//i.test(link)
+        ? `<a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">${image}</a>`
+        : image;
+      return `<div class="gallery-image-frame">${foreground}</div>`;
+    }
+
+    function startHeroImageSlideshow(images, renderVersion, updateCredit) {
+      let imageIndex = 0;
+      let activeLayerIndex = -1;
+      const showHeroImage = () => {
+        if (renderVersion !== heroRenderVersion) return;
+        const image = images[imageIndex];
+        const incomingLayerIndex = (activeLayerIndex + 1) % heroImageLayers.length;
+        const incomingLayer = heroImageLayers[incomingLayerIndex];
+        const outgoingLayer = activeLayerIndex === -1 ? null : heroImageLayers[activeLayerIndex];
+        incomingLayer.classList.remove("is-active", "is-exiting");
+        incomingLayer.style.backgroundImage = `linear-gradient(180deg, rgba(23,24,21,.2), rgba(23,24,21,.64)), url("${image.url}")`;
+        void incomingLayer.offsetWidth;
+        incomingLayer.classList.add("is-active");
+        if (outgoingLayer) {
+          outgoingLayer.classList.remove("is-exiting");
+          outgoingLayer.classList.add("is-exiting");
+          heroImageTransitionTimeout = setTimeout(() => {
+            if (renderVersion !== heroRenderVersion) return;
+            outgoingLayer.classList.remove("is-active", "is-exiting");
+            outgoingLayer.style.backgroundImage = "";
+            heroImageTransitionTimeout = null;
+          }, 1050);
+        }
+        updateCredit(image);
+        activeLayerIndex = incomingLayerIndex;
+        imageIndex = (imageIndex + 1) % images.length;
+      };
+      showHeroImage();
+      if (images.length > 1) heroImageTimer = setInterval(showHeroImage, 3000);
+    }
+
     async function renderEvent() {
       if (heroImageTimer !== null) {
         clearInterval(heroImageTimer);
@@ -1719,24 +1955,34 @@
         const supportingImages = Array.isArray(contribution.images)
           ? contribution.images
           : contribution.image ? [contribution.image] : [];
-        const leadImage = supportingImages[0];
-        const backgroundImage = leadImage?.data || fallbackImage(contribution.title, selectedContribution.index);
-        hero.style.backgroundImage = `linear-gradient(180deg, rgba(23,24,21,.2), rgba(23,24,21,.64)), url("${backgroundImage}")`;
-        heroCredit.href = leadImage?.data || "#event-detail";
-        heroCredit.textContent = leadImage
-          ? `${t("imageLabel")} ${leadImage.name}`
-          : t("communitySubmittedEntry");
+        const slideshowImages = supportingImages.filter(image => image?.data).map(image => ({
+          url: image.data,
+          alt: image.name || contribution.title,
+          title: image.name || contribution.title,
+          page: "#event-detail"
+        }));
         communitySection.hidden = true;
         communityIncidentsSection.hidden = true;
         userGallery.hidden = true;
         document.getElementById("sidebarContributions").hidden = true;
         galleryHeading.hidden = supportingImages.length === 0;
-        gallery.innerHTML = supportingImages.map(image =>
+        gallery.innerHTML = supportingImages.filter(image => image?.data).map(image =>
           `<figure class="gallery-card">
-            <img class="gallery-image" src="${escapeHtml(image.data)}" alt="${escapeHtml(image.name)}">
+            ${supportingImageMarkup(image.data, image.name)}
             <figcaption><strong>${escapeHtml(image.name)}</strong>${image.description ? `<br>${escapeHtml(image.description)}` : ""}</figcaption>
           </figure>`
         ).join("");
+        if (slideshowImages.length) {
+          startHeroImageSlideshow(slideshowImages, renderVersion, image => {
+            heroCredit.href = image.page;
+            heroCredit.textContent = `${t("imageLabel")} ${image.title}`;
+          });
+        } else {
+          const fallback = fallbackImage(contribution.title, selectedContribution.index);
+          hero.style.backgroundImage = `linear-gradient(180deg, rgba(23,24,21,.2), rgba(23,24,21,.64)), url("${fallback}")`;
+          heroCredit.href = "#event-detail";
+          heroCredit.textContent = t("communitySubmittedEntry");
+        }
         return;
       }
       communitySection.hidden = false;
@@ -1747,41 +1993,25 @@
       galleryHeading.hidden = false;
       const eventIndex = events.findIndex(candidate => candidate.id === event.id);
       gallery.innerHTML = [0, 1].map(index =>
-        `<figure class="gallery-card"><img class="gallery-image" src="${fallbackImage(event.name, eventIndex + index)}" alt="${escapeHtml(event.name)} historical illustration"><figcaption>${escapeHtml(t("loadingArchivalImage"))}</figcaption></figure>`
+        `<figure class="gallery-card">${supportingImageMarkup(fallbackImage(event.name, eventIndex + index), `${event.name} historical illustration`)}<figcaption>${escapeHtml(t("loadingArchivalImage"))}</figcaption></figure>`
       ).join("");
 
-      const images = await loadEventImages(event);
+      const savedImages = Array.isArray(event.images)
+        ? event.images.filter(image => image?.data).map(image => ({
+            url: image.data,
+            alt: image.name || event.name,
+            title: image.name || event.name,
+            page: "#event-detail"
+          }))
+        : [];
+      const images = [...savedImages, ...(await loadEventImages(event))];
       if (renderVersion !== heroRenderVersion || event.id !== selectedEvent?.id || contribution !== selectedContribution?.entry) return;
-      let imageIndex = 0;
-      let activeLayerIndex = -1;
-      const showHeroImage = () => {
-        const image = images[imageIndex];
-        const incomingLayerIndex = (activeLayerIndex + 1) % heroImageLayers.length;
-        const incomingLayer = heroImageLayers[incomingLayerIndex];
-        const outgoingLayer = activeLayerIndex === -1 ? null : heroImageLayers[activeLayerIndex];
-        incomingLayer.classList.remove("is-active", "is-exiting");
-        incomingLayer.style.backgroundImage = `linear-gradient(180deg, rgba(23,24,21,.2), rgba(23,24,21,.64)), url("${image.url}")`;
-        void incomingLayer.offsetWidth;
-        incomingLayer.classList.add("is-active");
-        if (outgoingLayer) {
-          outgoingLayer.classList.remove("is-exiting");
-          outgoingLayer.classList.add("is-exiting");
-          heroImageTransitionTimeout = setTimeout(() => {
-            if (renderVersion !== heroRenderVersion) return;
-            outgoingLayer.classList.remove("is-active", "is-exiting");
-            outgoingLayer.style.backgroundImage = "";
-            heroImageTransitionTimeout = null;
-          }, 1050);
-        }
+      startHeroImageSlideshow(images, renderVersion, image => {
         heroCredit.href = image.page;
         heroCredit.textContent = `${t("imageLabel")} ${image.title}`;
-        activeLayerIndex = incomingLayerIndex;
-        imageIndex = (imageIndex + 1) % images.length;
-      };
-      showHeroImage();
-      if (images.length > 1) heroImageTimer = setInterval(showHeroImage, 3000);
+      });
       gallery.innerHTML = images.slice(1).map(image =>
-        `<figure class="gallery-card"><a href="${image.page}" target="_blank" rel="noreferrer"><img class="gallery-image" src="${image.url}" alt="${escapeHtml(image.alt)}"></a><figcaption><a href="${image.page}" target="_blank" rel="noreferrer">${escapeHtml(image.title)}</a></figcaption></figure>`
+        `<figure class="gallery-card">${supportingImageMarkup(image.url, image.alt, image.page)}<figcaption><a href="${escapeHtml(image.page)}" target="_blank" rel="noreferrer">${escapeHtml(image.title)}</a></figcaption></figure>`
       ).join("");
     }
 
@@ -1806,6 +2036,11 @@
       document.getElementById("tabSignup").setAttribute("aria-selected", String(mode === "signup"));
       document.getElementById("accountSubmit").textContent = mode === "login" ? t("loginDemoAccount") : t("createDemoAccount");
       document.getElementById("accountError").textContent = "";
+      const confirmField = document.getElementById("accountPasswordConfirmField");
+      const confirmPassword = document.getElementById("accountPasswordConfirm");
+      confirmField.hidden = mode !== "signup";
+      confirmPassword.required = mode === "signup";
+      document.getElementById("accountPassword").autocomplete = mode === "login" ? "current-password" : "new-password";
     }
 
     function openAccount() {
@@ -2004,11 +2239,19 @@
       closeModal("accountModal");
       openEditor();
     });
-    document.getElementById("logoutButton").addEventListener("click", () => {
+    function logout() {
+      openModal("logoutConfirmModal");
+      document.getElementById("cancelLogoutButton").focus();
+    }
+    function confirmLogout() {
       sessionStorage.removeItem(storageKeys.session);
       updateAccountButtons();
+      closeModal("logoutConfirmModal");
       closeModal("accountModal");
-    });
+    }
+    document.getElementById("logoutButton").addEventListener("click", logout);
+    document.getElementById("headerLogoutButton").addEventListener("click", logout);
+    document.getElementById("confirmLogoutButton").addEventListener("click", confirmLogout);
     document.querySelectorAll("[data-close]").forEach(button => {
       button.addEventListener("click", () => closeModal(button.dataset.close));
     });
@@ -2021,27 +2264,118 @@
       if (event.key === "Escape") document.querySelectorAll(".modal-backdrop.open").forEach(modal => closeModal(modal.id));
     });
 
-    document.getElementById("accountForm").addEventListener("submit", event => {
+    const passwordHashIterations = 210000;
+    const bytesToHex = bytes => [...bytes].map(byte => byte.toString(16).padStart(2, "0")).join("");
+    async function derivePasswordHash(password, salt, iterations = passwordHashIterations) {
+      if (!globalThis.crypto?.subtle) throw new Error("Web Crypto is unavailable in this browser.");
+      const material = await globalThis.crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(password),
+        "PBKDF2",
+        false,
+        ["deriveBits"]
+      );
+      const derivedBits = await globalThis.crypto.subtle.deriveBits(
+        { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+        material,
+        256
+      );
+      return new Uint8Array(derivedBits);
+    }
+
+    function readDemoAccounts() {
+      const savedAccounts = readJson(storageKeys.accounts, []);
+      const accounts = Object.create(null);
+      if (Array.isArray(savedAccounts)) {
+        savedAccounts.forEach(email => {
+          if (typeof email === "string") accounts[email] = null;
+        });
+      } else if (savedAccounts && typeof savedAccounts === "object") {
+        Object.entries(savedAccounts).forEach(([email, record]) => {
+          accounts[email] = record;
+        });
+      } else {
+        throw new Error("The saved demo account data has an unsupported format.");
+      }
+      return accounts;
+    }
+
+    function passwordsMatch(firstHash, secondHash) {
+      if (firstHash.length !== secondHash.length) return false;
+      let difference = 0;
+      for (let index = 0; index < firstHash.length; index++) {
+        difference |= firstHash[index] ^ secondHash[index];
+      }
+      return difference === 0;
+    }
+
+    document.getElementById("accountForm").addEventListener("submit", async event => {
       event.preventDefault();
       const email = document.getElementById("accountEmail").value.trim().toLowerCase();
-      const accounts = readJson(storageKeys.accounts, []);
-      if (accountMode === "signup" && accounts.includes(email)) {
-        setAccountMode("login");
-        document.getElementById("accountError").textContent = "That demo account already exists. Log in instead.";
+      const password = document.getElementById("accountPassword").value;
+      const accountError = document.getElementById("accountError");
+      const submitButton = document.getElementById("accountSubmit");
+      if (accountMode === "signup" && password !== document.getElementById("accountPasswordConfirm").value) {
+        accountError.textContent = "Passwords do not match.";
         return;
       }
-      if (accountMode === "login" && !accounts.includes(email)) {
-        document.getElementById("accountError").textContent = "No demo account for that email on this device. Create one first.";
-        return;
-      }
+      submitButton.disabled = true;
       try {
-        if (accountMode === "signup") localStorage.setItem(storageKeys.accounts, JSON.stringify([...accounts, email]));
+        const accounts = readDemoAccounts();
+        const accountExists = Object.prototype.hasOwnProperty.call(accounts, email);
+        if (accountMode === "signup" && accountExists) {
+          setAccountMode("login");
+          accountError.textContent = "That demo account already exists. Log in instead.";
+          return;
+        }
+        if (accountMode === "login" && !accountExists) {
+          accountError.textContent = "No demo account for that email on this device. Create one first.";
+          return;
+        }
+        const existingCredential = accounts[email];
+        let credential;
+        if (existingCredential) {
+          if (
+            typeof existingCredential.salt !== "string" ||
+            !/^[\da-f]{32}$/i.test(existingCredential.salt) ||
+            typeof existingCredential.hash !== "string" ||
+            !/^[\da-f]{64}$/i.test(existingCredential.hash) ||
+            !Number.isInteger(existingCredential.iterations) ||
+            existingCredential.iterations < 100000 ||
+            existingCredential.iterations > 1000000
+          ) {
+            throw new Error(`Saved password data for ${email} is invalid.`);
+          }
+          const actualHash = await derivePasswordHash(
+            password,
+            Uint8Array.from(existingCredential.salt.match(/.{2}/g), byte => parseInt(byte, 16)),
+            existingCredential.iterations
+          );
+          const expectedHash = Uint8Array.from(existingCredential.hash.match(/.{2}/g), byte => parseInt(byte, 16));
+          if (!passwordsMatch(actualHash, expectedHash)) {
+            accountError.textContent = "The email or password is incorrect.";
+            return;
+          }
+          credential = existingCredential;
+        } else {
+          const salt = globalThis.crypto.getRandomValues(new Uint8Array(16));
+          const hash = await derivePasswordHash(password, salt);
+          credential = {
+            salt: bytesToHex(salt),
+            hash: bytesToHex(hash),
+            iterations: passwordHashIterations
+          };
+        }
+        accounts[email] = credential;
+        localStorage.setItem(storageKeys.accounts, JSON.stringify(accounts));
         sessionStorage.setItem(storageKeys.session, email);
       } catch (error) {
-        console.error("Could not save the demo account in this browser.", error);
-        document.getElementById("accountError").textContent = "This browser could not save the demo account. Check storage permissions and try again.";
-        return;
+        console.error("Could not securely verify or save the demo account in this browser.", error);
+        accountError.textContent = "This browser could not securely save or verify the account. Check browser storage support and try again.";
+      } finally {
+        submitButton.disabled = false;
       }
+      if (currentUser() !== email) return;
       updateAccountButtons();
       closeModal("accountModal");
     });
@@ -2422,6 +2756,10 @@
     document.getElementById("chatForm").addEventListener("submit", event => {
       event.preventDefault();
       const input = document.getElementById("chatInput");
+      if (!input.value.trim()) {
+        input.focus();
+        return;
+      }
       sendChat(input.value);
       input.value = "";
       input.focus();
