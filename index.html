@@ -488,9 +488,10 @@
       pointer-events: auto;
       transform: translateY(0) scale(1);
     }
-    .chat-header { padding: 15px 17px; background: var(--ink); color: white; }
+    .chat-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 15px 11px 17px; background: var(--ink); color: white; }
     .chat-header strong { display: block; font: 500 17px var(--serif); }
     .chat-header span { color: #c7c6bd; font-size: 10px; }
+    .chat-mascot { width: 58px; height: 58px; flex: 0 0 auto; border: 2px solid rgba(255,255,255,.55); border-radius: 50%; background: #f0ede6; object-fit: cover; object-position: center 18%; }
     .chat-messages { display: flex; flex-direction: column; gap: 9px; overflow-y: auto; padding: 14px; }
     .chat-message {
       max-width: 88%;
@@ -734,6 +735,7 @@
           <div class="top-actions">
             <button class="editor-link" id="addTimelineButton" type="button" hidden data-i18n="addTimelineEvent">Add timeline event</button>
             <button class="editor-link" id="addInfoButton" type="button" hidden data-i18n="addInformation">Add information</button>
+            <button class="editor-link" id="deleteEventButton" type="button" hidden data-i18n="deleteEvent">Delete event</button>
           </div>
         </div>
         <div class="timeline" id="eventTimeline"></div>
@@ -769,8 +771,11 @@
   </button>
   <section class="chat-panel" id="chatPanel" aria-label="History Atlas feedback chatbot" data-i18n-aria="feedbackChatbot">
     <div class="chat-header">
-      <strong data-i18n="askAtlas">Ask the Atlas</strong>
-      <span data-i18n="quickAnswersDemo">Quick answers &amp; feedback · automated demo</span>
+      <div>
+        <strong data-i18n="askAtlas">Ask the Atlas</strong>
+        <span data-i18n="quickAnswersDemo">Quick answers &amp; feedback · automated demo</span>
+      </div>
+      <img class="chat-mascot" src="history-atlas-mascot.png" alt="History Atlas chat mascot">
     </div>
     <div class="chat-messages" id="chatMessages" role="log" aria-live="polite">
       <div class="chat-message" data-i18n="chatWelcome">Hello! Ask about a topic, suggest an improvement, or leave feedback. I'm an automated guide, not a historian.</div>
@@ -831,6 +836,18 @@
           <div class="field">
             <label for="editorContributionTitle" data-i18n="title">Title</label>
             <input id="editorContributionTitle" type="text" maxlength="120" placeholder="Give this information a title" data-i18n-placeholder="informationTitlePlaceholder">
+          </div>
+          <div class="field">
+            <label for="editorContributionRegion" data-i18n="eventRegion">Region</label>
+            <select id="editorContributionRegion" required>
+              <option value="" data-i18n="selectRegion">Select a region</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="editorContributionTopic" data-i18n="eventTopic">Topic</label>
+            <select id="editorContributionTopic" required>
+              <option value="" data-i18n="selectTopic">Select a topic</option>
+            </select>
           </div>
           <div class="field">
             <label for="editorIncidentDate" data-i18n="incidentDate">Date the incident occurred</label>
@@ -990,6 +1007,31 @@
 
     events.sort((first, second) => firstYear(first.dates) - firstYear(second.dates));
 
+    const eventCategoryParts = events.map(event => event.category.split(" · "));
+    const regionSelect = document.getElementById("editorContributionRegion");
+    const regions = new Set([
+      ...eventCategoryParts.map(([region]) => region),
+      "Africa", "Asia", "Latin America", "Middle East", "North America", "Oceania"
+    ]);
+    for (const region of regions) {
+      const option = document.createElement("option");
+      option.value = region;
+      option.textContent = region;
+      regionSelect.append(option);
+    }
+    const topicSelect = document.getElementById("editorContributionTopic");
+    const topics = new Set([
+      ...eventCategoryParts.map(([, topic]) => topic),
+      "Arts & culture", "Civil rights", "Economy", "Environment", "Exploration",
+      "Independence", "Religion", "Science", "Social change", "Trade"
+    ]);
+    for (const topic of topics) {
+      const option = document.createElement("option");
+      option.value = topic;
+      option.textContent = topic;
+      topicSelect.append(option);
+    }
+
     const storageKeys = {
       accounts: "history-atlas-demo-accounts-v1",
       session: "history-atlas-demo-session-v1",
@@ -997,10 +1039,12 @@
       language: "history-atlas-language-v1"
     };
     const imageCache = new Map();
-    let selectedEvent = events[0];
+    let heroImageTimer = null;
+    let heroRenderVersion = 0;
+    let selectedEvent = availableEvents()[0] || null;
     let selectedContribution = null;
     let accountMode = "signup";
-    let timelineTargetEvent = null;
+    let timelineTarget = null;
     const languageOrder = ["en", "zh", "ja", "ko", "ru", "de", "id", "es", "el", "it", "th", "ms", "hi"];
     // Translation values follow languageOrder; event and contribution text intentionally stays as entered.
     const translations = {
@@ -1026,8 +1070,13 @@
       momentsThatMattered: ["Moments that mattered", "重要时刻", "重要な出来事", "중요한 순간", "Ключевые моменты", "Wichtige Momente", "Detik penting", "Momentos decisivos", "Σημαντικές στιγμές", "Momenti decisivi", "ช่วงเวลาสำคัญ", "Detik penting", "महत्वपूर्ण पल"],
       addTimelineEvent: ["Add timeline event", "添加时间线事件", "年表に出来事を追加", "연대표 사건 추가", "Добавить событие в хронологию", "Ereignis zur Zeitleiste hinzufügen", "Tambah peristiwa garis masa", "Añadir evento a la cronología", "Προσθήκη γεγονότος στο χρονολόγιο", "Aggiungi evento alla cronologia", "เพิ่มเหตุการณ์ในเส้นเวลา", "Tambah peristiwa garis masa", "समयरेखा में घटना जोड़ें"],
       addInformation: ["Add information", "添加信息", "情報を追加", "정보 추가", "Добавить информацию", "Informationen hinzufügen", "Tambah maklumat", "Añadir información", "Προσθήκη πληροφοριών", "Aggiungi informazioni", "เพิ่มข้อมูล", "Tambah maklumat", "जानकारी जोड़ें"],
+      deleteEvent: ["Delete event", "删除事件", "出来事を削除", "사건 삭제", "Удалить событие", "Ereignis löschen", "Padam peristiwa", "Eliminar evento", "Διαγραφή γεγονότος", "Elimina evento", "ลบเหตุการณ์", "Padam peristiwa", "घटना हटाएँ"],
+      confirmDeleteEvent: ["Delete “{title}” from this browser? This cannot be undone.", "要从此浏览器删除“{title}”吗？此操作无法撤销。", "このブラウザーから「{title}」を削除しますか？元に戻せません。", "이 브라우저에서 “{title}”을(를) 삭제할까요? 실행 취소할 수 없습니다.", "Удалить «{title}» из этого браузера? Это действие нельзя отменить.", "„{title}“ aus diesem Browser löschen? Dies kann nicht rückgängig gemacht werden.", "Padam “{title}” daripada pelayar ini? Tindakan ini tidak boleh dibuat asal.", "¿Eliminar «{title}» de este navegador? Esta acción no se puede deshacer.", "Να διαγραφεί το «{title}» από αυτό το πρόγραμμα περιήγησης; Η ενέργεια δεν μπορεί να αναιρεθεί.", "Eliminare “{title}” da questo browser? L'operazione non può essere annullata.", "ลบ “{title}” จากเบราว์เซอร์นี้หรือไม่? การดำเนินการนี้ย้อนกลับไม่ได้", "Padam “{title}” daripada pelayar ini? Tindakan ini tidak boleh dibuat asal.", "क्या “{title}” को इस ब्राउज़र से हटाएँ? इसे पूर्ववत नहीं किया जा सकता।"],
+      deleteEventFailed: ["Could not delete this event from browser storage. Check storage permissions and try again.", "无法从浏览器存储中删除此事件。请检查存储权限后重试。", "ブラウザーのストレージからこの出来事を削除できませんでした。ストレージの権限を確認して再試行してください。", "브라우저 저장소에서 이 사건을 삭제할 수 없습니다. 저장소 권한을 확인하고 다시 시도하세요.", "Не удалось удалить событие из хранилища браузера. Проверьте разрешения и повторите попытку.", "Dieses Ereignis konnte nicht aus dem Browserspeicher gelöscht werden. Prüfe die Speicherberechtigungen und versuche es erneut.", "Tidak dapat memadam peristiwa ini daripada storan pelayar. Semak kebenaran storan dan cuba lagi.", "No se pudo eliminar este evento del almacenamiento del navegador. Comprueba los permisos e inténtalo de nuevo.", "Δεν ήταν δυνατή η διαγραφή αυτού του γεγονότος από τον χώρο αποθήκευσης του προγράμματος περιήγησης. Ελέγξτε τα δικαιώματα και δοκιμάστε ξανά.", "Impossibile eliminare questo evento dalla memoria del browser. Controlla i permessi e riprova.", "ลบเหตุการณ์นี้ออกจากพื้นที่จัดเก็บของเบราว์เซอร์ไม่ได้ โปรดตรวจสอบสิทธิ์แล้วลองอีกครั้ง", "Tidak dapat memadam peristiwa ini daripada storan pelayar. Semak kebenaran storan dan cuba lagi.", "No se pudo eliminar este evento del almacenamiento del navegador. Comprueba los permisos e inténtalo de nuevo."],
       communityNotes: ["Community notes", "社区笔记", "コミュニティのメモ", "커뮤니티 메모", "Заметки сообщества", "Community-Notizen", "Catatan komuniti", "Notas de la comunidad", "Σημειώσεις κοινότητας", "Note della comunità", "บันทึกจากชุมชน", "Catatan komuniti", "समुदाय के नोट"],
       communityIncidents: ["Community incidents", "社区事件", "コミュニティの出来事", "커뮤니티 사건", "События сообщества", "Community-Ereignisse", "Peristiwa komuniti", "Acontecimientos de la comunidad", "Γεγονότα κοινότητας", "Eventi della comunità", "เหตุการณ์จากชุมชน", "Peristiwa komuniti", "समुदाय की घटनाएँ"],
+      noEventsAvailable: ["No events available", "暂无可用事件", "利用できる出来事がありません", "사용 가능한 사건이 없습니다", "Нет доступных событий", "Keine Ereignisse verfügbar", "Tiada peristiwa tersedia", "No hay eventos disponibles", "Δεν υπάρχουν διαθέσιμα γεγονότα", "Nessun evento disponibile", "ไม่มีเหตุการณ์ที่พร้อมใช้งาน", "Tiada peristiwa tersedia", "कोई घटना उपलब्ध नहीं है"],
+      noEventsAvailableHelp: ["Create a new information page to add an event to this browser.", "创建新的信息页面以将事件添加到此浏览器。", "新しい情報ページを作成して、このブラウザーに出来事を追加してください。", "새 정보 페이지를 만들어 이 브라우저에 사건을 추가하세요.", "Создайте новую информационную страницу, чтобы добавить событие в этот браузер.", "Erstelle eine neue Informationsseite, um diesem Browser ein Ereignis hinzuzufügen.", "Cipta halaman maklumat baharu untuk menambah peristiwa pada pelayar ini.", "Crea una nueva página de información para añadir un evento a este navegador.", "Δημιουργήστε μια νέα σελίδα πληροφοριών για να προσθέσετε ένα γεγονός σε αυτό το πρόγραμμα περιήγησης.", "Crea una nuova pagina informativa per aggiungere un evento a questo browser.", "สร้างหน้าข้อมูลใหม่เพื่อเพิ่มเหตุการณ์ในเบราว์เซอร์นี้", "Cipta halaman maklumat baharu untuk menambah peristiwa pada pelayar ini.", "इस ब्राउज़र में घटना जोड़ने के लिए नया जानकारी पृष्ठ बनाएँ।"],
       continueExploring: ["Continue exploring", "继续探索", "さらに探索", "계속 둘러보기", "Продолжить изучение", "Weiter erkunden", "Teruskan penerokaan", "Seguir explorando", "Συνεχίστε την εξερεύνηση", "Continua a esplorare", "สำรวจต่อ", "Teruskan penerokaan", "और जानें"],
       imagesFurtherReading: ["Images & further reading", "图片与延伸阅读", "画像と参考資料", "이미지 및 더 읽을거리", "Изображения и материалы для чтения", "Bilder & weiterführende Informationen", "Imej & bacaan lanjut", "Imágenes y lecturas adicionales", "Εικόνες και περαιτέρω ανάγνωση", "Immagini e approfondimenti", "ภาพและอ่านเพิ่มเติม", "Imej & bacaan lanjut", "चित्र और आगे पढ़ें"],
       footerCurious: ["Made for the curious. Check sources and keep asking questions.", "为好奇的人而作。请核查来源，并继续提问。", "好奇心を持つ人のために。出典を確認し、問い続けましょう。", "호기심 많은 사람들을 위해 만들었습니다. 출처를 확인하고 계속 질문하세요.", "Для любознательных. Проверяйте источники и продолжайте задавать вопросы.", "Für Neugierige. Prüfe Quellen und stelle weiterhin Fragen.", "Dihasilkan untuk mereka yang ingin tahu. Semak sumber dan terus bertanya.", "Hecho para quienes sienten curiosidad. Consulta las fuentes y sigue haciendo preguntas.", "Για όσους έχουν περιέργεια. Ελέγξτε τις πηγές και συνεχίστε να ρωτάτε.", "Per chi è curioso. Verifica le fonti e continua a fare domande.", "สร้างขึ้นเพื่อผู้ใฝ่รู้ ตรวจสอบแหล่งข้อมูลและตั้งคำถามต่อไป", "Dihasilkan untuk mereka yang ingin tahu. Semak sumber dan terus bertanya.", "जिज्ञासु पाठकों के लिए। स्रोत जाँचें और सवाल पूछते रहें।"],
@@ -1062,6 +1111,11 @@
       contributionPrivacy: ["Your notes and image are saved in this browser only. Contributions are not published or shared with other visitors.", "你的笔记和图片仅保存在此浏览器中。贡献内容不会发布或与其他访客共享。", "メモと画像はこのブラウザー内だけに保存されます。投稿内容は公開されたり、他の訪問者と共有されたりしません。", "메모와 이미지는 이 브라우저에만 저장됩니다. 기여 내용은 게시되거나 다른 방문자와 공유되지 않습니다.", "Заметки и изображения хранятся только в этом браузере. Материалы не публикуются и не передаются другим посетителям.", "Deine Notizen und Bilder werden nur in diesem Browser gespeichert. Beiträge werden nicht veröffentlicht oder mit anderen Besuchern geteilt.", "Nota dan imej anda disimpan dalam pelayar ini sahaja. Sumbangan tidak diterbitkan atau dikongsi dengan pelawat lain.", "Tus notas e imágenes solo se guardan en este navegador. Las contribuciones no se publican ni se comparten con otros visitantes.", "Οι σημειώσεις και οι εικόνες σας αποθηκεύονται μόνο σε αυτό το πρόγραμμα περιήγησης. Οι συνεισφορές δεν δημοσιεύονται ούτε κοινοποιούνται.", "Le tue note e immagini vengono salvate solo in questo browser. I contributi non vengono pubblicati né condivisi.", "บันทึกและรูปภาพจะเก็บไว้ในเบราว์เซอร์นี้เท่านั้น ข้อมูลที่ส่งมาจะไม่เผยแพร่หรือแชร์กับผู้เข้าชมคนอื่น", "Nota dan imej anda disimpan dalam pelayar ini sahaja. Sumbangan tidak diterbitkan atau dikongsi dengan pelawat lain.", "आपके नोट और चित्र केवल इस ब्राउज़र में सहेजे जाते हैं। योगदान प्रकाशित या अन्य आगंतुकों के साथ साझा नहीं किए जाते।"],
       title: ["Title", "标题", "タイトル", "제목", "Название", "Titel", "Tajuk", "Título", "Τίτλος", "Titolo", "ชื่อเรื่อง", "Tajuk", "शीर्षक"],
       informationTitlePlaceholder: ["Give this information a title", "为此信息添加标题", "この情報にタイトルを付ける", "이 정보의 제목을 입력하세요", "Укажите название этой информации", "Gib dieser Information einen Titel", "Berikan tajuk untuk maklumat ini", "Pon un título a esta información", "Δώστε τίτλο σε αυτές τις πληροφορίες", "Dai un titolo a queste informazioni", "ตั้งชื่อข้อมูลนี้", "Berikan tajuk untuk maklumat ini", "इस जानकारी को शीर्षक दें"],
+      category: ["Category", "类别", "カテゴリー", "분류", "Категория", "Kategorie", "Kategori", "Categoría", "Κατηγορία", "Categoria", "หมวดหมู่", "Kategori", "श्रेणी"],
+      eventRegion: ["Region", "地区", "地域", "지역", "Регион", "Region", "Wilayah", "Región", "Περιοχή", "Regione", "ภูมิภาค", "Wilayah", "क्षेत्र"],
+      selectRegion: ["Select a region", "选择地区", "地域を選択", "지역 선택", "Выберите регион", "Region auswählen", "Pilih wilayah", "Selecciona una región", "Επιλέξτε περιοχή", "Seleziona una regione", "เลือกภูมิภาค", "Pilih wilayah", "क्षेत्र चुनें"],
+      eventTopic: ["Topic", "主题", "テーマ", "주제", "Тема", "Thema", "Topik", "Tema", "Θέμα", "Argomento", "หัวข้อ", "Topik", "विषय"],
+      selectTopic: ["Select a topic", "选择主题", "テーマを選択", "주제 선택", "Выберите тему", "Thema auswählen", "Pilih topik", "Selecciona un tema", "Επιλέξτε θέμα", "Seleziona un argomento", "เลือกหัวข้อ", "Pilih topik", "विषय चुनें"],
       incidentDate: ["Date the incident occurred", "事件发生日期", "出来事が起きた日付", "사건 발생 날짜", "Дата события", "Datum des Ereignisses", "Tarikh peristiwa berlaku", "Fecha del acontecimiento", "Ημερομηνία του γεγονότος", "Data dell'evento", "วันที่เกิดเหตุการณ์", "Tarikh peristiwa berlaku", "घटना की तारीख"],
       incidentDatePlaceholder: ["e.g. 14 July 1789 or 1789", "例如：1789年7月14日或1789年", "例：1789年7月14日、または1789年", "예: 1789년 7월 14일 또는 1789년", "Например: 14 июля 1789 года или 1789 год", "z. B. 14. Juli 1789 oder 1789", "cth. 14 Julai 1789 atau 1789", "p. ej., 14 de julio de 1789 o 1789", "π.χ. 14 Ιουλίου 1789 ή 1789", "es. 14 luglio 1789 o 1789", "เช่น 14 กรกฎาคม 1789 หรือ 1789", "cth. 14 Julai 1789 atau 1789", "उदाहरण: 14 जुलाई 1789 या 1789"],
       addFactNote: ["Add a fact, source note or reflection", "添加事实、来源说明或感想", "事実、出典メモ、または考察を追加", "사실, 출처 메모 또는 생각 추가", "Добавьте факт, примечание к источнику или размышление", "Füge einen Fakt, Quellenhinweis oder Gedanken hinzu", "Tambah fakta, nota sumber atau refleksi", "Añade un dato, una nota de fuente o una reflexión", "Προσθέστε ένα στοιχείο, σημείωση πηγής ή σκέψη", "Aggiungi un fatto, una nota sulla fonte o una riflessione", "เพิ่มข้อเท็จจริง บันทึกแหล่งที่มา หรือข้อคิดเห็น", "Tambah fakta, nota sumber atau renungan", "तथ्य, स्रोत टिप्पणी या विचार जोड़ें"],
@@ -1159,6 +1213,7 @@
     const editorButton = document.getElementById("editorButton");
     const addInfoButton = document.getElementById("addInfoButton");
     const addTimelineButton = document.getElementById("addTimelineButton");
+    const deleteEventButton = document.getElementById("deleteEventButton");
     const sidebarToggle = document.getElementById("sidebarToggle");
     const pageLayout = document.querySelector(".page-layout");
 
@@ -1191,14 +1246,25 @@
       document.getElementById("signupButton").hidden = Boolean(email);
       editorButton.hidden = !email;
       addInfoButton.hidden = !email;
-      addTimelineButton.hidden = !email;
+      deleteEventButton.hidden = !email || (!selectedContribution && !selectedEvent);
+      updateTimelineControls();
       editorButton.textContent = t("editAtlas");
+    }
+
+    function updateTimelineControls() {
+      const timeline = document.getElementById("eventTimeline");
+      const hasMoments = timeline.children.length > 0;
+      document.getElementById("timelineHeading").hidden =
+        !hasMoments && (!selectedContribution || !currentUser());
+      timeline.hidden = !hasMoments;
+      addTimelineButton.hidden = !currentUser() || !selectedEvent;
+      deleteEventButton.hidden = !currentUser() || (!selectedContribution && !selectedEvent);
     }
 
     function renderNav() {
       const contributions = readJson(storageKeys.contributions, {});
       const informationPages = collectInformationPages(contributions);
-      const navigationItems = events.map(event => ({
+      const navigationItems = availableEvents().map(event => ({
         year: firstYear(event.dates),
         name: event.name,
         eventId: event.id,
@@ -1238,7 +1304,7 @@
     }
 
     function selectEvent(id) {
-      selectedEvent = events.find(event => event.id === id) || events[0];
+      selectedEvent = availableEvents().find(event => event.id === id) || availableEvents()[0] || null;
       selectedContribution = null;
       renderNav();
       renderEvent();
@@ -1269,8 +1335,15 @@
         return;
       }
       selectedContribution = { entry, id: pageId, index };
+      if (!selectedEvent) selectedEvent = events[0];
       renderNav();
       renderEvent();
+    }
+
+    function availableEvents() {
+      const deletedEvents = readJson(storageKeys.contributions, {}).deletedEvents;
+      const deletedIds = new Set(Array.isArray(deletedEvents) ? deletedEvents : []);
+      return events.filter(event => !deletedIds.has(event.id));
     }
 
     function wikiUrl(page) {
@@ -1372,10 +1445,37 @@
     }
 
     async function renderEvent() {
+      if (heroImageTimer !== null) {
+        clearInterval(heroImageTimer);
+        heroImageTimer = null;
+      }
+      const renderVersion = ++heroRenderVersion;
       const event = selectedEvent;
       const contribution = selectedContribution?.entry;
+      if (!event && !contribution) {
+        document.getElementById("eventCategory").textContent = "";
+        document.getElementById("eventTitle").textContent = t("noEventsAvailable");
+        document.getElementById("eventDates").textContent = "";
+        document.getElementById("eventSummary").textContent = t("noEventsAvailableHelp");
+        document.getElementById("eventFacts").hidden = true;
+        document.getElementById("eventFacts").replaceChildren();
+        document.getElementById("eventTimeline").replaceChildren();
+        updateTimelineControls();
+        document.getElementById("eventSource").textContent = "";
+        document.getElementById("communitySection").hidden = true;
+        document.getElementById("communityIncidentsSection").hidden = true;
+        document.getElementById("sidebarContributions").hidden = true;
+        document.getElementById("galleryHeading").hidden = true;
+        document.getElementById("eventGallery").replaceChildren();
+        document.getElementById("userGallery").hidden = true;
+        document.getElementById("userGallery").replaceChildren();
+        hero.style.backgroundImage = "";
+        heroCredit.hidden = true;
+        return;
+      }
+      heroCredit.hidden = false;
       document.getElementById("eventCategory").textContent = contribution
-        ? t("independentHistoricalEntry")
+        ? contribution.category || t("independentHistoricalEntry")
         : event.category;
       document.getElementById("eventTitle").textContent = contribution?.title || event.name;
       document.getElementById("eventDates").textContent = contribution?.date || event.dates;
@@ -1385,7 +1485,6 @@
       facts.innerHTML = contribution ? "" : event.facts.map(([label, text]) =>
         `<div class="fact"><strong>${escapeHtml(label)}</strong><span>${escapeHtml(text)}</span></div>`
       ).join("");
-      const timelineHeading = document.getElementById("timelineHeading");
       const timeline = document.getElementById("eventTimeline");
       const additionalMoments = readJson(storageKeys.contributions, {}).eventTimelines?.[event.id] || [];
       const moments = contribution
@@ -1394,12 +1493,10 @@
             ...event.moments.map(([date, description]) => ({ date, description })),
             ...additionalMoments
           ].sort((first, second) => incidentYear(first.date) - incidentYear(second.date));
-      timelineHeading.hidden = moments.length === 0;
-      timeline.hidden = moments.length === 0;
-      addTimelineButton.hidden = Boolean(contribution) || !currentUser();
       timeline.innerHTML = moments.map(moment =>
         `<div class="timeline-item"><time>${escapeHtml(moment.date)}</time><p>${escapeHtml(moment.description)}</p></div>`
       ).join("");
+      updateTimelineControls();
       document.getElementById("eventSource").innerHTML = contribution
         ? sourceMarkup(contribution.source)
         : `${t("backgroundReading")} <a href="${wikiUrl(event.page)}" target="_blank" rel="noreferrer">${escapeHtml(event.name)} (Wikipedia)</a>. ${t("suggestedReferenceOrganizations")} ${escapeHtml(event.source.replace(/^Sources: /, ""))}. ${t("imagesLinkToSource")}`;
@@ -1439,10 +1536,17 @@
       ).join("");
 
       const images = await loadEventImages(event);
-      if (event !== selectedEvent || contribution !== selectedContribution?.entry) return;
-      hero.style.backgroundImage = `linear-gradient(180deg, rgba(23,24,21,.2), rgba(23,24,21,.64)), url("${images[0].url}")`;
-      heroCredit.href = images[0].page;
-      heroCredit.textContent = `Image: ${images[0].title}`;
+      if (renderVersion !== heroRenderVersion || event !== selectedEvent || contribution !== selectedContribution?.entry) return;
+      let imageIndex = 0;
+      const showHeroImage = () => {
+        const image = images[imageIndex];
+        hero.style.backgroundImage = `linear-gradient(180deg, rgba(23,24,21,.2), rgba(23,24,21,.64)), url("${image.url}")`;
+        heroCredit.href = image.page;
+        heroCredit.textContent = `${t("imageLabel")} ${image.title}`;
+        imageIndex = (imageIndex + 1) % images.length;
+      };
+      showHeroImage();
+      if (images.length > 1) heroImageTimer = setInterval(showHeroImage, 3000);
       gallery.innerHTML = images.slice(1).map(image =>
         `<figure class="gallery-card"><a href="${image.page}" target="_blank" rel="noreferrer"><img class="gallery-image" src="${image.url}" alt="${escapeHtml(image.alt)}"></a><figcaption><a href="${image.page}" target="_blank" rel="noreferrer">${escapeHtml(image.title)}</a></figcaption></figure>`
       ).join("");
@@ -1484,6 +1588,8 @@
       }
       document.getElementById("editorChapterName").textContent = t("createIndependentEntry");
       document.getElementById("editorContributionTitle").value = "";
+      regionSelect.value = "";
+      topicSelect.value = "";
       document.getElementById("editorIncidentDate").value = "";
       document.getElementById("editorNote").value = "";
       document.getElementById("editorSource").value = "";
@@ -1506,9 +1612,80 @@
     });
     editorButton.addEventListener("click", openEditor);
     addInfoButton.addEventListener("click", openEditor);
+    deleteEventButton.addEventListener("click", () => {
+      if (!selectedContribution && !selectedEvent) {
+        console.error("Cannot delete an event because no event is selected.");
+        return;
+      }
+      const deletingContribution = Boolean(selectedContribution);
+      const title = selectedContribution?.entry.title || selectedEvent.name;
+      if (!window.confirm(t("confirmDeleteEvent").replace("{title}", title))) return;
+
+      const all = readJson(storageKeys.contributions, {});
+      if (deletingContribution) {
+        const pageIndex = Array.isArray(all.informationPages)
+          ? all.informationPages.findIndex(page => page.id === selectedContribution.id)
+          : -1;
+        if (pageIndex !== -1) {
+          all.informationPages = all.informationPages.filter((_, index) => index !== pageIndex);
+        } else {
+          let legacyPageFound = false;
+          for (const event of events) {
+            const information = all[event.id]?.information;
+            if (!Array.isArray(information)) continue;
+            const legacyIndex = information.findIndex((_, index) =>
+              `legacy-${event.id}-${index}` === selectedContribution.id
+            );
+            if (legacyIndex !== -1) {
+              all[event.id] = {
+                ...all[event.id],
+                information: information.filter((_, index) => index !== legacyIndex)
+              };
+              legacyPageFound = true;
+              break;
+            }
+          }
+          if (!legacyPageFound) {
+            console.error(`Could not find user-created event ${selectedContribution.id} to delete.`);
+            window.alert(t("deleteEventFailed"));
+            return;
+          }
+        }
+      } else {
+        const deletedEvents = Array.isArray(all.deletedEvents) ? all.deletedEvents : [];
+        all.deletedEvents = [...new Set([...deletedEvents, selectedEvent.id])];
+        delete all[selectedEvent.id];
+        if (all.eventTimelines) delete all.eventTimelines[selectedEvent.id];
+      }
+
+      try {
+        localStorage.setItem(storageKeys.contributions, JSON.stringify(all));
+      } catch (error) {
+        console.error("Could not delete this event from browser storage.", error);
+        window.alert(t("deleteEventFailed"));
+        return;
+      }
+      selectedContribution = null;
+      if (!deletingContribution) {
+        selectedEvent = availableEvents()[0] || null;
+        if (!selectedEvent) {
+          const pages = collectInformationPages(all);
+          if (pages.length) {
+            selectedEvent = events[0];
+            selectedContribution = { entry: pages[0], id: pages[0].id, index: 0 };
+          }
+        }
+      }
+      renderNav();
+      renderEvent();
+    });
     document.getElementById("addTimelineButton").addEventListener("click", () => {
-      timelineTargetEvent = selectedEvent;
-      document.getElementById("timelineModalChapter").textContent = selectedEvent.name;
+      timelineTarget = {
+        eventId: selectedEvent.id,
+        contributionId: selectedContribution?.id || null
+      };
+      document.getElementById("timelineModalChapter").textContent =
+        selectedContribution?.entry.title || selectedEvent.name;
       document.getElementById("chapterTimelineList").replaceChildren();
       document.getElementById("timelineError").textContent = "";
       openModal("timelineModal");
@@ -1632,6 +1809,9 @@
       event.preventDefault();
       const error = document.getElementById("editorError");
       const title = document.getElementById("editorContributionTitle").value.trim();
+      const region = regionSelect.value;
+      const topic = topicSelect.value;
+      const category = region && topic ? `${region} · ${topic}` : "";
       const incidentDate = document.getElementById("editorIncidentDate").value.trim();
       const note = document.getElementById("editorNote").value.trim();
       const source = document.getElementById("editorSource").value.trim();
@@ -1642,9 +1822,9 @@
         return hasContent && (!entry.date || !entry.description);
       });
       const timeline = timelineEntries.filter(entry => entry.date && entry.description);
-      const hasInformation = title || incidentDate || note || source || imageFile || timeline.length > 0;
-      if (hasInformation && (!title || !incidentDate)) {
-        error.textContent = "Add a title and the date the incident occurred for this information.";
+      const hasInformation = title || category || incidentDate || note || source || imageFile || timeline.length > 0;
+      if (hasInformation && (!title || !category || !incidentDate)) {
+        error.textContent = "Add a title, category and the date the incident occurred for this information.";
         return;
       }
       if (hasIncompleteTimelineEntry) {
@@ -1652,7 +1832,7 @@
         return;
       }
       if (!hasInformation) {
-        error.textContent = "Add a title, date, note or image before saving.";
+        error.textContent = "Add a title, category, date, note or image before saving.";
         return;
       }
 
@@ -1661,6 +1841,7 @@
         const savedInformation = {
           id: `page-${Date.now()}-${Math.random().toString(36).slice(2)}`,
           title,
+          category,
           date: incidentDate,
           description: note,
           source,
@@ -1720,11 +1901,43 @@
         return;
       }
       const all = readJson(storageKeys.contributions, {});
-      all.eventTimelines = all.eventTimelines || {};
-      all.eventTimelines[timelineTargetEvent.id] = [
-        ...(all.eventTimelines[timelineTargetEvent.id] || []),
-        ...moments
-      ].sort((first, second) => incidentYear(first.date) - incidentYear(second.date));
+      if (!timelineTarget) {
+        error.textContent = "Choose a chapter or information page before adding timeline events.";
+        return;
+      }
+      if (timelineTarget.contributionId) {
+        let targetPage = (all.informationPages || []).find(page => page.id === timelineTarget.contributionId);
+        if (!targetPage) {
+          for (const event of events) {
+            const legacyPages = all[event.id]?.information || [];
+            const legacyIndex = legacyPages.findIndex((page, index) =>
+              `legacy-${event.id}-${index}` === timelineTarget.contributionId
+            );
+            if (legacyIndex !== -1) {
+              targetPage = legacyPages[legacyIndex];
+              break;
+            }
+          }
+        }
+        if (!targetPage) {
+          console.error(`Could not find information page ${timelineTarget.contributionId} to update its timeline.`);
+          error.textContent = "This information page could not be found. Reopen it and try again.";
+          return;
+        }
+        targetPage.timeline = [
+          ...(targetPage.timeline || []),
+          ...moments
+        ].sort((first, second) => incidentYear(first.date) - incidentYear(second.date));
+        if (selectedContribution?.id === timelineTarget.contributionId) {
+          selectedContribution.entry = targetPage;
+        }
+      } else {
+        all.eventTimelines = all.eventTimelines || {};
+        all.eventTimelines[timelineTarget.eventId] = [
+          ...(all.eventTimelines[timelineTarget.eventId] || []),
+          ...moments
+        ].sort((first, second) => incidentYear(first.date) - incidentYear(second.date));
+      }
       try {
         localStorage.setItem(storageKeys.contributions, JSON.stringify(all));
       } catch (storageError) {
