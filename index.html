@@ -263,16 +263,19 @@
       background-position: center 46%;
       color: white;
       text-align: center;
-      transition: background-image .25s ease;
     }
+    .hero-image-layer { position: absolute; z-index: 0; inset: 0; background-size: cover; background-position: center 46%; transform: translateX(100%); pointer-events: none; }
+    .hero-image-layer.is-active { transform: translateX(0); transition: transform 1s cubic-bezier(.22,.68,0,1); }
+    .hero-image-layer.is-exiting { transform: translateX(-100%); transition: transform 1s cubic-bezier(.22,.68,0,1); }
     .hero::after {
       content: "";
       position: absolute;
+      z-index: 1;
       inset: 0;
       background: linear-gradient(90deg, rgba(0,0,0,.08), transparent 48%, rgba(0,0,0,.08));
       pointer-events: none;
     }
-    .hero-copy { position: relative; z-index: 1; max-width: 720px; }
+    .hero-copy { position: relative; z-index: 2; max-width: 720px; }
     .hero .eyebrow { color: rgba(255,255,255,.8); }
     .hero h1 {
       margin: 8px 0 9px;
@@ -288,7 +291,7 @@
     }
     .hero-credit {
       position: absolute;
-      z-index: 2;
+      z-index: 3;
       right: 5.2vw;
       bottom: 14px;
       color: rgba(255,255,255,.8);
@@ -492,6 +495,11 @@
     .chat-header strong { display: block; font: 500 17px var(--serif); }
     .chat-header span { color: #c7c6bd; font-size: 10px; }
     .chat-mascot { width: 58px; height: 58px; flex: 0 0 auto; border: 2px solid rgba(255,255,255,.55); border-radius: 50%; background: #f0ede6; object-fit: cover; object-position: center 18%; }
+    .chat-panel.open .chat-mascot { animation: mascot-slide-in .55s ease-out both; }
+    @keyframes mascot-slide-in {
+      from { opacity: 0; transform: translateX(48px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
     .chat-messages { display: flex; flex-direction: column; gap: 9px; overflow-y: auto; padding: 14px; }
     .chat-message {
       max-width: 88%;
@@ -503,6 +511,11 @@
       white-space: pre-wrap;
     }
     .chat-message.user { align-self: flex-end; background: #e5eee5; }
+    .chat-word { display: inline-block; animation: chat-word-reveal .24s ease-out both; animation-delay: calc(var(--word-index) * 22ms); }
+    @keyframes chat-word-reveal {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
     .quick-prompts { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 12px 10px; }
     .quick-prompts button {
       border: 1px solid var(--line);
@@ -656,7 +669,7 @@
       .hero h1 { font-size: clamp(34px, 11vw, 39px); }
     }
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-delay: 0ms !important; transition-duration: .01ms !important; }
     }
   </style>
 </head>
@@ -705,6 +718,8 @@
 
     <main>
       <section class="hero" id="hero" aria-label="History Atlas introduction" data-i18n-aria="atlasIntroduction">
+        <div class="hero-image-layer" aria-hidden="true"></div>
+        <div class="hero-image-layer" aria-hidden="true"></div>
         <div class="hero-copy">
           <p class="eyebrow" data-i18n="illustratedGuide">An illustrated guide to the past</p>
           <h1>HISTORY ATLAS</h1>
@@ -1040,6 +1055,7 @@
     };
     const imageCache = new Map();
     let heroImageTimer = null;
+    let heroImageTransitionTimeout = null;
     let heroRenderVersion = 0;
     let selectedEvent = availableEvents()[0] || null;
     let selectedContribution = null;
@@ -1214,6 +1230,7 @@
     const addInfoButton = document.getElementById("addInfoButton");
     const addTimelineButton = document.getElementById("addTimelineButton");
     const deleteEventButton = document.getElementById("deleteEventButton");
+    const heroImageLayers = [...document.querySelectorAll(".hero-image-layer")];
     const sidebarToggle = document.getElementById("sidebarToggle");
     const pageLayout = document.querySelector(".page-layout");
 
@@ -1449,6 +1466,14 @@
         clearInterval(heroImageTimer);
         heroImageTimer = null;
       }
+      if (heroImageTransitionTimeout !== null) {
+        clearTimeout(heroImageTransitionTimeout);
+        heroImageTransitionTimeout = null;
+      }
+      heroImageLayers.forEach(layer => {
+        layer.classList.remove("is-active", "is-exiting");
+        layer.style.backgroundImage = "";
+      });
       const renderVersion = ++heroRenderVersion;
       const event = selectedEvent;
       const contribution = selectedContribution?.entry;
@@ -1538,11 +1563,29 @@
       const images = await loadEventImages(event);
       if (renderVersion !== heroRenderVersion || event !== selectedEvent || contribution !== selectedContribution?.entry) return;
       let imageIndex = 0;
+      let activeLayerIndex = -1;
       const showHeroImage = () => {
         const image = images[imageIndex];
-        hero.style.backgroundImage = `linear-gradient(180deg, rgba(23,24,21,.2), rgba(23,24,21,.64)), url("${image.url}")`;
+        const incomingLayerIndex = (activeLayerIndex + 1) % heroImageLayers.length;
+        const incomingLayer = heroImageLayers[incomingLayerIndex];
+        const outgoingLayer = activeLayerIndex === -1 ? null : heroImageLayers[activeLayerIndex];
+        incomingLayer.classList.remove("is-active", "is-exiting");
+        incomingLayer.style.backgroundImage = `linear-gradient(180deg, rgba(23,24,21,.2), rgba(23,24,21,.64)), url("${image.url}")`;
+        void incomingLayer.offsetWidth;
+        incomingLayer.classList.add("is-active");
+        if (outgoingLayer) {
+          outgoingLayer.classList.remove("is-exiting");
+          outgoingLayer.classList.add("is-exiting");
+          heroImageTransitionTimeout = setTimeout(() => {
+            if (renderVersion !== heroRenderVersion) return;
+            outgoingLayer.classList.remove("is-active", "is-exiting");
+            outgoingLayer.style.backgroundImage = "";
+            heroImageTransitionTimeout = null;
+          }, 1050);
+        }
         heroCredit.href = image.page;
         heroCredit.textContent = `${t("imageLabel")} ${image.title}`;
+        activeLayerIndex = incomingLayerIndex;
         imageIndex = (imageIndex + 1) % images.length;
       };
       showHeroImage();
@@ -1987,7 +2030,19 @@
       messages.append(userMessage);
       const reply = document.createElement("div");
       reply.className = "chat-message";
-      reply.textContent = chatReply(clean);
+      let wordIndex = 0;
+      for (const part of chatReply(clean).split(/(\s+)/u)) {
+        if (!part) continue;
+        if (/^\s+$/u.test(part)) {
+          reply.append(document.createTextNode(part));
+          continue;
+        }
+        const word = document.createElement("span");
+        word.className = "chat-word";
+        word.style.setProperty("--word-index", String(wordIndex++));
+        word.textContent = part;
+        reply.append(word);
+      }
       messages.append(reply);
       messages.scrollTop = messages.scrollHeight;
     }
