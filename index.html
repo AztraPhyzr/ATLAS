@@ -316,6 +316,7 @@
       font-size: 11px;
       line-height: 1.7;
     }
+    .sidebar-updates,
     .sidebar-contributions {
       display: grid;
       gap: 9px;
@@ -323,14 +324,35 @@
       padding-top: 14px;
       border-top: 1px solid var(--line);
     }
-    .sidebar-contributions[hidden] { display: none; }
-    .sidebar-contributions h2 {
+    .sidebar-updates[hidden], .sidebar-contributions[hidden] { display: none; }
+    .sidebar-updates h2, .sidebar-contributions h2 {
       margin: 0;
       color: var(--muted);
       font: 10px/1.5 var(--mono);
       letter-spacing: .12em;
       text-transform: uppercase;
     }
+    .sidebar-update {
+      width: 100%;
+      padding: 9px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--white);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 10px;
+      line-height: 1.5;
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+    .sidebar-update:hover { background: var(--surface-soft); }
+    .sidebar-update strong {
+      display: block;
+      margin-top: 3px;
+      color: var(--ink);
+      font: 500 13px/1.3 var(--serif);
+    }
+    .sidebar-update time { color: var(--accent-dark); font: 9px var(--mono); }
     .sidebar-contribution {
       position: relative;
       padding: 9px;
@@ -823,7 +845,9 @@
         overflow-wrap: anywhere;
       }
       .sidebar-note { display: none; }
-      .sidebar-contributions { margin: 15px 0 0; padding: 10px 3px 0; }
+      .sidebar-updates, .sidebar-contributions { margin: 15px 0 0; padding: 10px 3px 0; }
+      .sidebar-update { padding: 6px; font-size: 9px; }
+      .sidebar-update strong { font-size: 12px; }
       .sidebar-contribution { padding: 6px; font-size: 9px; }
       .sidebar-contribution strong { font-size: 12px; }
       main { min-width: 0; padding: 0 12px 45px; }
@@ -896,6 +920,11 @@
     <aside class="sidebar" id="atlasSidebar" aria-label="Choose a historical event" data-i18n-aria="chooseEvent">
       <p class="sidebar-heading" data-i18n="turningPoints">A century of turning points</p>
       <nav class="event-list" id="eventList" aria-label="Historical events" data-i18n-aria="historicalEvents"></nav>
+      <p class="form-error" id="backendStatus" role="alert" data-i18n="backendUnavailable" hidden>Could not connect to the History Atlas server. Start it with python atlas_server.py and reload.</p>
+      <section class="sidebar-updates" id="sidebarUpdates" aria-label="New and updated information" hidden>
+        <h2 data-i18n="latestInformation">New &amp; updated information</h2>
+        <div id="sidebarUpdateList"></div>
+      </section>
       <section class="sidebar-contributions" id="sidebarContributions" aria-label="Added information for this chapter" data-i18n-aria="addedInfoForChapter" hidden>
         <h2 id="sidebarContributionHeading" data-i18n="addedInformation">Added information</h2>
         <div id="sidebarContributionList"></div>
@@ -1002,7 +1031,7 @@
         </div>
         <button class="modal-close" type="button" data-close="accountModal" aria-label="Close" data-i18n-aria="close">&times;</button>
       </div>
-      <p class="modal-copy" data-i18n="accountPrivacy">This standalone demo stores account details on this device only. Passwords are stored as salted hashes; this is not secure server authentication. Older demo accounts will set a password the first time they log in.</p>
+      <p class="modal-copy" id="accountPrivacy" data-i18n="serverAccountPrivacy">Accounts are stored on the History Atlas server. Email addresses are private, and passwords are stored as secure salted hashes.</p>
       <div class="modal-tabs" role="tablist" aria-label="Account action" data-i18n-aria="accountAction">
         <button class="modal-tab" id="tabLogin" type="button" role="tab" aria-selected="false" data-i18n="login">Log in</button>
         <button class="modal-tab" id="tabSignup" type="button" role="tab" aria-selected="true" data-i18n="createAccount">Create an account</button>
@@ -1020,7 +1049,7 @@
           <label for="accountPasswordConfirm" data-i18n="confirmPassword">Confirm password</label>
           <input id="accountPasswordConfirm" type="password" autocomplete="new-password" required minlength="8" maxlength="128">
         </div>
-        <button class="modal-submit" id="accountSubmit" type="submit" data-i18n="createDemoAccount">Create demo account</button>
+        <button class="modal-submit" id="accountSubmit" type="submit" data-i18n="createAccount">Create an account</button>
         <p class="form-error" id="accountError" role="status"></p>
       </form>
       <div class="signed-in" id="signedInPanel">
@@ -1057,7 +1086,7 @@
         </div>
         <button class="modal-close" type="button" data-close="editorModal" aria-label="Close" data-i18n-aria="close">&times;</button>
       </div>
-      <p class="modal-copy" data-i18n="contributionPrivacy">Your notes and image are saved in this browser only. Contributions are not published or shared with other visitors.</p>
+      <p class="modal-copy" id="contributionPrivacy" data-i18n="publishedContributionPrivacy">Published information is stored on the server and shared with visitors to this site. Do not include private information in contributions.</p>
       <form id="editorForm">
         <div id="independentPageFields">
           <div class="field">
@@ -1095,7 +1124,7 @@
           <div class="field">
             <label for="editorImages" data-i18n="addImagesOptional">Add supporting images (optional)</label>
             <input id="editorImages" type="file" accept="image/*" multiple>
-            <span class="file-hint" data-i18n="imageFileHint">Image files only, up to 2 MB. Saved locally in this browser.</span>
+            <span class="file-hint" data-i18n="publishedImageFileHint">Image files only, up to 2 MB each. Images are published with the information page.</span>
             <div class="image-editor-list" id="imageEditorList"></div>
           </div>
         </div>
@@ -1105,7 +1134,7 @@
           <button class="editor-link incident-add" id="addPageTimelineButton" type="button" data-i18n="addTimelineEvent">Add timeline event</button>
           <div class="incident-editor-list" id="pageTimelineList"></div>
         </div>
-        <button class="modal-submit" type="submit" data-i18n="saveThisBrowser">Save to this browser</button>
+        <button class="modal-submit" type="submit" data-i18n="publishInformation">Publish information</button>
         <p class="form-error" id="editorError" role="status"></p>
       </form>
     </section>
@@ -1264,12 +1293,15 @@
     }
 
     const storageKeys = {
-      accounts: "history-atlas-demo-accounts-v1",
-      session: "history-atlas-demo-session-v1",
       contributions: "history-atlas-contributions-v1",
       language: "history-atlas-language-v1",
       theme: "history-atlas-theme-v1"
     };
+    let siteContributions = {};
+    let siteUpdates = [];
+    let siteContentVersion = 0;
+    let signedInUser = null;
+    let backendReady = false;
     const imageCache = new Map();
     let heroImageTimer = null;
     let heroImageTransitionTimeout = null;
@@ -1300,6 +1332,14 @@
       turningPoints: ["A century of turning points", "百年重大转折", "転換点の一世紀", "전환점의 한 세기", "Век переломных событий", "Ein Jahrhundert voller Wendepunkte", "Satu abad titik balik", "Un siglo de momentos decisivos", "Ένας αιώνας καμπών", "Un secolo di svolte", "ศตวรรษแห่งจุดเปลี่ยน", "Satu abad titik perubahan", "परिवर्तन के निर्णायक क्षणों का एक शतक"],
       atlasIntroduction: ["History Atlas introduction", "历史图册简介", "ヒストリー・アトラスの紹介", "히스토리 아틀라스 소개", "Введение в Атлас истории", "Einführung in den History Atlas", "Pengenalan Atlas Sejarah", "Introducción al Atlas de Historia", "Εισαγωγή στον Άτλαντα Ιστορίας", "Introduzione all'Atlante della storia", "แนะนำแอตลาสประวัติศาสตร์", "Pengenalan Atlas Sejarah", "इतिहास एटलस परिचय"],
       addedInformation: ["Added information", "补充信息", "追加情報", "추가 정보", "Дополнительная информация", "Zusätzliche Informationen", "Informasi tambahan", "Información añadida", "Πρόσθετες πληροφορίες", "Informazioni aggiuntive", "ข้อมูลเพิ่มเติม", "Maklumat tambahan", "अतिरिक्त जानकारी"],
+      latestInformation: ["New & updated information", "新增和更新的信息", "新規・更新情報", "새로 추가되거나 업데이트된 정보", "Новая и обновлённая информация", "Neue und aktualisierte Informationen", "Informasi baru dan diperbarui", "Información nueva y actualizada", "Νέες και ενημερωμένες πληροφορίες", "Informazioni nuove e aggiornate", "ข้อมูลใหม่และข้อมูลที่อัปเดต", "Maklumat baharu dan dikemas kini", "नई और अपडेट की गई जानकारी"],
+      newContentLabel: ["New", "新增", "新規", "신규", "Новая", "Neu", "Baru", "Nueva", "Νέα", "Nuova", "ใหม่", "Baharu", "नई"],
+      updatedContentLabel: ["Updated", "已更新", "更新", "업데이트됨", "Обновлено", "Aktualisiert", "Diperbarui", "Actualizada", "Ενημερώθηκε", "Aggiornata", "อัปเดตแล้ว", "Dikemas kini", "अपडेट की गई"],
+      backendUnavailable: ["Could not connect to the History Atlas server. Start it with python atlas_server.py and reload.", "无法连接到历史图册服务器。请运行 python atlas_server.py 并重新加载页面。", "History Atlas サーバーに接続できません。python atlas_server.py を実行して再読み込みしてください。", "History Atlas 서버에 연결할 수 없습니다. python atlas_server.py를 실행한 뒤 새로고침하세요.", "Не удалось подключиться к серверу History Atlas. Запустите python atlas_server.py и перезагрузите страницу.", "Verbindung zum History-Atlas-Server fehlgeschlagen. Starte python atlas_server.py und lade die Seite neu.", "Tidak dapat menyambung ke pelayan History Atlas. Jalankan python atlas_server.py dan muat semula.", "No se pudo conectar con el servidor de History Atlas. Ejecuta python atlas_server.py y vuelve a cargar.", "Δεν ήταν δυνατή η σύνδεση με τον διακομιστή History Atlas. Εκτελέστε το python atlas_server.py και φορτώστε ξανά.", "Impossibile connettersi al server History Atlas. Avvia python atlas_server.py e ricarica la pagina.", "เชื่อมต่อเซิร์ฟเวอร์ History Atlas ไม่ได้ โปรดเรียกใช้ python atlas_server.py แล้วโหลดหน้านี้ใหม่", "Tidak dapat menyambung ke pelayan History Atlas. Jalankan python atlas_server.py dan muat semula.", "History Atlas सर्वर से कनेक्ट नहीं हो सका। python atlas_server.py चलाएँ और पृष्ठ फिर से लोड करें।"],
+      serverAccountPrivacy: ["Accounts are stored on the History Atlas server. Email addresses are private, and passwords are stored as secure salted hashes.", "账户信息存储在 History Atlas 服务器上。电子邮件地址为私密信息，密码以加盐哈希形式安全存储。", "アカウントは History Atlas サーバーに保存されます。メールアドレスは非公開で、パスワードはソルト付きハッシュとして安全に保存されます。", "계정은 History Atlas 서버에 저장됩니다. 이메일 주소는 비공개이며 비밀번호는 솔트를 적용한 해시로 안전하게 저장됩니다.", "Учетные записи хранятся на сервере History Atlas. Адреса электронной почты конфиденциальны, пароли хранятся в виде защищённых хешей с солью.", "Konten werden auf dem History-Atlas-Server gespeichert. E-Mail-Adressen bleiben privat; Passwörter werden als gesalzene Hashes gespeichert.", "Akaun disimpan pada pelayan History Atlas. Alamat e-mel dirahsiakan dan kata laluan disimpan sebagai cincangan bersalt.", "Las cuentas se almacenan en el servidor de History Atlas. Los correos son privados y las contraseñas se guardan como hashes con sal.", "Οι λογαριασμοί αποθηκεύονται στον διακομιστή History Atlas. Τα email παραμένουν ιδιωτικά και οι κωδικοί αποθηκεύονται ως hash με salt.", "Gli account sono salvati sul server di History Atlas. Gli indirizzi email sono privati e le password sono conservate come hash con salt.", "บัญชีจะจัดเก็บบนเซิร์ฟเวอร์ History Atlas อีเมลเป็นข้อมูลส่วนตัวและรหัสผ่านจัดเก็บเป็นแฮชพร้อม salt อย่างปลอดภัย", "Akaun disimpan pada pelayan History Atlas. Alamat e-mel dirahsiakan dan kata laluan disimpan sebagai cincangan bersalt.", "खाते History Atlas सर्वर पर संग्रहीत होते हैं। ईमेल निजी रहते हैं और पासवर्ड salted hash के रूप में सुरक्षित रखे जाते हैं।"],
+      publishedContributionPrivacy: ["Published information is stored on the server and shared with site visitors. Do not include private information in contributions.", "发布的信息存储在服务器上，并与网站访客共享。请勿在投稿中填写私人信息。", "公開した情報はサーバーに保存され、サイト訪問者と共有されます。投稿に個人情報を含めないでください。", "게시된 정보는 서버에 저장되어 사이트 방문자와 공유됩니다. 기여 내용에 개인정보를 포함하지 마세요.", "Опубликованная информация хранится на сервере и доступна посетителям сайта. Не включайте личные данные в материалы.", "Veröffentlichte Informationen werden auf dem Server gespeichert und mit Besuchern geteilt. Gib keine privaten Daten an.", "Maklumat yang diterbitkan disimpan pada pelayan dan dikongsi dengan pelawat laman. Jangan sertakan maklumat peribadi.", "La información publicada se guarda en el servidor y se comparte con los visitantes. No incluyas datos privados.", "Οι δημοσιευμένες πληροφορίες αποθηκεύονται στον διακομιστή και κοινοποιούνται στους επισκέπτες. Μην συμπεριλάβετε ιδιωτικά στοιχεία.", "Le informazioni pubblicate sono salvate sul server e condivise con i visitatori. Non inserire dati privati.", "ข้อมูลที่เผยแพร่จะจัดเก็บบนเซิร์ฟเวอร์และแชร์กับผู้เข้าชมเว็บไซต์ โปรดอย่าใส่ข้อมูลส่วนตัว", "Maklumat yang diterbitkan disimpan pada pelayan dan dikongsi dengan pelawat laman. Jangan sertakan maklumat peribadi.", "प्रकाशित जानकारी सर्वर पर संग्रहीत होती है और साइट आगंतुकों के साथ साझा की जाती है। इसमें निजी जानकारी न डालें।"],
+      publishInformation: ["Publish information", "发布信息", "情報を公開", "정보 게시", "Опубликовать информацию", "Information veröffentlichen", "Terbitkan maklumat", "Publicar información", "Δημοσίευση πληροφοριών", "Pubblica informazioni", "เผยแพร่ข้อมูล", "Terbitkan maklumat", "जानकारी प्रकाशित करें"],
+      publishedImageFileHint: ["Image files only, up to 2 MB each. Images are published with the information page.", "仅限图片文件，每个最大 2 MB。图片将随信息页面一同发布。", "画像ファイルのみ、各 2 MB 以下。画像は情報ページとともに公開されます。", "이미지 파일만 가능하며 각 파일은 최대 2MB입니다. 이미지는 정보 페이지와 함께 게시됩니다.", "Только изображения размером до 2 МБ каждое. Они публикуются вместе со страницей.", "Nur Bilddateien bis 2 MB pro Datei. Bilder werden mit der Informationsseite veröffentlicht.", "Fail imej sahaja, sehingga 2 MB setiap satu. Imej diterbitkan bersama halaman maklumat.", "Solo imágenes de hasta 2 MB cada una. Se publican con la página de información.", "Μόνο αρχεία εικόνας έως 2 MB το καθένα. Δημοσιεύονται μαζί με τη σελίδα πληροφοριών.", "Solo immagini fino a 2 MB ciascuna. Saranno pubblicate insieme alla pagina informativa.", "ไฟล์รูปภาพเท่านั้น ไม่เกิน 2 MB ต่อไฟล์ รูปภาพจะเผยแพร่พร้อมหน้าข้อมูล", "Fail imej sahaja, sehingga 2 MB setiap satu. Imej diterbitkan bersama halaman maklumat.", "केवल 2 MB तक की छवि फ़ाइलें। छवियाँ जानकारी पृष्ठ के साथ प्रकाशित होंगी।"],
       sidebarNote: ["Nine chapters. Centuries of change. Choose a moment to explore its context, key dates and lasting impact.", "九个章节，数百年的变迁。选择一个时刻，了解其背景、重要日期和深远影响。", "9つの章、数世紀にわたる変化。出来事を選び、背景や重要な日付、その影響を探りましょう。", "9개 장, 수 세기에 걸친 변화. 사건을 선택해 배경, 주요 날짜와 지속적인 영향을 살펴보세요.", "Девять глав. Столетия перемен. Выберите событие, чтобы изучить его контекст, важные даты и последствия.", "Neun Kapitel. Jahrhunderte des Wandels. Wähle ein Ereignis und entdecke Hintergründe, wichtige Daten und Folgen.", "Sembilan bab. Berabad-abad perubahan. Pilih peristiwa untuk menjelajahi konteks, tanggal penting, dan dampaknya.", "Nueve capítulos. Siglos de cambios. Elige un momento para conocer su contexto, fechas clave e impacto duradero.", "Εννέα κεφάλαια. Αιώνες αλλαγών. Επιλέξτε μια στιγμή για να εξερευνήσετε το πλαίσιο, τις σημαντικές ημερομηνίες και τον αντίκτυπό της.", "Nove capitoli. Secoli di cambiamenti. Scegli un evento per scoprirne il contesto, le date chiave e l'impatto duraturo.", "เก้าบท หลายศตวรรษแห่งความเปลี่ยนแปลง เลือกเหตุการณ์เพื่อสำรวจบริบท วันที่สำคัญ และผลกระทบที่ยั่งยืน", "Sembilan bab. Berabad-abad perubahan. Pilih peristiwa untuk meneroka konteks, tarikh penting dan kesannya.", "नौ अध्याय। सदियों के बदलाव। संदर्भ, महत्वपूर्ण तारीख़ें और दीर्घकालिक प्रभाव जानने के लिए कोई घटना चुनें।"],
       illustratedGuide: ["An illustrated guide to the past", "图文并茂的历史指南", "過去をたどる図解ガイド", "과거를 살펴보는 그림 안내서", "Иллюстрированный путеводитель по прошлому", "Ein illustrierter Wegweiser in die Vergangenheit", "Panduan bergambar tentang masa lalu", "Una guía ilustrada del pasado", "Ένας εικονογραφημένος οδηγός στο παρελθόν", "Una guida illustrata al passato", "คู่มือภาพประกอบเรื่องราวในอดีต", "Panduan bergambar tentang masa lalu", "अतीत की सचित्र मार्गदर्शिका"],
       heroSubtitle: ["The moments that changed how we live, and the people whose stories still shape our world.", "改变我们生活方式的时刻，以及至今仍影响世界的人们。", "暮らしを変えた出来事と、今も世界を形づくる人々の物語。", "우리의 삶을 바꾼 순간과 지금도 세상을 만드는 사람들의 이야기.", "Моменты, изменившие нашу жизнь, и люди, чьи истории продолжают формировать мир.", "Momente, die unser Leben veränderten, und Menschen, deren Geschichten unsere Welt bis heute prägen.", "Peristiwa yang mengubah cara hidup kita dan kisah tokoh yang masih membentuk dunia.", "Los momentos que cambiaron nuestra forma de vivir y las personas cuyas historias aún dan forma al mundo.", "Στιγμές που άλλαξαν τον τρόπο ζωής μας και άνθρωποι των οποίων οι ιστορίες διαμορφώνουν ακόμη τον κόσμο.", "I momenti che hanno cambiato il nostro modo di vivere e le persone le cui storie plasmano ancora il mondo.", "ช่วงเวลาที่เปลี่ยนวิถีชีวิตของเรา และผู้คนที่เรื่องราวยังคงหล่อหลอมโลก", "Peristiwa yang mengubah cara hidup kita dan kisah tokoh yang masih membentuk dunia.", "वे पल जिन्होंने हमारा जीवन बदला, और वे लोग जिनकी कहानियाँ आज भी दुनिया को आकार देती हैं।"],
@@ -1568,6 +1608,7 @@
       sidebarToggle.setAttribute("aria-label", sidebarLabel);
       sidebarToggle.title = sidebarLabel;
       setAccountMode(accountMode);
+      renderUpdates();
       renderNav();
       renderEvent();
       try {
@@ -1608,6 +1649,7 @@
     });
 
     function readJson(key, fallback) {
+      if (key === storageKeys.contributions) return siteContributions;
       try {
         const value = localStorage.getItem(key);
         return value ? JSON.parse(value) : fallback;
@@ -1618,7 +1660,78 @@
     }
 
     function currentUser() {
-      return sessionStorage.getItem(storageKeys.session);
+      return signedInUser?.email || null;
+    }
+
+    async function apiRequest(path, options = {}) {
+      const response = await fetch(path, {
+        credentials: "same-origin",
+        ...options,
+        headers: {
+          ...(options.body ? { "Content-Type": "application/json" } : {}),
+          ...options.headers
+        }
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || `The server returned ${response.status}.`);
+      return payload;
+    }
+
+    async function saveSiteContributions(contributions) {
+      const payload = await apiRequest("/api/content", {
+        method: "PUT",
+        body: JSON.stringify({ contributions, version: siteContentVersion })
+      });
+      siteContributions = payload.contributions;
+      siteUpdates = payload.updates;
+      siteContentVersion = payload.version;
+      renderUpdates();
+    }
+
+    function renderUpdates() {
+      const section = document.getElementById("sidebarUpdates");
+      const list = document.getElementById("sidebarUpdateList");
+      section.hidden = siteUpdates.length === 0;
+      list.innerHTML = siteUpdates.map(update => {
+        const date = new Date(update.updated_at);
+        const dateLabel = Number.isNaN(date.valueOf()) ? update.updated_at : date.toLocaleDateString();
+        const action = t(update.action === "added" ? "newContentLabel" : "updatedContentLabel");
+        return `<button class="sidebar-update" type="button" data-reference-type="${escapeHtml(update.reference_type)}" data-reference-id="${escapeHtml(update.reference_id)}"><span>${action} · </span><time datetime="${escapeHtml(update.updated_at)}">${escapeHtml(dateLabel)}</time><strong>${escapeHtml(update.title)}</strong></button>`;
+      }).join("");
+      list.querySelectorAll(".sidebar-update").forEach(button => {
+        button.addEventListener("click", () => {
+          if (button.dataset.referenceType === "page") {
+            selectContribution(button.dataset.referenceId);
+          } else {
+            selectEvent(button.dataset.referenceId);
+          }
+        });
+      });
+    }
+
+    async function initializeBackend() {
+      const status = document.getElementById("backendStatus");
+      try {
+        const [session, content] = await Promise.all([
+          apiRequest("/api/session"),
+          apiRequest("/api/content")
+        ]);
+        signedInUser = session.user;
+        siteContributions = content.contributions;
+        siteUpdates = content.updates;
+        siteContentVersion = content.version;
+        if (!availableEvents().some(event => event.id === selectedEvent?.id)) {
+          selectedEvent = availableEvents()[0] || null;
+        }
+      } catch (error) {
+        console.error("Could not load History Atlas data from the server.", error);
+        status.hidden = false;
+      }
+      backendReady = true;
+      updateAccountButtons();
+      renderUpdates();
+      renderNav();
+      renderEvent();
     }
 
     function updateAccountButtons() {
@@ -2038,7 +2151,7 @@
       accountMode = mode;
       document.getElementById("tabLogin").setAttribute("aria-selected", String(mode === "login"));
       document.getElementById("tabSignup").setAttribute("aria-selected", String(mode === "signup"));
-      document.getElementById("accountSubmit").textContent = mode === "login" ? t("loginDemoAccount") : t("createDemoAccount");
+      document.getElementById("accountSubmit").textContent = t(mode === "login" ? "login" : "createAccount");
       document.getElementById("accountError").textContent = "";
       const confirmField = document.getElementById("accountPasswordConfirmField");
       const confirmPassword = document.getElementById("accountPasswordConfirm");
@@ -2051,7 +2164,7 @@
       document.getElementById("accountForm").hidden = Boolean(currentUser());
       document.getElementById("signedInPanel").classList.toggle("visible", Boolean(currentUser()));
       document.getElementById("signedInText").textContent = currentUser()
-        ? `You are signed in as ${currentUser()}. This is a browser-only demo account.`
+        ? `You are signed in as ${currentUser()}.`
         : "";
       openModal("accountModal");
     }
@@ -2060,7 +2173,7 @@
       if (!currentUser()) {
         setAccountMode("signup");
         openAccount();
-        document.getElementById("accountError").textContent = "Create a demo account to open the editor.";
+        document.getElementById("accountError").textContent = "Create an account to open the editor.";
         return;
       }
       editingInformationPageId = pageId;
@@ -2132,7 +2245,7 @@
       if (selectedContribution) openEditor(selectedContribution.id);
       else if (selectedEvent) openEditor(null, selectedEvent.id);
     });
-    deleteEventButton.addEventListener("click", () => {
+    deleteEventButton.addEventListener("click", async () => {
       if (!selectedContribution && !selectedEvent) {
         console.error("Cannot delete an event because no event is selected.");
         return;
@@ -2179,10 +2292,10 @@
       }
 
       try {
-        localStorage.setItem(storageKeys.contributions, JSON.stringify(all));
+        await saveSiteContributions(all);
       } catch (error) {
-        console.error("Could not delete this event from browser storage.", error);
-        window.alert(t("deleteEventFailed"));
+        console.error("Could not delete this information from the server.", error);
+        window.alert(error.message || t("deleteEventFailed"));
         return;
       }
       selectedContribution = null;
@@ -2247,11 +2360,17 @@
       openModal("logoutConfirmModal");
       document.getElementById("cancelLogoutButton").focus();
     }
-    function confirmLogout() {
-      sessionStorage.removeItem(storageKeys.session);
-      updateAccountButtons();
-      closeModal("logoutConfirmModal");
-      closeModal("accountModal");
+    async function confirmLogout() {
+      try {
+        await apiRequest("/api/logout", { method: "POST", body: "{}" });
+        signedInUser = null;
+        updateAccountButtons();
+        closeModal("logoutConfirmModal");
+        closeModal("accountModal");
+      } catch (error) {
+        console.error("Could not end the server session.", error);
+        window.alert(error.message);
+      }
     }
     document.getElementById("logoutButton").addEventListener("click", logout);
     document.getElementById("headerLogoutButton").addEventListener("click", logout);
@@ -2268,51 +2387,6 @@
       if (event.key === "Escape") document.querySelectorAll(".modal-backdrop.open").forEach(modal => closeModal(modal.id));
     });
 
-    const passwordHashIterations = 210000;
-    const bytesToHex = bytes => [...bytes].map(byte => byte.toString(16).padStart(2, "0")).join("");
-    async function derivePasswordHash(password, salt, iterations = passwordHashIterations) {
-      if (!globalThis.crypto?.subtle) throw new Error("Web Crypto is unavailable in this browser.");
-      const material = await globalThis.crypto.subtle.importKey(
-        "raw",
-        new TextEncoder().encode(password),
-        "PBKDF2",
-        false,
-        ["deriveBits"]
-      );
-      const derivedBits = await globalThis.crypto.subtle.deriveBits(
-        { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
-        material,
-        256
-      );
-      return new Uint8Array(derivedBits);
-    }
-
-    function readDemoAccounts() {
-      const savedAccounts = readJson(storageKeys.accounts, []);
-      const accounts = Object.create(null);
-      if (Array.isArray(savedAccounts)) {
-        savedAccounts.forEach(email => {
-          if (typeof email === "string") accounts[email] = null;
-        });
-      } else if (savedAccounts && typeof savedAccounts === "object") {
-        Object.entries(savedAccounts).forEach(([email, record]) => {
-          accounts[email] = record;
-        });
-      } else {
-        throw new Error("The saved demo account data has an unsupported format.");
-      }
-      return accounts;
-    }
-
-    function passwordsMatch(firstHash, secondHash) {
-      if (firstHash.length !== secondHash.length) return false;
-      let difference = 0;
-      for (let index = 0; index < firstHash.length; index++) {
-        difference |= firstHash[index] ^ secondHash[index];
-      }
-      return difference === 0;
-    }
-
     document.getElementById("accountForm").addEventListener("submit", async event => {
       event.preventDefault();
       const email = document.getElementById("accountEmail").value.trim().toLowerCase();
@@ -2323,59 +2397,21 @@
         accountError.textContent = "Passwords do not match.";
         return;
       }
+      if (!backendReady) {
+        accountError.textContent = "The server is still loading. Please try again.";
+        return;
+      }
       submitButton.disabled = true;
       try {
-        const accounts = readDemoAccounts();
-        const accountExists = Object.prototype.hasOwnProperty.call(accounts, email);
-        if (accountMode === "signup" && accountExists) {
-          setAccountMode("login");
-          accountError.textContent = "That demo account already exists. Log in instead.";
-          return;
-        }
-        if (accountMode === "login" && !accountExists) {
-          accountError.textContent = "No demo account for that email on this device. Create one first.";
-          return;
-        }
-        const existingCredential = accounts[email];
-        let credential;
-        if (existingCredential) {
-          if (
-            typeof existingCredential.salt !== "string" ||
-            !/^[\da-f]{32}$/i.test(existingCredential.salt) ||
-            typeof existingCredential.hash !== "string" ||
-            !/^[\da-f]{64}$/i.test(existingCredential.hash) ||
-            !Number.isInteger(existingCredential.iterations) ||
-            existingCredential.iterations < 100000 ||
-            existingCredential.iterations > 1000000
-          ) {
-            throw new Error(`Saved password data for ${email} is invalid.`);
-          }
-          const actualHash = await derivePasswordHash(
-            password,
-            Uint8Array.from(existingCredential.salt.match(/.{2}/g), byte => parseInt(byte, 16)),
-            existingCredential.iterations
-          );
-          const expectedHash = Uint8Array.from(existingCredential.hash.match(/.{2}/g), byte => parseInt(byte, 16));
-          if (!passwordsMatch(actualHash, expectedHash)) {
-            accountError.textContent = "The email or password is incorrect.";
-            return;
-          }
-          credential = existingCredential;
-        } else {
-          const salt = globalThis.crypto.getRandomValues(new Uint8Array(16));
-          const hash = await derivePasswordHash(password, salt);
-          credential = {
-            salt: bytesToHex(salt),
-            hash: bytesToHex(hash),
-            iterations: passwordHashIterations
-          };
-        }
-        accounts[email] = credential;
-        localStorage.setItem(storageKeys.accounts, JSON.stringify(accounts));
-        sessionStorage.setItem(storageKeys.session, email);
+        const endpoint = accountMode === "signup" ? "/api/signup" : "/api/login";
+        const payload = await apiRequest(endpoint, {
+          method: "POST",
+          body: JSON.stringify({ email, password })
+        });
+        signedInUser = payload.user;
       } catch (error) {
-        console.error("Could not securely verify or save the demo account in this browser.", error);
-        accountError.textContent = "This browser could not securely save or verify the account. Check browser storage support and try again.";
+        console.error("Could not create or verify the server account.", error);
+        accountError.textContent = error.message;
       } finally {
         submitButton.disabled = false;
       }
@@ -2560,10 +2596,10 @@
           };
           if (all.eventTimelines) delete all.eventTimelines[editingEventId];
           try {
-            localStorage.setItem(storageKeys.contributions, JSON.stringify(all));
-          } catch (storageError) {
-            console.error("Could not save this event edit in local browser storage.", storageError);
-            error.textContent = "The browser could not save these changes. Try smaller images or clear some browser storage.";
+            await saveSiteContributions(all);
+          } catch (saveError) {
+            console.error("Could not publish this event update to the server.", saveError);
+            error.textContent = saveError.message;
             return;
           }
           selectedEvent = baseEvent;
@@ -2603,10 +2639,10 @@
           if (all[event.id]?.information) delete all[event.id].information;
         }
         try {
-          localStorage.setItem(storageKeys.contributions, JSON.stringify(all));
-        } catch (storageError) {
-          console.error("Could not save this contribution in local browser storage.", storageError);
-          error.textContent = "The browser could not save this contribution. Try a smaller image or clear some browser storage.";
+          await saveSiteContributions(all);
+        } catch (saveError) {
+          console.error("Could not publish this information to the server.", saveError);
+          error.textContent = saveError.message;
           return;
         }
         selectedContribution = {
@@ -2636,7 +2672,7 @@
       }));
     }
 
-    document.getElementById("chapterTimelineForm").addEventListener("submit", event => {
+    document.getElementById("chapterTimelineForm").addEventListener("submit", async event => {
       event.preventDefault();
       const error = document.getElementById("timelineError");
       const entries = readTimelineEntries("chapterTimelineList");
@@ -2689,10 +2725,10 @@
         ].sort((first, second) => incidentYear(first.date) - incidentYear(second.date));
       }
       try {
-        localStorage.setItem(storageKeys.contributions, JSON.stringify(all));
-      } catch (storageError) {
-        console.error("Could not save this timeline in local browser storage.", storageError);
-        error.textContent = "The browser could not save these timeline events. Clear some browser storage and try again.";
+        await saveSiteContributions(all);
+      } catch (saveError) {
+        console.error("Could not publish these timeline events to the server.", saveError);
+        error.textContent = saveError.message;
         return;
       }
       closeModal("timelineModal");
@@ -2715,8 +2751,8 @@
       }
       if (text.includes("image") || text.includes("photo") || text.includes("picture")) {
         return currentUser()
-          ? "Choose “Edit atlas” in the top-right corner, select a chapter, then upload an image up to 2 MB. It will be saved in this browser."
-          : "Create a demo account first, then choose “Edit atlas” in the top-right corner to attach an image. Contributions stay in this browser.";
+          ? "Choose “Edit atlas” in the top-right corner, select a chapter, then upload an image up to 2 MB. It will be published to the site."
+          : "Create an account first, then choose “Edit atlas” in the top-right corner to attach an image. Published contributions are shared with site visitors.";
       }
       if (text.includes("about") || text.includes("event") || text.includes("history") || text.includes("tell")) {
         const event = getEventDetails(selectedEvent);
@@ -2772,9 +2808,7 @@
       button.addEventListener("click", () => sendChat(button.dataset.prompt, t(button.dataset.promptKey)));
     });
 
-    updateAccountButtons();
-    renderNav();
-    renderEvent();
+    initializeBackend();
   </script>
 </body>
 </html>
