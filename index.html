@@ -920,7 +920,6 @@
     <aside class="sidebar" id="atlasSidebar" aria-label="Choose a historical event" data-i18n-aria="chooseEvent">
       <p class="sidebar-heading" data-i18n="turningPoints">A century of turning points</p>
       <nav class="event-list" id="eventList" aria-label="Historical events" data-i18n-aria="historicalEvents"></nav>
-      <p class="form-error" id="backendStatus" role="alert" data-i18n="backendUnavailable" hidden>Could not connect to the History Atlas server. Start it with python atlas_server.py and reload.</p>
       <section class="sidebar-updates" id="sidebarUpdates" aria-label="New and updated information" hidden>
         <h2 data-i18n="latestInformation">New &amp; updated information</h2>
         <div id="sidebarUpdateList"></div>
@@ -1031,7 +1030,7 @@
         </div>
         <button class="modal-close" type="button" data-close="accountModal" aria-label="Close" data-i18n-aria="close">&times;</button>
       </div>
-      <p class="modal-copy" id="accountPrivacy" data-i18n="serverAccountPrivacy">Accounts are stored on the History Atlas server. Email addresses are private, and passwords are stored as secure salted hashes.</p>
+      <p class="modal-copy" id="accountPrivacy" data-i18n="accountPrivacy">This standalone demo stores account details on this device only. Passwords are stored as salted hashes; this is not secure server authentication. Older demo accounts will set a password the first time they log in.</p>
       <div class="modal-tabs" role="tablist" aria-label="Account action" data-i18n-aria="accountAction">
         <button class="modal-tab" id="tabLogin" type="button" role="tab" aria-selected="false" data-i18n="login">Log in</button>
         <button class="modal-tab" id="tabSignup" type="button" role="tab" aria-selected="true" data-i18n="createAccount">Create an account</button>
@@ -1077,6 +1076,24 @@
     </section>
   </div>
 
+  <div class="modal-backdrop" id="deleteConfirmModal" role="presentation">
+    <section class="modal" role="alertdialog" aria-modal="true" aria-labelledby="deleteConfirmTitle" aria-describedby="deleteConfirmMessage">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow" data-i18n="atlasWorkspace">Your atlas workspace</p>
+          <h2 id="deleteConfirmTitle" data-i18n="deleteConfirmationTitle">Delete information?</h2>
+        </div>
+        <button class="modal-close" type="button" data-close="deleteConfirmModal" aria-label="Close" data-i18n-aria="close">&times;</button>
+      </div>
+      <p class="modal-copy" id="deleteConfirmMessage"></p>
+      <p class="form-error" id="deleteConfirmError" role="status"></p>
+      <div class="confirm-actions">
+        <button class="confirm-cancel" id="cancelDeleteButton" type="button" data-close="deleteConfirmModal" data-i18n="cancel">Cancel</button>
+        <button class="modal-submit" id="confirmDeleteButton" type="button" data-i18n="confirmDeleteButton">Delete</button>
+      </div>
+    </section>
+  </div>
+
   <div class="modal-backdrop" id="editorModal" role="presentation">
     <section class="modal" role="dialog" aria-modal="true" aria-labelledby="editorTitle">
       <div class="modal-head">
@@ -1086,7 +1103,7 @@
         </div>
         <button class="modal-close" type="button" data-close="editorModal" aria-label="Close" data-i18n-aria="close">&times;</button>
       </div>
-      <p class="modal-copy" id="contributionPrivacy" data-i18n="publishedContributionPrivacy">Published information is stored on the server and shared with visitors to this site. Do not include private information in contributions.</p>
+      <p class="modal-copy" id="contributionPrivacy" data-i18n="contributionPrivacy">Your notes and images are saved in this browser only. Contributions are not published or shared with other visitors.</p>
       <form id="editorForm">
         <div id="independentPageFields">
           <div class="field">
@@ -1124,7 +1141,7 @@
           <div class="field">
             <label for="editorImages" data-i18n="addImagesOptional">Add supporting images (optional)</label>
             <input id="editorImages" type="file" accept="image/*" multiple>
-            <span class="file-hint" data-i18n="publishedImageFileHint">Image files only, up to 2 MB each. Images are published with the information page.</span>
+            <span class="file-hint" data-i18n="imageFileHint">Image files only, up to 2 MB each. Saved locally in this browser.</span>
             <div class="image-editor-list" id="imageEditorList"></div>
           </div>
         </div>
@@ -1134,7 +1151,7 @@
           <button class="editor-link incident-add" id="addPageTimelineButton" type="button" data-i18n="addTimelineEvent">Add timeline event</button>
           <div class="incident-editor-list" id="pageTimelineList"></div>
         </div>
-        <button class="modal-submit" type="submit" data-i18n="publishInformation">Publish information</button>
+        <button class="modal-submit" type="submit" data-i18n="saveThisBrowser">Save to this browser</button>
         <p class="form-error" id="editorError" role="status"></p>
       </form>
     </section>
@@ -1293,21 +1310,23 @@
     }
 
     const storageKeys = {
+      accounts: "history-atlas-demo-accounts-v1",
+      session: "history-atlas-demo-session-v1",
       contributions: "history-atlas-contributions-v1",
+      updates: "history-atlas-local-updates-v1",
       language: "history-atlas-language-v1",
       theme: "history-atlas-theme-v1"
     };
-    let siteContributions = {};
-    let siteUpdates = [];
-    let siteContentVersion = 0;
-    let signedInUser = null;
-    let backendReady = false;
+    let siteContributions = readJson(storageKeys.contributions, {});
+    let siteUpdates = readJson(storageKeys.updates, []);
+    if (!Array.isArray(siteUpdates)) siteUpdates = [];
     const imageCache = new Map();
     let heroImageTimer = null;
     let heroImageTransitionTimeout = null;
     let heroRenderVersion = 0;
     let selectedEvent = availableEvents()[0] || null;
     let selectedContribution = null;
+    let pendingDelete = null;
     let accountMode = "signup";
     let timelineTarget = null;
     let editingInformationPageId = null;
@@ -1352,6 +1371,10 @@
       addTimelineEvent: ["Add timeline event", "添加时间线事件", "年表に出来事を追加", "연대표 사건 추가", "Добавить событие в хронологию", "Ereignis zur Zeitleiste hinzufügen", "Tambah peristiwa garis masa", "Añadir evento a la cronología", "Προσθήκη γεγονότος στο χρονολόγιο", "Aggiungi evento alla cronologia", "เพิ่มเหตุการณ์ในเส้นเวลา", "Tambah peristiwa garis masa", "समयरेखा में घटना जोड़ें"],
       addInformation: ["Add information", "添加信息", "情報を追加", "정보 추가", "Добавить информацию", "Informationen hinzufügen", "Tambah maklumat", "Añadir información", "Προσθήκη πληροφοριών", "Aggiungi informazioni", "เพิ่มข้อมูล", "Tambah maklumat", "जानकारी जोड़ें"],
       deleteEvent: ["Delete event", "删除事件", "出来事を削除", "사건 삭제", "Удалить событие", "Ereignis löschen", "Padam peristiwa", "Eliminar evento", "Διαγραφή γεγονότος", "Elimina evento", "ลบเหตุการณ์", "Padam peristiwa", "घटना हटाएँ"],
+      deleteConfirmationTitle: ["Delete information?", "删除信息？", "情報を削除しますか？", "정보를 삭제할까요?", "Удалить информацию?", "Informationen löschen?", "Padam maklumat?", "¿Eliminar información?", "Να διαγραφούν οι πληροφορίες;", "Eliminare le informazioni?", "ลบข้อมูลหรือไม่?", "Padam maklumat?", "जानकारी हटाएँ?"],
+      deleteConfirmationMessage: ["Delete “{title}”? This action cannot be undone.", "要删除“{title}”吗？此操作无法撤销。", "「{title}」を削除しますか？この操作は元に戻せません。", "“{title}”을(를) 삭제할까요? 이 작업은 되돌릴 수 없습니다.", "Удалить «{title}»? Это действие нельзя отменить.", "„{title}“ löschen? Diese Aktion kann nicht rückgängig gemacht werden.", "Padam “{title}”? Tindakan ini tidak boleh dibuat asal.", "¿Eliminar «{title}»? Esta acción no se puede deshacer.", "Να διαγραφεί το «{title}»; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.", "Eliminare “{title}”? Questa operazione non può essere annullata.", "ลบ “{title}” หรือไม่? การดำเนินการนี้ย้อนกลับไม่ได้", "Padam “{title}”? Tindakan ini tidak boleh dibuat asal.", "“{title}” हटाएँ? यह कार्रवाई पूर्ववत नहीं की जा सकती।"],
+      confirmDeleteButton: ["Delete", "删除", "削除", "삭제", "Удалить", "Löschen", "Padam", "Eliminar", "Διαγραφή", "Elimina", "ลบ", "Padam", "हटाएँ"],
+      deleteInformationFailed: ["Could not delete this information from the server. Please try again.", "无法从服务器删除此信息，请重试。", "サーバーから情報を削除できませんでした。もう一度お試しください。", "서버에서 정보를 삭제할 수 없습니다. 다시 시도하세요.", "Не удалось удалить информацию с сервера. Повторите попытку.", "Diese Informationen konnten nicht vom Server gelöscht werden. Bitte versuche es erneut.", "Tidak dapat memadam maklumat ini daripada pelayan. Sila cuba lagi.", "No se pudo eliminar esta información del servidor. Inténtalo de nuevo.", "Δεν ήταν δυνατή η διαγραφή των πληροφοριών από τον διακομιστή. Δοκιμάστε ξανά.", "Impossibile eliminare le informazioni dal server. Riprova.", "ลบข้อมูลนี้จากเซิร์ฟเวอร์ไม่ได้ โปรดลองอีกครั้ง", "Tidak dapat memadam maklumat ini daripada pelayan. Sila cuba lagi.", "सर्वर से यह जानकारी नहीं हटाई जा सकी। कृपया फिर से प्रयास करें।"],
       confirmDeleteEvent: ["Delete “{title}” from this browser? This cannot be undone.", "要从此浏览器删除“{title}”吗？此操作无法撤销。", "このブラウザーから「{title}」を削除しますか？元に戻せません。", "이 브라우저에서 “{title}”을(를) 삭제할까요? 실행 취소할 수 없습니다.", "Удалить «{title}» из этого браузера? Это действие нельзя отменить.", "„{title}“ aus diesem Browser löschen? Dies kann nicht rückgängig gemacht werden.", "Padam “{title}” daripada pelayar ini? Tindakan ini tidak boleh dibuat asal.", "¿Eliminar «{title}» de este navegador? Esta acción no se puede deshacer.", "Να διαγραφεί το «{title}» από αυτό το πρόγραμμα περιήγησης; Η ενέργεια δεν μπορεί να αναιρεθεί.", "Eliminare “{title}” da questo browser? L'operazione non può essere annullata.", "ลบ “{title}” จากเบราว์เซอร์นี้หรือไม่? การดำเนินการนี้ย้อนกลับไม่ได้", "Padam “{title}” daripada pelayar ini? Tindakan ini tidak boleh dibuat asal.", "क्या “{title}” को इस ब्राउज़र से हटाएँ? इसे पूर्ववत नहीं किया जा सकता।"],
       deleteEventFailed: ["Could not delete this event from browser storage. Check storage permissions and try again.", "无法从浏览器存储中删除此事件。请检查存储权限后重试。", "ブラウザーのストレージからこの出来事を削除できませんでした。ストレージの権限を確認して再試行してください。", "브라우저 저장소에서 이 사건을 삭제할 수 없습니다. 저장소 권한을 확인하고 다시 시도하세요.", "Не удалось удалить событие из хранилища браузера. Проверьте разрешения и повторите попытку.", "Dieses Ereignis konnte nicht aus dem Browserspeicher gelöscht werden. Prüfe die Speicherberechtigungen und versuche es erneut.", "Tidak dapat memadam peristiwa ini daripada storan pelayar. Semak kebenaran storan dan cuba lagi.", "No se pudo eliminar este evento del almacenamiento del navegador. Comprueba los permisos e inténtalo de nuevo.", "Δεν ήταν δυνατή η διαγραφή αυτού του γεγονότος από τον χώρο αποθήκευσης του προγράμματος περιήγησης. Ελέγξτε τα δικαιώματα και δοκιμάστε ξανά.", "Impossibile eliminare questo evento dalla memoria del browser. Controlla i permessi e riprova.", "ลบเหตุการณ์นี้ออกจากพื้นที่จัดเก็บของเบราว์เซอร์ไม่ได้ โปรดตรวจสอบสิทธิ์แล้วลองอีกครั้ง", "Tidak dapat memadam peristiwa ini daripada storan pelayar. Semak kebenaran storan dan cuba lagi.", "No se pudo eliminar este evento del almacenamiento del navegador. Comprueba los permisos e inténtalo de nuevo."],
       communityNotes: ["Community notes", "社区笔记", "コミュニティのメモ", "커뮤니티 메모", "Заметки сообщества", "Community-Notizen", "Catatan komuniti", "Notas de la comunidad", "Σημειώσεις κοινότητας", "Note della comunità", "บันทึกจากชุมชน", "Catatan komuniti", "समुदाय के नोट"],
@@ -1649,7 +1672,6 @@
     });
 
     function readJson(key, fallback) {
-      if (key === storageKeys.contributions) return siteContributions;
       try {
         const value = localStorage.getItem(key);
         return value ? JSON.parse(value) : fallback;
@@ -1660,31 +1682,94 @@
     }
 
     function currentUser() {
-      return signedInUser?.email || null;
+      try {
+        return sessionStorage.getItem(storageKeys.session);
+      } catch (error) {
+        console.error("Could not read the signed-in account from this browser session.", error);
+        return null;
+      }
     }
 
-    async function apiRequest(path, options = {}) {
-      const response = await fetch(path, {
-        credentials: "same-origin",
-        ...options,
-        headers: {
-          ...(options.body ? { "Content-Type": "application/json" } : {}),
-          ...options.headers
+    function stableJson(value) {
+      if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+      if (value && typeof value === "object") {
+        return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+      }
+      return JSON.stringify(value);
+    }
+
+    function collectPublicContentEntries(content) {
+      const entries = new Map();
+      const pages = Array.isArray(content.informationPages) ? content.informationPages : [];
+      pages.forEach(page => {
+        if (typeof page?.id === "string" && typeof page.title === "string") {
+          entries.set(`page:${page.id}`, {
+            title: page.title.slice(0, 120),
+            referenceType: "page",
+            referenceId: page.id,
+            snapshot: stableJson(page)
+          });
         }
       });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || `The server returned ${response.status}.`);
-      return payload;
+      const reservedKeys = new Set(["informationPages", "deletedEvents", "eventTimelines"]);
+      const timelines = content.eventTimelines && typeof content.eventTimelines === "object"
+        ? content.eventTimelines
+        : {};
+      Object.entries(content).forEach(([eventId, eventContent]) => {
+        if (reservedKeys.has(eventId) || !eventContent || typeof eventContent !== "object" || !Object.keys(eventContent).length) return;
+        const eventDetails = eventContent.eventDetails && typeof eventContent.eventDetails === "object"
+          ? eventContent.eventDetails
+          : {};
+        const title = typeof eventDetails.name === "string"
+          ? eventDetails.name
+          : eventId.replaceAll("-", " ").replace(/\b\w/g, letter => letter.toUpperCase());
+        entries.set(`event:${eventId}`, {
+          title: title.slice(0, 120),
+          referenceType: "event",
+          referenceId: eventId,
+          snapshot: stableJson({ content: eventContent, timeline: timelines[eventId] || [] })
+        });
+      });
+      Object.entries(timelines).forEach(([eventId, timeline]) => {
+        if (!entries.has(`event:${eventId}`)) {
+          entries.set(`event:${eventId}`, {
+            title: eventId.replaceAll("-", " ").replace(/\b\w/g, letter => letter.toUpperCase()),
+            referenceType: "event",
+            referenceId: eventId,
+            snapshot: stableJson({ timeline })
+          });
+        }
+      });
+      return entries;
     }
 
-    async function saveSiteContributions(contributions) {
-      const payload = await apiRequest("/api/content", {
-        method: "PUT",
-        body: JSON.stringify({ contributions, version: siteContentVersion })
+    function saveSiteContributions(contributions) {
+      const previous = collectPublicContentEntries(siteContributions);
+      const current = collectPublicContentEntries(contributions);
+      const updates = siteUpdates.filter(update =>
+        current.has(`${update.reference_type}:${update.reference_id}`)
+      );
+      const now = new Date().toISOString();
+      current.forEach((entry, key) => {
+        const oldEntry = previous.get(key);
+        if (oldEntry?.snapshot === entry.snapshot) return;
+        updates.unshift({
+          action: oldEntry ? "updated" : "added",
+          title: entry.title,
+          reference_type: entry.referenceType,
+          reference_id: entry.referenceId,
+          updated_at: now
+        });
       });
-      siteContributions = payload.contributions;
-      siteUpdates = payload.updates;
-      siteContentVersion = payload.version;
+      try {
+        localStorage.setItem(storageKeys.contributions, JSON.stringify(contributions));
+        localStorage.setItem(storageKeys.updates, JSON.stringify(updates.slice(0, 12)));
+      } catch (error) {
+        console.error("Could not save this information in browser storage.", error);
+        throw new Error("This browser could not save the information. Free some browser storage and try again.");
+      }
+      siteContributions = contributions;
+      siteUpdates = updates.slice(0, 12);
       renderUpdates();
     }
 
@@ -1707,31 +1792,6 @@
           }
         });
       });
-    }
-
-    async function initializeBackend() {
-      const status = document.getElementById("backendStatus");
-      try {
-        const [session, content] = await Promise.all([
-          apiRequest("/api/session"),
-          apiRequest("/api/content")
-        ]);
-        signedInUser = session.user;
-        siteContributions = content.contributions;
-        siteUpdates = content.updates;
-        siteContentVersion = content.version;
-        if (!availableEvents().some(event => event.id === selectedEvent?.id)) {
-          selectedEvent = availableEvents()[0] || null;
-        }
-      } catch (error) {
-        console.error("Could not load History Atlas data from the server.", error);
-        status.hidden = false;
-      }
-      backendReady = true;
-      updateAccountButtons();
-      renderUpdates();
-      renderNav();
-      renderEvent();
     }
 
     function updateAccountButtons() {
@@ -2140,6 +2200,7 @@
 
     function closeModal(id) {
       document.getElementById(id).classList.remove("open");
+      if (id === "deleteConfirmModal") pendingDelete = null;
       if (id === "editorModal") {
         clearImageEditorList();
         editingInformationPageId = null;
@@ -2245,19 +2306,36 @@
       if (selectedContribution) openEditor(selectedContribution.id);
       else if (selectedEvent) openEditor(null, selectedEvent.id);
     });
-    deleteEventButton.addEventListener("click", async () => {
+    deleteEventButton.addEventListener("click", () => {
       if (!selectedContribution && !selectedEvent) {
         console.error("Cannot delete an event because no event is selected.");
         return;
       }
-      const deletingContribution = Boolean(selectedContribution);
-      const title = selectedContribution?.entry.title || getEventDetails(selectedEvent).name;
-      if (!window.confirm(t("confirmDeleteEvent").replace("{title}", title))) return;
+      pendingDelete = selectedContribution
+        ? { type: "contribution", id: selectedContribution.id, title: selectedContribution.entry.title }
+        : { type: "event", id: selectedEvent.id, title: getEventDetails(selectedEvent).name };
+      document.getElementById("deleteConfirmMessage").textContent =
+        t("deleteConfirmationMessage").replace("{title}", pendingDelete.title);
+      document.getElementById("deleteConfirmError").textContent = "";
+      openModal("deleteConfirmModal");
+      document.getElementById("cancelDeleteButton").focus();
+    });
+
+    document.getElementById("confirmDeleteButton").addEventListener("click", async event => {
+      if (!pendingDelete) {
+        console.error("Cannot delete information because no deletion target is selected.");
+        closeModal("deleteConfirmModal");
+        return;
+      }
+      const confirmButton = event.currentTarget;
+      confirmButton.disabled = true;
+      const target = pendingDelete;
+      const deletingContribution = target.type === "contribution";
 
       const all = readJson(storageKeys.contributions, {});
       if (deletingContribution) {
         const pageIndex = Array.isArray(all.informationPages)
-          ? all.informationPages.findIndex(page => page.id === selectedContribution.id)
+          ? all.informationPages.findIndex(page => page.id === target.id)
           : -1;
         if (pageIndex !== -1) {
           all.informationPages = all.informationPages.filter((_, index) => index !== pageIndex);
@@ -2267,7 +2345,7 @@
             const information = all[event.id]?.information;
             if (!Array.isArray(information)) continue;
             const legacyIndex = information.findIndex((_, index) =>
-              `legacy-${event.id}-${index}` === selectedContribution.id
+              `legacy-${event.id}-${index}` === target.id
             );
             if (legacyIndex !== -1) {
               all[event.id] = {
@@ -2279,25 +2357,28 @@
             }
           }
           if (!legacyPageFound) {
-            console.error(`Could not find user-created event ${selectedContribution.id} to delete.`);
-            window.alert(t("deleteEventFailed"));
+            console.error(`Could not find user-created information ${target.id} to delete.`);
+            document.getElementById("deleteConfirmError").textContent = t("deleteInformationFailed");
+            confirmButton.disabled = false;
             return;
           }
         }
       } else {
         const deletedEvents = Array.isArray(all.deletedEvents) ? all.deletedEvents : [];
-        all.deletedEvents = [...new Set([...deletedEvents, selectedEvent.id])];
-        delete all[selectedEvent.id];
-        if (all.eventTimelines) delete all.eventTimelines[selectedEvent.id];
+        all.deletedEvents = [...new Set([...deletedEvents, target.id])];
+        delete all[target.id];
+        if (all.eventTimelines) delete all.eventTimelines[target.id];
       }
 
       try {
         await saveSiteContributions(all);
       } catch (error) {
-        console.error("Could not delete this information from the server.", error);
-        window.alert(error.message || t("deleteEventFailed"));
+        console.error("Could not delete this information from browser storage.", error);
+        document.getElementById("deleteConfirmError").textContent = error.message || t("deleteEventFailed");
+        confirmButton.disabled = false;
         return;
       }
+      closeModal("deleteConfirmModal");
       selectedContribution = null;
       if (!deletingContribution) {
         selectedEvent = availableEvents()[0] || null;
@@ -2360,16 +2441,14 @@
       openModal("logoutConfirmModal");
       document.getElementById("cancelLogoutButton").focus();
     }
-    async function confirmLogout() {
+    function confirmLogout() {
       try {
-        await apiRequest("/api/logout", { method: "POST", body: "{}" });
-        signedInUser = null;
+        sessionStorage.removeItem(storageKeys.session);
         updateAccountButtons();
         closeModal("logoutConfirmModal");
         closeModal("accountModal");
       } catch (error) {
-        console.error("Could not end the server session.", error);
-        window.alert(error.message);
+        console.error("Could not end the browser session.", error);
       }
     }
     document.getElementById("logoutButton").addEventListener("click", logout);
@@ -2387,6 +2466,51 @@
       if (event.key === "Escape") document.querySelectorAll(".modal-backdrop.open").forEach(modal => closeModal(modal.id));
     });
 
+    const passwordHashIterations = 210000;
+    const bytesToHex = bytes => [...bytes].map(byte => byte.toString(16).padStart(2, "0")).join("");
+    async function derivePasswordHash(password, salt, iterations = passwordHashIterations) {
+      if (!globalThis.crypto?.subtle) throw new Error("Web Crypto is unavailable in this browser.");
+      const material = await globalThis.crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(password),
+        "PBKDF2",
+        false,
+        ["deriveBits"]
+      );
+      const derivedBits = await globalThis.crypto.subtle.deriveBits(
+        { name: "PBKDF2", salt, iterations, hash: "SHA-256" },
+        material,
+        256
+      );
+      return new Uint8Array(derivedBits);
+    }
+
+    function readDemoAccounts() {
+      const savedAccounts = readJson(storageKeys.accounts, []);
+      const accounts = Object.create(null);
+      if (Array.isArray(savedAccounts)) {
+        savedAccounts.forEach(email => {
+          if (typeof email === "string") accounts[email] = null;
+        });
+      } else if (savedAccounts && typeof savedAccounts === "object") {
+        Object.entries(savedAccounts).forEach(([email, record]) => {
+          accounts[email] = record;
+        });
+      } else {
+        throw new Error("The saved account data has an unsupported format.");
+      }
+      return accounts;
+    }
+
+    function passwordsMatch(firstHash, secondHash) {
+      if (firstHash.length !== secondHash.length) return false;
+      let difference = 0;
+      for (let index = 0; index < firstHash.length; index++) {
+        difference |= firstHash[index] ^ secondHash[index];
+      }
+      return difference === 0;
+    }
+
     document.getElementById("accountForm").addEventListener("submit", async event => {
       event.preventDefault();
       const email = document.getElementById("accountEmail").value.trim().toLowerCase();
@@ -2397,21 +2521,59 @@
         accountError.textContent = "Passwords do not match.";
         return;
       }
-      if (!backendReady) {
-        accountError.textContent = "The server is still loading. Please try again.";
-        return;
-      }
       submitButton.disabled = true;
       try {
-        const endpoint = accountMode === "signup" ? "/api/signup" : "/api/login";
-        const payload = await apiRequest(endpoint, {
-          method: "POST",
-          body: JSON.stringify({ email, password })
-        });
-        signedInUser = payload.user;
+        const accounts = readDemoAccounts();
+        const accountExists = Object.prototype.hasOwnProperty.call(accounts, email);
+        if (accountMode === "signup" && accountExists) {
+          setAccountMode("login");
+          accountError.textContent = "That account already exists. Log in instead.";
+          return;
+        }
+        if (accountMode === "login" && !accountExists) {
+          accountError.textContent = "No account for that email on this device. Create one first.";
+          return;
+        }
+        const existingCredential = accounts[email];
+        let credential;
+        if (existingCredential) {
+          if (
+            typeof existingCredential.salt !== "string" ||
+            !/^[\da-f]{32}$/i.test(existingCredential.salt) ||
+            typeof existingCredential.hash !== "string" ||
+            !/^[\da-f]{64}$/i.test(existingCredential.hash) ||
+            !Number.isInteger(existingCredential.iterations) ||
+            existingCredential.iterations < 100000 ||
+            existingCredential.iterations > 1000000
+          ) {
+            throw new Error(`Saved password data for ${email} is invalid.`);
+          }
+          const actualHash = await derivePasswordHash(
+            password,
+            Uint8Array.from(existingCredential.salt.match(/.{2}/g), byte => parseInt(byte, 16)),
+            existingCredential.iterations
+          );
+          const expectedHash = Uint8Array.from(existingCredential.hash.match(/.{2}/g), byte => parseInt(byte, 16));
+          if (!passwordsMatch(actualHash, expectedHash)) {
+            accountError.textContent = "The email or password is incorrect.";
+            return;
+          }
+          credential = existingCredential;
+        } else {
+          const salt = globalThis.crypto.getRandomValues(new Uint8Array(16));
+          const hash = await derivePasswordHash(password, salt);
+          credential = {
+            salt: bytesToHex(salt),
+            hash: bytesToHex(hash),
+            iterations: passwordHashIterations
+          };
+        }
+        accounts[email] = credential;
+        localStorage.setItem(storageKeys.accounts, JSON.stringify(accounts));
+        sessionStorage.setItem(storageKeys.session, email);
       } catch (error) {
-        console.error("Could not create or verify the server account.", error);
-        accountError.textContent = error.message;
+        console.error("Could not securely verify or save the account in this browser.", error);
+        accountError.textContent = "This browser could not securely save or verify the account. Check browser storage support and try again.";
       } finally {
         submitButton.disabled = false;
       }
@@ -2598,7 +2760,7 @@
           try {
             await saveSiteContributions(all);
           } catch (saveError) {
-            console.error("Could not publish this event update to the server.", saveError);
+            console.error("Could not save this event update in browser storage.", saveError);
             error.textContent = saveError.message;
             return;
           }
@@ -2641,7 +2803,7 @@
         try {
           await saveSiteContributions(all);
         } catch (saveError) {
-          console.error("Could not publish this information to the server.", saveError);
+          console.error("Could not save this information in browser storage.", saveError);
           error.textContent = saveError.message;
           return;
         }
@@ -2727,7 +2889,7 @@
       try {
         await saveSiteContributions(all);
       } catch (saveError) {
-        console.error("Could not publish these timeline events to the server.", saveError);
+        console.error("Could not save these timeline events in browser storage.", saveError);
         error.textContent = saveError.message;
         return;
       }
@@ -2751,8 +2913,8 @@
       }
       if (text.includes("image") || text.includes("photo") || text.includes("picture")) {
         return currentUser()
-          ? "Choose “Edit atlas” in the top-right corner, select a chapter, then upload an image up to 2 MB. It will be published to the site."
-          : "Create an account first, then choose “Edit atlas” in the top-right corner to attach an image. Published contributions are shared with site visitors.";
+          ? "Choose “Edit atlas” in the top-right corner, select a chapter, then upload an image up to 2 MB. It will be saved in this browser."
+          : "Create an account first, then choose “Edit atlas” in the top-right corner to attach an image. Contributions stay in this browser.";
       }
       if (text.includes("about") || text.includes("event") || text.includes("history") || text.includes("tell")) {
         const event = getEventDetails(selectedEvent);
@@ -2808,7 +2970,10 @@
       button.addEventListener("click", () => sendChat(button.dataset.prompt, t(button.dataset.promptKey)));
     });
 
-    initializeBackend();
+    updateAccountButtons();
+    renderUpdates();
+    renderNav();
+    renderEvent();
   </script>
 </body>
 </html>
