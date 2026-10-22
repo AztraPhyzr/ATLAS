@@ -478,7 +478,7 @@
       opacity: .7;
       transform: translateY(-50%) scale(.72);
       box-shadow: 0 12px 36px rgba(32, 33, 30, .14);
-      transition: opacity .4s ease, transform .5s cubic-bezier(.2,.8,.2,1);
+      transition: opacity .4s ease, transform .5s cubic-bezier(.2,.8,.2,1), box-shadow .5s ease;
     }
     .team-member:nth-child(even) { --team-image-left: 30%; }
     .team-member h2 {
@@ -504,6 +504,10 @@
     .team-member.is-active img {
       opacity: 1;
       transform: translateY(-50%) scale(1.5);
+      box-shadow:
+        0 0 18px 7px color-mix(in srgb, var(--accent) 42%, transparent),
+        0 0 48px 18px color-mix(in srgb, var(--accent) 22%, transparent),
+        0 12px 36px rgba(32, 33, 30, .18);
     }
     .team-member.is-active { position: relative; z-index: 1; }
     .team-member.is-active h2 { opacity: 1; }
