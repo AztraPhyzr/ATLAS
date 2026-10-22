@@ -203,6 +203,7 @@
       font-size: 13px;
       font-weight: 600;
     }
+    .top-link[aria-current="page"] { color: var(--accent-dark); }
     .account-button.primary {
       background: var(--inverse-background);
       color: var(--inverse-foreground);
@@ -385,6 +386,152 @@
     }
 
     main { min-width: 0; padding: 0 5.2vw 70px; }
+    main.about-active > :not(#about-view) { display: none; }
+    .about-view {
+      max-width: 970px;
+      margin: 34px auto 0;
+      padding: clamp(28px, 5vw, 58px);
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background:
+        radial-gradient(ellipse at 18% 50%, rgba(189, 84, 58, .09), transparent 46%),
+        linear-gradient(145deg, var(--white), var(--paper));
+      box-shadow: 0 24px 70px rgba(32, 33, 30, .09);
+    }
+    #about-view[hidden] { display: none; }
+    .about-kicker {
+      margin: 0 0 9px;
+      color: var(--accent-dark);
+      font: 10px var(--mono);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+    .about-view h1 {
+      margin: 0 0 24px;
+      font: 600 clamp(40px, 6vw, 64px)/1.1 var(--serif);
+      letter-spacing: -.035em;
+    }
+    .team-gallery {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background:
+        radial-gradient(ellipse at 50% 50%, rgba(189, 84, 58, .08), transparent 65%),
+        var(--paper);
+      box-shadow: inset 0 0 48px rgba(32, 33, 30, .06);
+    }
+    .team-gallery::before,
+    .team-gallery::after {
+      position: absolute;
+      z-index: 3;
+      right: 0;
+      left: 0;
+      height: 72px;
+      content: "";
+      pointer-events: none;
+    }
+    .team-gallery::before {
+      top: 0;
+      background: linear-gradient(to bottom, var(--paper) 0%, color-mix(in srgb, var(--paper) 72%, transparent) 25%, transparent 100%);
+    }
+    .team-gallery::after {
+      bottom: 0;
+      background: linear-gradient(to top, var(--paper) 0%, color-mix(in srgb, var(--paper) 72%, transparent) 25%, transparent 100%);
+    }
+    .team-members {
+      display: grid;
+      --team-card-height: 150px;
+      height: min(62vh, 560px);
+      min-height: 280px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      background: transparent;
+      overscroll-behavior-y: contain;
+      padding-block: max(0px, calc((min(62vh, 560px) - var(--team-card-height)) / 2));
+      scrollbar-width: none;
+      scroll-snap-type: y proximity;
+    }
+    .team-members::-webkit-scrollbar { display: none; }
+    .team-member {
+      --team-image-left: 14%;
+      position: relative;
+      height: var(--team-card-height);
+      width: 100%;
+      scroll-snap-align: center;
+      scroll-snap-stop: always;
+      overflow: visible;
+    }
+    .team-member img {
+      display: block;
+      position: absolute;
+      top: 50%;
+      left: var(--team-image-left);
+      width: clamp(100px, 14vw, 150px);
+      aspect-ratio: 1;
+      flex: 0 0 auto;
+      border: 6px solid var(--white);
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: center 28%;
+      opacity: .7;
+      transform: translateY(-50%) scale(.72);
+      box-shadow: 0 12px 36px rgba(32, 33, 30, .14);
+      transition: opacity .4s ease, transform .5s cubic-bezier(.2,.8,.2,1);
+    }
+    .team-member:nth-child(even) { --team-image-left: 30%; }
+    .team-member h2 {
+      position: absolute;
+      top: 50%;
+      left: calc(var(--team-image-left) + clamp(100px, 14vw, 150px) + 102px);
+      width: calc(100% - var(--team-image-left) - clamp(100px, 14vw, 150px) - 114px);
+      margin: 0;
+      font: 600 20px/1.25 var(--serif);
+      letter-spacing: .025em;
+      opacity: 0;
+      transform: translateY(-50%);
+    }
+    .team-member:nth-child(even) h2 {
+      left: calc(var(--team-image-left) + clamp(100px, 14vw, 150px) + 102px);
+      width: calc(100% - var(--team-image-left) - clamp(100px, 14vw, 150px) - 114px);
+    }
+    .team-member h2 span {
+      display: inline-block;
+      opacity: 0;
+      transform: translateX(-.08em);
+    }
+    .team-member.is-active img {
+      opacity: 1;
+      transform: translateY(-50%) scale(1.5);
+    }
+    .team-member.is-active { position: relative; z-index: 1; }
+    .team-member.is-active h2 { opacity: 1; }
+    .team-member.is-active h2 span {
+      animation: team-typewriter-letter .12s ease-out forwards;
+      animation-delay: calc(var(--letter-index) * .035s);
+    }
+    @keyframes team-typewriter-letter {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @media (max-width: 620px) {
+      .team-members {
+        --team-card-height: 130px;
+        height: min(62vh, 460px);
+        min-height: 260px;
+        padding-block: max(0px, calc((min(62vh, 460px) - var(--team-card-height)) / 2));
+      }
+      .team-member { --team-image-left: 10%; }
+      .team-member:nth-child(even) { --team-image-left: 22%; }
+      .team-member img { width: clamp(88px, 25vw, 105px); border-width: 4px; }
+      .team-member.is-active img { transform: translateY(-50%) scale(1.3); }
+      .team-member h2,
+      .team-member:nth-child(even) h2 {
+        left: calc(var(--team-image-left) + clamp(88px, 25vw, 105px) + 40px);
+        width: calc(100% - var(--team-image-left) - clamp(88px, 25vw, 105px) - 48px);
+        font-size: 20px;
+      }
+    }
     .hero {
       min-height: 360px;
       margin: 0 -5.2vw;
@@ -821,6 +968,7 @@
     @media (max-width: 620px) {
       .topbar { height: 60px; padding: 0 16px; }
       .top-link { display: none; }
+      .top-link.about-link { display: inline-flex; padding: 6px 5px; font-size: 11px; }
       .account-button { padding: 7px 9px; font-size: 11px; }
       .account-button.primary { padding: 8px 11px; }
       .top-actions { gap: 5px; }
@@ -851,6 +999,10 @@
       .sidebar-contribution { padding: 6px; font-size: 9px; }
       .sidebar-contribution strong { font-size: 12px; }
       main { min-width: 0; padding: 0 12px 45px; }
+      .about-view { margin-top: 16px; padding: 24px 16px; border-radius: 18px; }
+      .about-view h1 { margin-bottom: 18px; }
+      .team-gallery { border-radius: 14px; }
+      .team-gallery::before, .team-gallery::after { height: 52px; }
       .hero { min-height: 260px; margin: 0 -12px; padding: 34px 12px; }
       .hero h1 { font-size: clamp(43px, 13vw, 70px); letter-spacing: .04em; }
       .hero-subtitle { max-width: 320px; font-size: 12px; }
@@ -908,7 +1060,8 @@
         </button>
         <div class="language-menu" id="languageMenu" role="listbox" aria-label="Language" hidden></div>
       </div>
-      <a class="top-link" href="#event-detail" data-i18n="exploreAtlas">Explore the atlas</a>
+      <a class="top-link about-link" id="aboutLink" href="#about" data-i18n="about">About</a>
+      <a class="top-link" id="exploreLink" href="#event-detail" data-i18n="exploreAtlas">Explore the atlas</a>
       <button class="account-button" id="loginButton" type="button" data-i18n="login">Log in</button>
       <button class="account-button primary" id="signupButton" type="button" data-i18n="signUp">Sign up</button>
       <button class="account-button" id="editorButton" type="button" hidden data-i18n="editAtlas">Edit atlas</button>
@@ -932,6 +1085,30 @@
     </aside>
 
     <main>
+      <section class="about-view" id="about-view" aria-labelledby="aboutTitle" hidden>
+        <p class="about-kicker">The people behind the Atlas</p>
+        <h1 id="aboutTitle">The Team</h1>
+        <div class="team-gallery">
+          <div class="team-members" id="teamMembers" role="region" aria-label="Scrollable team members" tabindex="0">
+            <div class="team-member is-active">
+              <img src="danemark-v-teoxon.jpg" alt="Portrait of Danemark V. Teoxon">
+              <h2>DANEMARK V. TEOXON</h2>
+            </div>
+            <div class="team-member">
+              <img src="jigger-m-demoral.jpg" alt="Portrait of Jigger M. Demoral">
+              <h2>JIGGER M. DEMORAL</h2>
+            </div>
+            <div class="team-member">
+              <img src="john-albert-s-cabaltera.jpg" alt="Portrait of John Albert S. Cabaltera">
+              <h2>JOHN ALBERT S. CABALTERA</h2>
+            </div>
+            <div class="team-member">
+              <img src="john-daniel-albania.jpg" alt="Portrait of John Daniel L. Albania">
+              <h2>JOHN DANIEL L. ALBANIA</h2>
+            </div>
+          </div>
+        </div>
+      </section>
       <section class="hero" id="hero" aria-label="History Atlas introduction" data-i18n-aria="atlasIntroduction">
         <div class="hero-image-layer" aria-hidden="true"></div>
         <div class="hero-image-layer" aria-hidden="true"></div>
@@ -1363,6 +1540,7 @@
       illustratedGuide: ["An illustrated guide to the past", "图文并茂的历史指南", "過去をたどる図解ガイド", "과거를 살펴보는 그림 안내서", "Иллюстрированный путеводитель по прошлому", "Ein illustrierter Wegweiser in die Vergangenheit", "Panduan bergambar tentang masa lalu", "Una guía ilustrada del pasado", "Ένας εικονογραφημένος οδηγός στο παρελθόν", "Una guida illustrata al passato", "คู่มือภาพประกอบเรื่องราวในอดีต", "Panduan bergambar tentang masa lalu", "अतीत की सचित्र मार्गदर्शिका"],
       heroSubtitle: ["The moments that changed how we live, and the people whose stories still shape our world.", "改变我们生活方式的时刻，以及至今仍影响世界的人们。", "暮らしを変えた出来事と、今も世界を形づくる人々の物語。", "우리의 삶을 바꾼 순간과 지금도 세상을 만드는 사람들의 이야기.", "Моменты, изменившие нашу жизнь, и люди, чьи истории продолжают формировать мир.", "Momente, die unser Leben veränderten, und Menschen, deren Geschichten unsere Welt bis heute prägen.", "Peristiwa yang mengubah cara hidup kita dan kisah tokoh yang masih membentuk dunia.", "Los momentos que cambiaron nuestra forma de vivir y las personas cuyas historias aún dan forma al mundo.", "Στιγμές που άλλαξαν τον τρόπο ζωής μας και άνθρωποι των οποίων οι ιστορίες διαμορφώνουν ακόμη τον κόσμο.", "I momenti che hanno cambiato il nostro modo di vivere e le persone le cui storie plasmano ancora il mondo.", "ช่วงเวลาที่เปลี่ยนวิถีชีวิตของเรา และผู้คนที่เรื่องราวยังคงหล่อหลอมโลก", "Peristiwa yang mengubah cara hidup kita dan kisah tokoh yang masih membentuk dunia.", "वे पल जिन्होंने हमारा जीवन बदला, और वे लोग जिनकी कहानियाँ आज भी दुनिया को आकार देती हैं।"],
       exploreAtlas: ["Explore the atlas", "探索历史图册", "アトラスを探索", "아틀라스 둘러보기", "Изучить атлас", "Atlas erkunden", "Jelajahi atlas", "Explorar el atlas", "Εξερευνήστε τον άτλαντα", "Esplora l'atlante", "สำรวจแอตลาส", "Teroka atlas", "एटलस देखें"],
+      about: ["About", "关于", "概要", "소개", "О нас", "Über uns", "Tentang", "Acerca de", "Σχετικά", "Chi siamo", "เกี่ยวกับ", "Perihal", "परिचय"],
       exploreCollection: ["Explore the collection", "探索馆藏", "コレクションを見る", "컬렉션 둘러보기", "Изучить коллекцию", "Sammlung erkunden", "Jelajahi koleksi", "Explorar la colección", "Εξερευνήστε τη συλλογή", "Esplora la raccolta", "สำรวจคอลเลกชัน", "Teroka koleksi", "संग्रह देखें"],
       historyInContext: ["History, in context", "了解历史背景", "歴史を文脈から見る", "맥락 속의 역사", "История в контексте", "Geschichte im Kontext", "Sejarah dalam konteks", "La historia en contexto", "Η ιστορία στο πλαίσιό της", "La storia nel suo contesto", "ประวัติศาสตร์ในบริบท", "Sejarah dalam konteks", "संदर्भ सहित इतिहास"],
       selectEventPrompt: ["Select an event in the index to begin your journey.", "从目录中选择一个事件，开始探索。", "目次から出来事を選んで探索を始めましょう。", "목록에서 사건을 선택해 탐험을 시작하세요.", "Выберите событие в списке, чтобы начать.", "Wähle ein Ereignis aus dem Verzeichnis, um zu beginnen.", "Pilih peristiwa dalam indeks untuk memulakan penerokaan.", "Selecciona un acontecimiento del índice para comenzar.", "Επιλέξτε ένα γεγονός από τον κατάλογο για να ξεκινήσετε.", "Seleziona un evento dall'indice per iniziare.", "เลือกเหตุการณ์จากสารบัญเพื่อเริ่มต้น", "Pilih peristiwa dalam indeks untuk memulakan.", "शुरू करने के लिए सूची में कोई घटना चुनें।"],
@@ -1661,6 +1839,73 @@
     const heroImageLayers = [...document.querySelectorAll(".hero-image-layer")];
     const sidebarToggle = document.getElementById("sidebarToggle");
     const pageLayout = document.querySelector(".page-layout");
+    const mainContent = document.querySelector("main");
+    const aboutLink = document.getElementById("aboutLink");
+    const exploreLink = document.getElementById("exploreLink");
+    const teamMembers = document.getElementById("teamMembers");
+    const teamMemberCards = [...teamMembers.querySelectorAll(".team-member")];
+    let teamScrollFrame = 0;
+    for (const member of teamMemberCards) {
+      const name = member.querySelector("h2");
+      const text = name.textContent.trim();
+      name.setAttribute("aria-label", text);
+      name.replaceChildren(...[...text].map((character, index) => {
+        const letter = document.createElement("span");
+        letter.setAttribute("aria-hidden", "true");
+        letter.textContent = character === " " ? "\u00a0" : character;
+        letter.style.setProperty("--letter-index", String(index));
+        return letter;
+      }));
+    }
+
+    function updateActiveTeamMember() {
+      teamScrollFrame = 0;
+      const viewportCenter = teamMembers.getBoundingClientRect().top + teamMembers.clientHeight / 2;
+      let closestMember = null;
+      let closestDistance = Infinity;
+      for (const member of teamMemberCards) {
+        const bounds = member.getBoundingClientRect();
+        const distance = Math.abs(bounds.top + bounds.height / 2 - viewportCenter);
+        if (distance < closestDistance) {
+          closestMember = member;
+          closestDistance = distance;
+        }
+      }
+      for (const member of teamMemberCards) {
+        const isActive = member === closestMember;
+        if (member.classList.contains("is-active") === isActive) continue;
+        member.classList.toggle("is-active", isActive);
+      }
+    }
+
+    teamMembers.addEventListener("scroll", () => {
+      if (teamScrollFrame) return;
+      teamScrollFrame = requestAnimationFrame(updateActiveTeamMember);
+    }, { passive: true });
+    window.addEventListener("resize", updateActiveTeamMember);
+    updateActiveTeamMember();
+
+    function showAbout(show) {
+      mainContent.classList.toggle("about-active", show);
+      document.getElementById("about-view").hidden = !show;
+      if (show) {
+        aboutLink.setAttribute("aria-current", "page");
+      } else {
+        aboutLink.removeAttribute("aria-current");
+        if (window.location.hash === "#about") {
+          history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+        }
+      }
+    }
+
+    aboutLink.addEventListener("click", event => {
+      event.preventDefault();
+      showAbout(true);
+      history.replaceState(null, "", "#about");
+    });
+    exploreLink.addEventListener("click", () => showAbout(false));
+    document.querySelector(".brand").addEventListener("click", () => showAbout(false));
+    if (window.location.hash === "#about") showAbout(true);
 
     sidebarToggle.addEventListener("click", () => {
       const isExpanded = sidebarToggle.getAttribute("aria-expanded") === "true";
@@ -1860,6 +2105,7 @@
     }
 
     function selectEvent(id) {
+      showAbout(false);
       selectedEvent = availableEvents().find(event => event.id === id) || availableEvents()[0] || null;
       selectedContribution = null;
       renderNav();
@@ -1885,6 +2131,7 @@
     }
 
     function selectContribution(pageId) {
+      showAbout(false);
       const all = readJson(storageKeys.contributions, {});
       const pages = collectInformationPages(all);
       const index = pages.findIndex(page => page.id === pageId);
