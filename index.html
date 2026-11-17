@@ -68,7 +68,11 @@
       --accent-foreground: #20211e;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+      scrollbar-width: none;
+    }
+    *::-webkit-scrollbar { display: none; width: 0; height: 0; }
     html { scroll-behavior: smooth; overscroll-behavior-y: none; }
     body {
       margin: 0;
@@ -141,10 +145,12 @@
       cursor: pointer;
       font-size: 12px;
       text-align: left;
-      transition: background-color .25s ease, color .25s ease, border-color .25s ease;
+      transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .16s ease;
     }
+    .language-trigger:active, .theme-toggle:active { transform: scale(.94); }
     .language-trigger:hover, .language-trigger[aria-expanded="true"] { background: var(--paper-deep); }
-    .language-trigger-chevron { color: var(--muted); font-size: 10px; }
+    .language-trigger-chevron { color: var(--muted); font-size: 10px; transition: transform .22s ease; }
+    .language-trigger[aria-expanded="true"] .language-trigger-chevron { transform: rotate(180deg); }
     .language-short-label { display: none; }
     .language-menu {
       position: absolute;
@@ -161,6 +167,12 @@
       border-radius: 12px;
       background: var(--paper);
       box-shadow: 0 12px 34px rgba(0,0,0,.2);
+      transform-origin: top right;
+      animation: language-menu-enter .18s ease-out both;
+    }
+    @keyframes language-menu-enter {
+      from { opacity: 0; transform: translateY(-5px) scale(.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
     .language-menu[hidden] { display: none; }
     .language-option {
@@ -191,9 +203,11 @@
       font-size: 11px;
       font-weight: 600;
       white-space: nowrap;
+      transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .16s ease;
     }
     .theme-toggle:hover { background: var(--paper-deep); }
-    .theme-toggle-icon { font-size: 15px; line-height: 1; }
+    .theme-toggle-icon { display: inline-block; font-size: 15px; line-height: 1; transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+    .theme-toggle[aria-pressed="true"] .theme-toggle-icon { transform: rotate(180deg) scale(1.12); }
     .top-link, .account-button {
       border: 0;
       background: transparent;
@@ -387,6 +401,133 @@
 
     main { min-width: 0; padding: 0 5.2vw 70px; }
     main.about-active > :not(#about-view) { display: none; }
+    main.account-active > :not(#account-view) { display: none; }
+    .page-layout.account-active { grid-template-columns: minmax(0, 1fr); }
+    .page-layout.account-active .sidebar { display: none; }
+    .page-layout.account-active main { min-height: calc(100vh - 68px); padding: 0; }
+    .page-layout.atlas-entering,
+    .topbar.atlas-entering { animation: atlas-screen-enter .42s ease-out both; }
+    @keyframes atlas-screen-enter {
+      from { opacity: 0; transform: translateY(7px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    body.auth-screen #loginButton, body.auth-screen #signupButton,
+    body.auth-screen #aboutLink, body.auth-screen #exploreLink,
+    body.auth-screen #sidebarToggle, body.auth-screen #chatLauncher { display: none; }
+    body.auth-screen .topbar { justify-content: space-between; }
+    body.auth-screen .brand { display: none; }
+    body.auth-screen #accountBackButton { display: inline-flex; }
+    .account-view {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(390px, .85fr);
+      align-items: stretch;
+      gap: clamp(28px, 6vw, 100px);
+      width: min(1500px, 100%);
+      min-height: calc(100vh - 68px);
+      margin: 0 auto;
+      padding: 0 clamp(28px, 7vw, 110px);
+      overflow: hidden;
+    }
+    .account-view.account-leaving {
+      pointer-events: none;
+      animation: account-screen-exit .28s ease-in both;
+    }
+    @keyframes account-screen-exit {
+      to { opacity: 0; transform: translateY(10px); filter: blur(2px); }
+    }
+    #account-view[hidden] { display: none; }
+    .account-branding {
+      position: relative;
+      display: flex;
+      min-width: 0;
+      align-items: center;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .account-branding::before {
+      position: absolute;
+      z-index: -1;
+      inset: 0;
+      background: center / min(100%, 780px) auto no-repeat url("history-atlas-logo.png");
+      content: "";
+      opacity: .24;
+      filter: blur(5px);
+    }
+    .account-branding-copy { padding: 40px 0; }
+    .account-branding-kicker {
+      margin: 0 0 2px;
+      color: var(--accent-dark);
+      font: clamp(13.5px, 2vw, 26px) var(--mono);
+      letter-spacing: .22em;
+      text-transform: uppercase;
+    }
+    .account-branding h1 {
+      margin: 0;
+      font: 600 clamp(54px, 8vw, 104px)/.98 var(--serif);
+      letter-spacing: -.045em;
+      text-transform: uppercase;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+    .account-branding h1.mode-fade-out { opacity: 0; transform: translateY(8px); }
+    .account-branding h1.mode-enter { animation: account-title-enter .55s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes account-title-enter {
+      from { opacity: 0; transform: translateY(18px); filter: blur(8px); }
+      to { opacity: 1; transform: translateY(0); filter: blur(0); }
+    }
+    .account-form-panel {
+      width: min(100%, 510px);
+      align-self: center;
+      justify-self: end;
+      padding: 34px 0;
+    }
+    .account-back {
+      display: none;
+      flex: 0 0 auto;
+      align-items: center;
+      padding: 8px 11px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .account-back:hover { background: var(--surface-muted); }
+    .account-view .modal-tabs {
+      position: relative;
+      margin-top: 20px;
+    }
+    .legal-consent-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      margin-top: 10px;
+      font-size: 10px;
+      line-height: 1.5;
+    }
+    .legal-consent-row input {
+      flex: 0 0 auto;
+      margin: 3px 0 0;
+      accent-color: var(--accent);
+      transform: scale(1);
+      transition: transform .16s ease;
+    }
+    .legal-consent-row input:active { transform: scale(.86); }
+    .legal-consent-row input:checked { animation: agreement-check-pop .24s ease-out; }
+    @keyframes agreement-check-pop {
+      0% { transform: scale(.86); }
+      65% { transform: scale(1.16); }
+      100% { transform: scale(1); }
+    }
+    .legal-consent-copy { display: grid; gap: 2px; }
+    .legal-consent-copy label { cursor: pointer; font-size: 11px; font-weight: 700; }
+    .legal-consent-copy a { color: var(--accent-dark); font-weight: 700; }
+    .account-view .agreement-block { padding: 12px 0; border: 0; border-radius: 0; background: transparent; }
+    .account-view .legal-summary { gap: 10px; }
+    .account-view .legal-summary p { margin: 0; }
+    body.auth-screen .chat-panel { display: none; }
+    main.account-active > #account-view { display: grid; }
     .about-view {
       max-width: 970px;
       margin: 34px auto 0;
@@ -892,8 +1033,20 @@
     .modal-close { border: 0; background: transparent; cursor: pointer; font-size: 23px; line-height: 1; }
     .modal-copy { margin: 0 0 19px; color: var(--muted); font-size: 11px; line-height: 1.6; }
     .modal-tabs { display: flex; gap: 17px; margin-bottom: 20px; border-bottom: 1px solid var(--line); }
-    .modal-tab { padding: 0 0 9px; border: 0; border-bottom: 2px solid transparent; background: transparent; cursor: pointer; color: var(--muted); font-size: 12px; }
-    .modal-tab[aria-selected="true"] { border-color: var(--accent); color: var(--ink); font-weight: 700; }
+    .account-view .modal-tabs::after {
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: calc((100% - 17px) / 2);
+      height: 2px;
+      background: var(--accent);
+      content: "";
+      transform: translateX(calc(100% + 17px));
+      transition: transform .3s cubic-bezier(.2,.8,.2,1);
+    }
+    .account-view .modal-tabs[data-active-tab="login"]::after { transform: translateX(0); }
+    .modal-tab { flex: 1; padding: 0 0 9px; border: 0; background: transparent; cursor: pointer; color: var(--muted); font-size: 12px; text-align: left; }
+    .modal-tab[aria-selected="true"] { color: var(--ink); font-weight: 700; }
     .field { display: grid; gap: 6px; margin: 13px 0; }
     .field[hidden] { display: none; }
     .field label { font-size: 11px; font-weight: 600; }
@@ -908,6 +1061,27 @@
     }
     .field textarea { min-height: 120px; resize: vertical; }
     .file-hint, .prototype-note { color: var(--muted); font-size: 10px; line-height: 1.55; }
+    .agreement-block {
+      margin: 15px 0;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--surface-muted);
+    }
+    .agreement-copy { margin: 10px 0; color: var(--text-secondary); font-size: 10px; line-height: 1.6; }
+    .agreement-copy p { margin: 0 0 9px; }
+    .agreement-copy ol { margin: 0 0 9px; padding-left: 18px; }
+    .agreement-copy li { margin: 0 0 6px; }
+    .legal-summary { display: grid; gap: 7px; color: var(--text-secondary); font-size: 10px; line-height: 1.5; }
+    .legal-summary p { margin: 0; }
+    .legal-summary a { color: var(--accent-dark); font-weight: 700; }
+    .legal-document h3 { margin: 18px 0 6px; font: 600 18px var(--serif); }
+    .legal-document p, .legal-document li { color: var(--text-secondary); font-size: 12px; line-height: 1.65; }
+    .legal-document ul { padding-left: 20px; }
+    .legal-document[hidden] { display: none; }
+    .agreement-accept { display: flex; align-items: flex-start; gap: 8px; margin-top: 11px; font-size: 11px; line-height: 1.5; }
+    .agreement-accept input { flex: 0 0 auto; margin: 2px 0 0; accent-color: var(--accent); }
+    .agreement-accept label { cursor: pointer; }
     .modal-submit {
       margin-top: 8px;
       border: 0;
@@ -918,6 +1092,12 @@
       cursor: pointer;
       font-size: 12px;
       font-weight: 600;
+    }
+    #accountSubmit {
+      display: block;
+      width: min(100%, 360px);
+      margin: 14px auto 0;
+      text-align: center;
     }
     .modal-submit:hover { background: var(--accent-dark); color: var(--accent-foreground); }
     .form-error { min-height: 18px; margin: 8px 0 0; color: var(--error); font-size: 11px; }
@@ -965,6 +1145,8 @@
       .page-layout { grid-template-columns: 205px minmax(0, 1fr); }
       .sidebar { padding-left: 20px; }
       main { padding-right: 25px; padding-left: 25px; }
+      .account-view { grid-template-columns: minmax(0, .9fr) minmax(340px, 1.1fr); gap: 28px; padding-right: 32px; padding-left: 32px; }
+      .account-branding h1 { font-size: clamp(48px, 7vw, 72px); }
       .hero { margin-right: -25px; margin-left: -25px; padding-right: 25px; padding-left: 25px; }
       .timeline { grid-template-columns: 1fr; gap: 7px; }
       .timeline-item { padding-bottom: 8px; }
@@ -981,8 +1163,23 @@
       .language-short-label { display: inline; font-size: 10px; font-weight: 700; }
       .theme-toggle { width: 38px; padding: 5px; }
       .theme-toggle-label { display: none; }
+      .page-layout.account-active main { min-height: calc(100vh - 60px); padding: 0; }
+      .account-view {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0;
+        min-height: calc(100vh - 60px);
+        padding: 0 18px 30px;
+      }
+      .account-branding { min-height: 190px; }
+      .account-branding::before { background-size: auto 230px; background-position: center 42%; }
+      .account-branding-copy { padding: 25px 0; }
+      .account-branding-kicker { margin-bottom: 1px; font-size: clamp(11.5px, 3.25vw, 17.5px); }
+      .account-branding h1 { font-size: clamp(46px, 13vw, 70px); }
+      .account-form-panel { width: min(100%, 520px); justify-self: center; padding: 0 0 20px; }
+      .account-view #accountPrivacy { margin-bottom: 12px; }
       .page-layout { display: grid; grid-template-columns: minmax(96px, 30vw) minmax(0, 1fr); min-height: calc(100vh - 60px); }
       .page-layout.sidebar-collapsed { grid-template-columns: 0fr minmax(0, 1fr); }
+      .page-layout.account-active { grid-template-columns: minmax(0, 1fr); }
       .sidebar { min-width: 0; padding: 15px 6px; border-right: 1px solid var(--line); border-bottom: 0; }
       .sidebar-heading { margin: 0 0 9px 4px; font-size: 8px; }
       .event-list { display: grid; gap: 3px; overflow: visible; padding-bottom: 0; }
@@ -1048,6 +1245,7 @@
     <a class="brand" href="#" aria-label="History Atlas home">
       <img class="brand-logo" src="history-atlas-logo.png" alt="History Atlas — Navigate the past, shape the future">
     </a>
+    <button class="account-back" id="accountBackButton" type="button" data-i18n="backToAtlas">Back to Atlas</button>
     <div class="top-actions">
       <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Show chapters" title="Show chapters" data-i18n-aria="showChapters" data-i18n-title="showChapters" aria-expanded="false" aria-controls="atlasSidebar">
         <span></span><span></span><span></span>
@@ -1075,7 +1273,7 @@
 
   <div class="page-layout sidebar-collapsed">
     <aside class="sidebar" id="atlasSidebar" aria-label="Choose a historical event" data-i18n-aria="chooseEvent">
-      <p class="sidebar-heading" data-i18n="turningPoints">A century of turning points</p>
+      <p class="sidebar-heading" data-i18n="turningPoints">A history of turning points</p>
       <nav class="event-list" id="eventList" aria-label="Historical events" data-i18n-aria="historicalEvents"></nav>
       <section class="sidebar-updates" id="sidebarUpdates" aria-label="New and updated information" hidden>
         <h2 data-i18n="latestInformation">New &amp; updated information</h2>
@@ -1085,10 +1283,70 @@
         <h2 id="sidebarContributionHeading" data-i18n="addedInformation">Added information</h2>
         <div id="sidebarContributionList"></div>
       </section>
-      <p class="sidebar-note" data-i18n="sidebarNote">Nine chapters. Centuries of change. Choose a moment to explore its context, key dates and lasting impact.</p>
     </aside>
 
     <main>
+      <section class="account-view" id="account-view" aria-labelledby="accountModeTitle" hidden>
+        <div class="account-branding">
+          <div class="account-branding-copy">
+            <p class="account-branding-kicker">History Atlas</p>
+            <h1 id="accountModeTitle" class="mode-enter">Sign up</h1>
+          </div>
+        </div>
+        <div class="account-form-panel">
+          <p class="modal-copy" id="accountPrivacy" data-i18n="accountPrivacy">This standalone demo stores account details on this device only. Passwords are stored as salted hashes; this is not secure server authentication. Older demo accounts will set a password the first time they log in.</p>
+          <div class="modal-tabs" role="tablist" aria-label="Account action" data-i18n-aria="accountAction" data-active-tab="signup">
+            <button class="modal-tab" id="tabLogin" type="button" role="tab" aria-selected="false" data-i18n="login">Log in</button>
+            <button class="modal-tab" id="tabSignup" type="button" role="tab" aria-selected="true" data-i18n="createAccount">Create an account</button>
+          </div>
+          <form id="accountForm">
+            <div class="field">
+              <label for="accountEmail" data-i18n="emailAddress">Email address</label>
+              <input id="accountEmail" type="email" autocomplete="email" required maxlength="160" placeholder="you@example.com">
+            </div>
+            <div class="field">
+              <label for="accountPassword" data-i18n="password">Password (at least 8 characters)</label>
+              <input id="accountPassword" type="password" autocomplete="new-password" required minlength="8" maxlength="128">
+            </div>
+            <div class="field" id="accountPasswordConfirmField">
+              <label for="accountPasswordConfirm" data-i18n="confirmPassword">Confirm password</label>
+              <input id="accountPasswordConfirm" type="password" autocomplete="new-password" required minlength="8" maxlength="128">
+            </div>
+            <div class="agreement-block" id="accountPrivacyAgreementField">
+              <div class="legal-summary">
+                <div class="legal-consent-row">
+                  <input id="accountPrivacyAgreement" type="checkbox">
+                  <div class="legal-consent-copy">
+                    <label for="accountPrivacyAgreement">Privacy Policy</label>
+                    <span>Your account and contributions stay in this browser and are not uploaded or shared. <a href="#privacy-policy" data-legal-document="privacy">Read the Privacy Policy</a>.</span>
+                  </div>
+                </div>
+                <div class="legal-consent-row">
+                  <input id="accountTermsAgreement" type="checkbox">
+                  <div class="legal-consent-copy">
+                    <label for="accountTermsAgreement">Terms of Service</label>
+                    <span>Use Atlas respectfully and submit only material you have the right to use. Contributions are local and are not reviewed or published. <a href="#terms-of-service" data-legal-document="terms">Read the Terms of Service</a>.</span>
+                  </div>
+                </div>
+                <div class="legal-consent-row">
+                  <input id="accountEulaAgreement" type="checkbox">
+                  <div class="legal-consent-copy">
+                    <label for="accountEulaAgreement">End-User License Agreement (EULA)</label>
+                    <span>Atlas is a demo for personal, non-commercial learning; its materials remain subject to their respective rights. <a href="#end-user-license" data-legal-document="eula">Read the EULA</a>.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button class="modal-submit" id="accountSubmit" type="submit" data-i18n="createAccount">Create an account</button>
+            <p class="form-error" id="accountError" role="status"></p>
+          </form>
+          <div class="signed-in" id="signedInPanel">
+            <p class="modal-copy" id="signedInText"></p>
+            <button class="modal-submit" id="openEditorFromAccount" type="button" data-i18n="openEditor">Open the editor</button>
+            <button class="modal-submit" id="logoutButton" type="button" data-i18n="logout">Log out</button>
+          </div>
+        </div>
+      </section>
       <section class="about-view" id="about-view" aria-labelledby="aboutTitle" hidden>
         <p class="about-kicker">The people behind the Atlas</p>
         <h1 id="aboutTitle">The Team</h1>
@@ -1206,40 +1464,54 @@
     </form>
   </section>
 
-  <div class="modal-backdrop" id="accountModal" role="presentation">
-    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
+  <div class="modal-backdrop" id="legalDocumentModal" role="presentation">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="legalDocumentTitle">
       <div class="modal-head">
         <div>
-          <p class="eyebrow" data-i18n="atlasWorkspace">Your atlas workspace</p>
-          <h2 id="accountTitle" data-i18n="welcomeAtlas">Welcome to the atlas</h2>
+          <p class="eyebrow">History Atlas · Account documents</p>
+          <h2 id="legalDocumentTitle">Privacy Policy</h2>
         </div>
-        <button class="modal-close" type="button" data-close="accountModal" aria-label="Close" data-i18n-aria="close">&times;</button>
+        <button class="modal-close" id="closeLegalDocument" type="button" data-close="legalDocumentModal" aria-label="Close">&times;</button>
       </div>
-      <p class="modal-copy" id="accountPrivacy" data-i18n="accountPrivacy">This standalone demo stores account details on this device only. Passwords are stored as salted hashes; this is not secure server authentication. Older demo accounts will set a password the first time they log in.</p>
-      <div class="modal-tabs" role="tablist" aria-label="Account action" data-i18n-aria="accountAction">
-        <button class="modal-tab" id="tabLogin" type="button" role="tab" aria-selected="false" data-i18n="login">Log in</button>
-        <button class="modal-tab" id="tabSignup" type="button" role="tab" aria-selected="true" data-i18n="createAccount">Create an account</button>
+      <div class="legal-document" id="privacyPolicyDocument">
+        <p><strong>Last updated: November 17, 2026</strong></p>
+        <p>History Atlas is a standalone browser demonstration. This Privacy Policy explains what this version stores and how it is handled.</p>
+        <h3>Information stored</h3>
+        <p>When you create an account, the email address you provide and a salted password hash are saved in this browser's local storage. Your plain-text password is not stored. The signed-in email is kept in session storage. Information, notes, sources, timeline entries, and images that you contribute are also saved in local storage.</p>
+        <h3>Storage, sharing, and access</h3>
+        <p>This version does not upload accounts or contributions to an Atlas server, synchronize them between devices, or publish or share them with other visitors. Anyone who can access your browser profile or device may be able to access its locally stored data. Avoid entering sensitive personal information and use care on shared devices.</p>
+        <h3>Retention and deletion</h3>
+        <p>Contributions can be removed using the site's delete controls. Account records remain in the browser until its site data is cleared. Data is not backed up on a server and cannot be recovered by Atlas if it is cleared or lost.</p>
+        <h3>Security and external requests</h3>
+        <p>Password hashes do not make this local demo equivalent to secure server authentication. Do not reuse passwords from other services. When online, the page may request fonts from Google Fonts; those font requests are separate from the account and contribution data stored locally.</p>
+        <h3>Changes and contact</h3>
+        <p>This policy describes the current standalone demo. If online accounts, synchronization, or sharing are introduced, the policy should be updated before those features are used. This demo has no online account support or dedicated privacy-contact service.</p>
       </div>
-      <form id="accountForm">
-        <div class="field">
-          <label for="accountEmail" data-i18n="emailAddress">Email address</label>
-          <input id="accountEmail" type="email" autocomplete="email" required maxlength="160" placeholder="you@example.com">
-        </div>
-        <div class="field">
-          <label for="accountPassword" data-i18n="password">Password (at least 8 characters)</label>
-          <input id="accountPassword" type="password" autocomplete="new-password" required minlength="8" maxlength="128">
-        </div>
-        <div class="field" id="accountPasswordConfirmField">
-          <label for="accountPasswordConfirm" data-i18n="confirmPassword">Confirm password</label>
-          <input id="accountPasswordConfirm" type="password" autocomplete="new-password" required minlength="8" maxlength="128">
-        </div>
-        <button class="modal-submit" id="accountSubmit" type="submit" data-i18n="createAccount">Create an account</button>
-        <p class="form-error" id="accountError" role="status"></p>
-      </form>
-      <div class="signed-in" id="signedInPanel">
-        <p class="modal-copy" id="signedInText"></p>
-        <button class="modal-submit" id="openEditorFromAccount" type="button" data-i18n="openEditor">Open the editor</button>
-        <button class="modal-submit" id="logoutButton" type="button" data-i18n="logout">Log out</button>
+      <div class="legal-document" id="termsOfServiceDocument" hidden>
+        <p><strong>Last updated: November 17, 2026</strong></p>
+        <p>These Terms of Service apply when you use History Atlas, a standalone browser demo for exploring and organizing historical information. By creating an account or using the site, you agree to these terms.</p>
+        <h3>Using the demo</h3>
+        <p>You may use the site for lawful, personal, non-commercial learning. You are responsible for keeping access to your device and browser profile secure. Accounts and contributions are stored only in that browser and are not online accounts or a service that Atlas can restore.</p>
+        <h3>Your contributions</h3>
+        <p>You are responsible for the material you enter. You agree to submit it honestly, make reasonable efforts to check factual claims, identify sources when available, respect other people's rights, and avoid unlawful, abusive, or private personal information. Do not knowingly submit fabricated, misleading, defamatory, or infringing material.</p>
+        <p>Your contributions remain local to your browser in this version. They are not submitted to Atlas, reviewed, verified, moderated, or published for other visitors. You may edit or delete locally stored contributions using the site, or clear this site's browser data.</p>
+        <h3>Site materials and availability</h3>
+        <p>Atlas content, images, and linked third-party materials may have different owners and license terms. These terms do not transfer ownership or grant rights beyond those allowed by the relevant owner. The demo is provided as-is, may contain errors, and may change or become unavailable without notice. Check reliable sources independently before relying on historical information.</p>
+        <h3>Suspension and changes</h3>
+        <p>Do not misuse, disrupt, or attempt to compromise the site. These terms may be revised when the demo changes; the version displayed here applies to the current standalone demo. These terms are not legal advice and do not override rights that cannot be limited by law.</p>
+      </div>
+      <div class="legal-document" id="endUserLicenseDocument" hidden>
+        <p><strong>Last updated: November 17, 2026</strong></p>
+        <p>This End-User License Agreement (EULA) describes permission to use the History Atlas website software. It does not replace third-party licenses or grant ownership of Atlas or its content.</p>
+        <h3>Permission to use</h3>
+        <p>Subject to these terms, you may access and use this standalone demo for personal, non-commercial learning. This is permission to use the demo, not a sale or transfer of the software.</p>
+        <h3>Restrictions</h3>
+        <p>You may not misrepresent ownership of the site, remove applicable rights notices, or redistribute or commercially exploit Atlas materials unless you have permission or the law allows it. You may not use the demo unlawfully or interfere with its operation. Nothing in this agreement restricts rights that applicable law does not allow to be restricted.</p>
+        <h3>Third-party material</h3>
+        <p>Some fonts, images, or linked resources may belong to third parties and may be governed by separate terms or licenses. This EULA does not grant a license to those materials. Check the original source and its terms before reusing them.</p>
+        <h3>Ownership, warranty, and termination</h3>
+        <p>All rights not expressly granted remain with their respective owners. The demo is provided as-is, without a promise that it will be uninterrupted, error-free, or suitable for a particular purpose, to the extent permitted by law. Your permission to use the demo ends if you materially violate this EULA; you may stop using it at any time.</p>
+        <p>This EULA applies to the current standalone demonstration and should be updated if the software's distribution or licensing changes. It is not legal advice.</p>
       </div>
     </section>
   </div>
@@ -1336,6 +1608,7 @@
           <button class="editor-link incident-add" id="addPageTimelineButton" type="button" data-i18n="addTimelineEvent">Add timeline event</button>
           <div class="incident-editor-list" id="pageTimelineList"></div>
         </div>
+        <div id="editorFactualityAgreement"></div>
         <button class="modal-submit" type="submit" data-i18n="saveThisBrowser">Save to this browser</button>
         <p class="form-error" id="editorError" role="status"></p>
       </form>
@@ -1355,6 +1628,7 @@
       <form id="chapterTimelineForm">
         <button class="editor-link incident-add" id="addChapterTimelineButton" type="button" data-i18n="addTimelineEvent">Add timeline event</button>
         <div class="incident-editor-list" id="chapterTimelineList"></div>
+        <div id="timelineFactualityAgreement"></div>
         <button class="modal-submit" type="submit" data-i18n="saveTimelineEvents">Save timeline events</button>
         <p class="form-error" id="timelineError" role="status"></p>
       </form>
@@ -1374,6 +1648,32 @@
       <div class="field">
         <label data-i18n="whatHappened">What happened?</label>
         <textarea data-timeline-description aria-label="Timeline event description" data-i18n-aria="timelineDescription" maxlength="1200" placeholder="Describe this moment…" data-i18n-placeholder="timelineDescriptionPlaceholder" required></textarea>
+      </div>
+    </div>
+  </template>
+
+  <template id="factualityAgreementTemplate">
+    <div class="agreement-block">
+      <details open>
+        <summary>Agreement for Adding or Updating Information</summary>
+        <div class="agreement-copy">
+          <p>Before saving information to this browser, please read and agree to the following standards. They apply to all text, dates, sources, images, captions, and timeline entries you add or change.</p>
+          <ol>
+            <li><strong>Honesty:</strong> I will submit information in good faith and will not knowingly add false, fabricated, misleading, or altered claims, dates, quotations, source details, or images.</li>
+            <li><strong>Accuracy:</strong> I will make a reasonable effort to check factual statements against reliable evidence. When I am uncertain, I will say so clearly rather than present a guess, disputed claim, or interpretation as settled fact.</li>
+            <li><strong>Sources and context:</strong> I will identify sources when I have them, give enough detail to help someone locate them, and avoid taking quotations, images, or claims out of context. I understand that adding a citation does not by itself guarantee that a claim is correct.</li>
+            <li><strong>Clear distinctions:</strong> I will distinguish documented events from opinion, analysis, recollection, and speculation. I will use dates and descriptions carefully, and will not imply that a source supports more than it actually says.</li>
+            <li><strong>Respectful material:</strong> I will avoid knowingly submitting defamatory, harassing, threatening, discriminatory, or otherwise abusive material, and will not include private personal information about another person without a proper reason and permission.</li>
+            <li><strong>Rights and permissions:</strong> I will only add text and images that I created, am allowed to use, or may lawfully share. I will not knowingly copy another person's protected work or misrepresent who created it.</li>
+            <li><strong>Corrections:</strong> If I discover that information I added is inaccurate or misleading, I will correct or remove it promptly. I understand that later readers should independently check important claims and sources.</li>
+            <li><strong>Limits of this demo:</strong> I understand that this standalone site saves contributions in this browser only. They are not reviewed, verified, published, or shared with other visitors by the site. My agreement is a personal confirmation of care, not a guarantee that every statement is error-free.</li>
+          </ol>
+          <p>By checking the box, I confirm that I have read and will follow these standards for the information I add or update.</p>
+        </div>
+      </details>
+      <div class="agreement-accept">
+        <input type="checkbox" required>
+        <label>I confirm that the information I am adding or updating is, to the best of my knowledge, legitimate, factual, and honestly presented, and I agree to the standards above.</label>
       </div>
     </div>
   </template>
@@ -1513,6 +1813,7 @@
     let selectedContribution = null;
     let pendingDelete = null;
     let accountMode = "signup";
+    let accountTitleTransitionTimer = null;
     let timelineTarget = null;
     let editingInformationPageId = null;
     let editingEventId = null;
@@ -1533,7 +1834,7 @@
       openPage: ["Open", "打开", "開く", "열기", "Открыть", "Öffnen", "Buka", "Abrir", "Άνοιγμα", "Apri", "เปิด", "Buka", "खोलें"],
       openIndependentPage: ["Open independent page", "打开独立页面", "独立ページを開く", "독립 페이지 열기", "Открыть отдельную страницу", "Eigenständige Seite öffnen", "Buka halaman bebas", "Abrir página independiente", "Άνοιγμα ανεξάρτητης σελίδας", "Apri pagina indipendente", "เปิดหน้าแยก", "Buka halaman bebas", "स्वतंत्र पृष्ठ खोलें"],
       addedInfoForChapter: ["Added information for this chapter", "本章的补充信息", "この章への追加情報", "이 장에 추가된 정보", "Дополнительная информация к главе", "Zusätzliche Informationen zu diesem Kapitel", "Informasi tambahan untuk bab ini", "Información añadida a este capítulo", "Πρόσθετες πληροφορίες για αυτό το κεφάλαιο", "Informazioni aggiuntive per questo capitolo", "ข้อมูลเพิ่มเติมสำหรับบทนี้", "Maklumat tambahan untuk bab ini", "इस अध्याय के लिए अतिरिक्त जानकारी"],
-      turningPoints: ["A century of turning points", "百年重大转折", "転換点の一世紀", "전환점의 한 세기", "Век переломных событий", "Ein Jahrhundert voller Wendepunkte", "Satu abad titik balik", "Un siglo de momentos decisivos", "Ένας αιώνας καμπών", "Un secolo di svolte", "ศตวรรษแห่งจุดเปลี่ยน", "Satu abad titik perubahan", "परिवर्तन के निर्णायक क्षणों का एक शतक"],
+      turningPoints: ["A history of turning points", "历史转折", "歴史の転換点", "역사의 전환점", "История переломных событий", "Eine Geschichte voller Wendepunkte", "Sejarah titik perubahan", "Una historia de momentos decisivos", "Μια ιστορία σημείων καμπής", "Una storia di svolte", "ประวัติศาสตร์แห่งจุดเปลี่ยน", "Sejarah titik perubahan", "इतिहास के निर्णायक मोड़"],
       atlasIntroduction: ["History Atlas introduction", "历史图册简介", "ヒストリー・アトラスの紹介", "히스토리 아틀라스 소개", "Введение в Атлас истории", "Einführung in den History Atlas", "Pengenalan Atlas Sejarah", "Introducción al Atlas de Historia", "Εισαγωγή στον Άτλαντα Ιστορίας", "Introduzione all'Atlante della storia", "แนะนำแอตลาสประวัติศาสตร์", "Pengenalan Atlas Sejarah", "इतिहास एटलस परिचय"],
       addedInformation: ["Added information", "补充信息", "追加情報", "추가 정보", "Дополнительная информация", "Zusätzliche Informationen", "Informasi tambahan", "Información añadida", "Πρόσθετες πληροφορίες", "Informazioni aggiuntive", "ข้อมูลเพิ่มเติม", "Maklumat tambahan", "अतिरिक्त जानकारी"],
       latestInformation: ["New & updated information", "新增和更新的信息", "新規・更新情報", "새로 추가되거나 업데이트된 정보", "Новая и обновлённая информация", "Neue und aktualisierte Informationen", "Informasi baru dan diperbarui", "Información nueva y actualizada", "Νέες και ενημερωμένες πληροφορίες", "Informazioni nuove e aggiornate", "ข้อมูลใหม่และข้อมูลที่อัปเดต", "Maklumat baharu dan dikemas kini", "नई और अपडेट की गई जानकारी"],
@@ -1590,6 +1891,7 @@
       close: ["Close", "关闭", "閉じる", "닫기", "Закрыть", "Schließen", "Tutup", "Cerrar", "Κλείσιμο", "Chiudi", "ปิด", "Tutup", "बंद करें"],
       accountPrivacy: ["This browser-only demo stores accounts on this device. Passwords are salted and hashed, but this is not secure server authentication. Older demo accounts set a password when they next log in.", "此浏览器演示仅在本设备上保存账户。密码经过加盐哈希处理，但这并非安全的服务器身份验证。旧演示账户下次登录时需要设置密码。", "このブラウザーデモはアカウントをこの端末にのみ保存します。パスワードはソルト付きハッシュで保存されますが、安全なサーバー認証ではありません。既存のデモアカウントは次回ログイン時にパスワードを設定します。", "이 브라우저 데모는 계정을 이 기기에만 저장합니다. 비밀번호는 솔트를 적용해 해시로 저장하지만 안전한 서버 인증은 아닙니다. 기존 데모 계정은 다음 로그인 시 비밀번호를 설정합니다.", "Эта браузерная демонстрация хранит учетные записи только на этом устройстве. Пароли хранятся в виде хешей с солью, но это не является безопасной серверной аутентификацией. Для старых демо-аккаунтов пароль задается при следующем входе.", "Diese Browserdemo speichert Konten nur auf diesem Gerät. Passwörter werden gesalzen und gehasht gespeichert, dies ist jedoch keine sichere Serverauthentifizierung. Für ältere Demokonten wird beim nächsten Anmelden ein Passwort festgelegt.", "Demo dalam pelayar ini menyimpan akaun pada peranti ini sahaja. Kata laluan disimpan sebagai cincangan bersalt, tetapi ini bukan pengesahan pelayan yang selamat. Akaun demo lama menetapkan kata laluan apabila log masuk seterusnya.", "Esta demostración en el navegador guarda las cuentas solo en este dispositivo. Las contraseñas se almacenan con sal y hash, pero esto no es autenticación segura en un servidor. Las cuentas de demostración antiguas crearán una contraseña al iniciar sesión la próxima vez.", "Αυτή η επίδειξη στο πρόγραμμα περιήγησης αποθηκεύει λογαριασμούς μόνο σε αυτήν τη συσκευή. Οι κωδικοί αποθηκεύονται με salt και hash, αλλά αυτό δεν αποτελεί ασφαλή έλεγχο ταυτότητας διακομιστή. Οι παλιοί δοκιμαστικοί λογαριασμοί θα ορίσουν κωδικό στην επόμενη σύνδεση.", "Questa demo nel browser salva gli account solo su questo dispositivo. Le password sono memorizzate con salt e hash, ma non si tratta di un'autenticazione server sicura. Gli account demo esistenti imposteranno una password al prossimo accesso.", "เดโมในเบราว์เซอร์นี้จัดเก็บบัญชีไว้ในอุปกรณ์นี้เท่านั้น รหัสผ่านจะถูกแฮชพร้อม salt แต่นี่ไม่ใช่การยืนยันตัวตนผ่านเซิร์ฟเวอร์ที่ปลอดภัย บัญชีเดิมจะตั้งรหัสผ่านเมื่อลงชื่อเข้าใช้ครั้งถัดไป", "Demo dalam pelayar ini menyimpan akaun pada peranti ini sahaja. Kata laluan disimpan sebagai cincangan bersalt, tetapi ini bukan pengesahan pelayan yang selamat. Akaun demo lama menetapkan kata laluan apabila log masuk seterusnya.", "यह ब्राउज़र डेमो खाते केवल इसी डिवाइस पर रखता है। पासवर्ड नमक के साथ हैश करके रखे जाते हैं, लेकिन यह सुरक्षित सर्वर प्रमाणीकरण नहीं है। पुराने डेमो खाते अगली बार लॉग इन करते समय पासवर्ड सेट करेंगे।"],
       accountAction: ["Account action", "账户操作", "アカウント操作", "계정 작업", "Действие с аккаунтом", "Kontoaktion", "Tindakan akaun", "Acción de cuenta", "Ενέργεια λογαριασμού", "Azione account", "การดำเนินการบัญชี", "Tindakan akaun", "खाता कार्रवाई"],
+      backToAtlas: ["Back to Atlas", "返回 Atlas", "Atlas に戻る", "Atlas로 돌아가기", "Вернуться к атласу", "Zurück zum Atlas", "Kembali ke Atlas", "Volver al Atlas", "Επιστροφή στον Άτλαντα", "Torna all'Atlante", "กลับไปที่ Atlas", "Kembali ke Atlas", "Atlas पर वापस जाएँ"],
       createAccount: ["Create an account", "创建账户", "アカウントを作成", "계정 만들기", "Создать аккаунт", "Konto erstellen", "Cipta akaun", "Crear una cuenta", "Δημιουργία λογαριασμού", "Crea un account", "สร้างบัญชี", "Cipta akaun", "खाता बनाएँ"],
       emailAddress: ["Email address", "电子邮件地址", "メールアドレス", "이메일 주소", "Адрес электронной почты", "E-Mail-Adresse", "Alamat e-mel", "Correo electrónico", "Διεύθυνση email", "Indirizzo email", "ที่อยู่อีเมล", "Alamat e-mel", "ईमेल पता"],
       password: ["Password (at least 8 characters)", "密码（至少 8 个字符）", "パスワード（8文字以上）", "비밀번호 (8자 이상)", "Пароль (не менее 8 символов)", "Passwort (mindestens 8 Zeichen)", "Kata laluan (sekurang-kurangnya 8 aksara)", "Contraseña (al menos 8 caracteres)", "Κωδικός πρόσβασης (τουλάχιστον 8 χαρακτήρες)", "Password (almeno 8 caratteri)", "รหัสผ่าน (อย่างน้อย 8 ตัวอักษร)", "Kata laluan (sekurang-kurangnya 8 aksara)", "पासवर्ड (कम से कम 8 अक्षर)"],
@@ -1697,6 +1999,16 @@
       if (!values) throw new Error(`Missing translation key: ${key}`);
       return values[languageOrder.indexOf(currentLanguage)] || values[0];
     }
+
+    function mountFactualityAgreement(containerId, checkboxId) {
+      const agreement = document.getElementById("factualityAgreementTemplate").content.cloneNode(true);
+      agreement.querySelector("input").id = checkboxId;
+      agreement.querySelector("label").htmlFor = checkboxId;
+      document.getElementById(containerId).append(agreement);
+    }
+
+    mountFactualityAgreement("editorFactualityAgreement", "editorFactualityConfirmed");
+    mountFactualityAgreement("timelineFactualityAgreement", "timelineFactualityConfirmed");
 
     function updateLanguagePicker() {
       const selected = languageOptions.find(([code]) => code === currentLanguage);
@@ -1894,6 +2206,7 @@
     updateActiveTeamMember();
 
     function showAbout(show) {
+      if (pageLayout.classList.contains("account-active")) closeAccountScreen(false);
       mainContent.classList.toggle("about-active", show);
       document.getElementById("about-view").hidden = !show;
       if (show) {
@@ -1908,6 +2221,7 @@
 
     aboutLink.addEventListener("click", event => {
       event.preventDefault();
+      closeAccountScreen(false);
       showAbout(true);
       history.replaceState(null, "", "#about");
     });
@@ -2461,28 +2775,140 @@
         editingInformationPageId = null;
         editingEventId = null;
       }
+      if (id === "legalDocumentModal" && legalDocumentReturnFocus) {
+        const returnFocus = legalDocumentReturnFocus;
+        legalDocumentReturnFocus = null;
+        if (returnFocus.isConnected) returnFocus.focus();
+      }
+    }
+
+    let legalDocumentReturnFocus = null;
+    function openLegalDocument(documentType, trigger) {
+      const documents = {
+        privacy: { title: "Privacy Policy", id: "privacyPolicyDocument" },
+        terms: { title: "Terms of Service", id: "termsOfServiceDocument" },
+        eula: { title: "End-User License Agreement", id: "endUserLicenseDocument" }
+      };
+      const selectedDocument = documents[documentType];
+      if (!selectedDocument) throw new Error(`Unknown legal document: ${documentType}`);
+      document.querySelectorAll(".legal-document").forEach(section => {
+        section.hidden = section.id !== selectedDocument.id;
+      });
+      document.getElementById("legalDocumentTitle").textContent = selectedDocument.title;
+      legalDocumentReturnFocus = trigger;
+      openModal("legalDocumentModal");
+      document.getElementById("closeLegalDocument").focus();
     }
 
     function setAccountMode(mode) {
+      const previousMode = accountMode;
       accountMode = mode;
+      document.querySelector("#account-view .modal-tabs").dataset.activeTab = mode;
       document.getElementById("tabLogin").setAttribute("aria-selected", String(mode === "login"));
       document.getElementById("tabSignup").setAttribute("aria-selected", String(mode === "signup"));
+      const modeTitle = document.getElementById("accountModeTitle");
+      if (mode !== previousMode) {
+        window.clearTimeout(accountTitleTransitionTimer);
+        modeTitle.classList.remove("mode-enter");
+        modeTitle.classList.add("mode-fade-out");
+        accountTitleTransitionTimer = window.setTimeout(() => {
+          modeTitle.textContent = t(mode === "login" ? "login" : "signUp");
+          modeTitle.classList.remove("mode-fade-out");
+          modeTitle.classList.add("mode-enter");
+        }, 180);
+      } else {
+        window.clearTimeout(accountTitleTransitionTimer);
+        modeTitle.classList.remove("mode-fade-out");
+        modeTitle.textContent = t(mode === "login" ? "login" : "signUp");
+      }
       document.getElementById("accountSubmit").textContent = t(mode === "login" ? "login" : "createAccount");
       document.getElementById("accountError").textContent = "";
       const confirmField = document.getElementById("accountPasswordConfirmField");
       const confirmPassword = document.getElementById("accountPasswordConfirm");
       confirmField.hidden = mode !== "signup";
       confirmPassword.required = mode === "signup";
+      const privacyAgreementField = document.getElementById("accountPrivacyAgreementField");
+      privacyAgreementField.hidden = false;
+      const legalAgreements = [
+        document.getElementById("accountPrivacyAgreement"),
+        document.getElementById("accountTermsAgreement"),
+        document.getElementById("accountEulaAgreement")
+      ];
+      legalAgreements.forEach(agreement => {
+        agreement.required = true;
+        if (mode !== previousMode) agreement.checked = false;
+      });
       document.getElementById("accountPassword").autocomplete = mode === "login" ? "current-password" : "new-password";
     }
 
     function openAccount() {
+      window.clearTimeout(atlasEnterTimer);
+      pageLayout.classList.remove("atlas-entering");
+      document.querySelector(".topbar").classList.remove("atlas-entering");
       document.getElementById("accountForm").hidden = Boolean(currentUser());
+      if (!currentUser()) {
+        ["accountPrivacyAgreement", "accountTermsAgreement", "accountEulaAgreement"]
+          .forEach(id => { document.getElementById(id).checked = false; });
+      }
       document.getElementById("signedInPanel").classList.toggle("visible", Boolean(currentUser()));
       document.getElementById("signedInText").textContent = currentUser()
         ? `You are signed in as ${currentUser()}.`
         : "";
-      openModal("accountModal");
+      if (!pageLayout.classList.contains("account-active")) {
+        accountReturnToAbout = mainContent.classList.contains("about-active");
+      }
+      mainContent.classList.remove("about-active");
+      document.getElementById("about-view").hidden = true;
+      pageLayout.classList.add("account-active");
+      mainContent.classList.add("account-active");
+      document.body.classList.add("auth-screen");
+      document.getElementById("account-view").hidden = false;
+      document.getElementById("accountEmail").focus();
+    }
+
+    let accountReturnToAbout = false;
+    let accountExitTimer = null;
+    let atlasEnterTimer = null;
+    function closeAccountScreen(restorePreviousView = true, animateAtlas = false) {
+      window.clearTimeout(accountExitTimer);
+      accountExitTimer = null;
+      window.clearTimeout(atlasEnterTimer);
+      document.getElementById("account-view").classList.remove("account-leaving");
+      pageLayout.classList.remove("account-active");
+      mainContent.classList.remove("account-active");
+      document.body.classList.remove("auth-screen");
+      document.getElementById("account-view").hidden = true;
+      const returnToAbout = restorePreviousView && accountReturnToAbout;
+      accountReturnToAbout = false;
+      mainContent.classList.toggle("about-active", returnToAbout);
+      document.getElementById("about-view").hidden = !returnToAbout;
+      if (!returnToAbout && window.location.hash === "#about") {
+        history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+      }
+      if (animateAtlas) {
+        const topbar = document.querySelector(".topbar");
+        pageLayout.classList.remove("atlas-entering");
+        topbar.classList.remove("atlas-entering");
+        void pageLayout.offsetWidth;
+        pageLayout.classList.add("atlas-entering");
+        topbar.classList.add("atlas-entering");
+        atlasEnterTimer = window.setTimeout(() => {
+          pageLayout.classList.remove("atlas-entering");
+          topbar.classList.remove("atlas-entering");
+          atlasEnterTimer = null;
+        }, 420);
+      }
+    }
+
+    function returnToAtlas() {
+      if (document.getElementById("account-view").classList.contains("account-leaving")) return;
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        closeAccountScreen();
+        return;
+      }
+      const accountView = document.getElementById("account-view");
+      accountView.classList.add("account-leaving");
+      accountExitTimer = window.setTimeout(() => closeAccountScreen(true, true), 280);
     }
 
     function openEditor(pageId = null, eventId = null) {
@@ -2498,6 +2924,7 @@
       document.getElementById("pageTimelineList").replaceChildren();
       document.getElementById("editorImages").value = "";
       document.getElementById("editorError").textContent = "";
+      document.getElementById("editorFactualityConfirmed").checked = false;
       const all = readJson(storageKeys.contributions, {});
       const page = pageId
         ? collectInformationPages(all).find(entry => entry.id === pageId)
@@ -2556,6 +2983,7 @@
       setAccountMode("signup");
       openAccount();
     });
+    document.getElementById("accountBackButton").addEventListener("click", returnToAtlas);
     editorButton.addEventListener("click", () => openEditor());
     editInfoButton.addEventListener("click", () => {
       if (selectedContribution) openEditor(selectedContribution.id);
@@ -2657,6 +3085,7 @@
         selectedContribution?.entry.title || getEventDetails(selectedEvent).name;
       document.getElementById("chapterTimelineList").replaceChildren();
       document.getElementById("timelineError").textContent = "";
+      document.getElementById("timelineFactualityConfirmed").checked = false;
       openModal("timelineModal");
     });
     function addTimelineEntry(container) {
@@ -2689,7 +3118,7 @@
     document.getElementById("tabLogin").addEventListener("click", () => setAccountMode("login"));
     document.getElementById("tabSignup").addEventListener("click", () => setAccountMode("signup"));
     document.getElementById("openEditorFromAccount").addEventListener("click", () => {
-      closeModal("accountModal");
+      closeAccountScreen();
       openEditor();
     });
     function logout() {
@@ -2701,7 +3130,7 @@
         sessionStorage.removeItem(storageKeys.session);
         updateAccountButtons();
         closeModal("logoutConfirmModal");
-        closeModal("accountModal");
+        closeAccountScreen();
       } catch (error) {
         console.error("Could not end the browser session.", error);
       }
@@ -2712,13 +3141,22 @@
     document.querySelectorAll("[data-close]").forEach(button => {
       button.addEventListener("click", () => closeModal(button.dataset.close));
     });
+    document.querySelectorAll("[data-legal-document]").forEach(link => {
+      link.addEventListener("click", event => {
+        event.preventDefault();
+        openLegalDocument(link.dataset.legalDocument, link);
+      });
+    });
     document.querySelectorAll(".modal-backdrop").forEach(backdrop => {
       backdrop.addEventListener("click", event => {
         if (event.target === backdrop) closeModal(backdrop.id);
       });
     });
     document.addEventListener("keydown", event => {
-      if (event.key === "Escape") document.querySelectorAll(".modal-backdrop.open").forEach(modal => closeModal(modal.id));
+      if (event.key === "Escape") {
+        const openModals = document.querySelectorAll(".modal-backdrop.open");
+        if (openModals.length) closeModal(openModals[openModals.length - 1].id);
+      }
     });
 
     const passwordHashIterations = 210000;
@@ -2772,6 +3210,15 @@
       const password = document.getElementById("accountPassword").value;
       const accountError = document.getElementById("accountError");
       const submitButton = document.getElementById("accountSubmit");
+      const missingAgreement = [
+        ["accountPrivacyAgreement", "Privacy Policy"],
+        ["accountTermsAgreement", "Terms of Service"],
+        ["accountEulaAgreement", "End-User License Agreement"]
+      ].find(([id]) => !document.getElementById(id).checked);
+      if (missingAgreement) {
+        accountError.textContent = `Agree to the ${missingAgreement[1]} before continuing.`;
+        return;
+      }
       if (accountMode === "signup" && password !== document.getElementById("accountPasswordConfirm").value) {
         accountError.textContent = "Passwords do not match.";
         return;
@@ -2834,7 +3281,7 @@
       }
       if (currentUser() !== email) return;
       updateAccountButtons();
-      closeModal("accountModal");
+      closeAccountScreen();
     });
 
     function clearImageEditorList() {
@@ -2932,6 +3379,10 @@
     document.getElementById("editorForm").addEventListener("submit", async event => {
       event.preventDefault();
       const error = document.getElementById("editorError");
+      if (!document.getElementById("editorFactualityConfirmed").checked) {
+        error.textContent = "Confirm that the information is legitimate and factual before saving.";
+        return;
+      }
       const title = document.getElementById("editorContributionTitle").value.trim();
       const region = regionSelect.value;
       const topic = topicSelect.value;
@@ -3092,6 +3543,10 @@
     document.getElementById("chapterTimelineForm").addEventListener("submit", async event => {
       event.preventDefault();
       const error = document.getElementById("timelineError");
+      if (!document.getElementById("timelineFactualityConfirmed").checked) {
+        error.textContent = "Confirm that the timeline information is legitimate and factual before saving.";
+        return;
+      }
       const entries = readTimelineEntries("chapterTimelineList");
       const hasIncompleteEntry = entries.some(entry => (entry.date || entry.description) && (!entry.date || !entry.description));
       const moments = entries.filter(entry => entry.date && entry.description);
