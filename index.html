@@ -533,12 +533,10 @@
       margin: 34px auto 0;
       padding: clamp(28px, 5vw, 58px);
       overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: 24px;
-      background:
-        radial-gradient(ellipse at 18% 50%, rgba(189, 84, 58, .09), transparent 46%),
-        linear-gradient(145deg, var(--white), var(--paper));
-      box-shadow: 0 24px 70px rgba(32, 33, 30, .09);
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
     }
     #about-view[hidden] { display: none; }
     .about-kicker {
@@ -556,12 +554,10 @@
     .team-gallery {
       position: relative;
       overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background:
-        radial-gradient(ellipse at 50% 50%, rgba(189, 84, 58, .08), transparent 65%),
-        var(--paper);
-      box-shadow: inset 0 0 48px rgba(32, 33, 30, .06);
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
     }
     .team-gallery::before,
     .team-gallery::after {
@@ -1200,9 +1196,8 @@
       .sidebar-contribution { padding: 6px; font-size: 9px; }
       .sidebar-contribution strong { font-size: 12px; }
       main { min-width: 0; padding: 0 12px 45px; }
-      .about-view { margin-top: 16px; padding: 24px 16px; border-radius: 18px; }
+      .about-view { margin-top: 16px; padding: 24px 16px; }
       .about-view h1 { margin-bottom: 18px; }
-      .team-gallery { border-radius: 14px; }
       .team-gallery::before, .team-gallery::after { height: 52px; }
       .hero { min-height: 260px; margin: 0 -12px; padding: 34px 12px; }
       .hero h1 { font-size: clamp(43px, 13vw, 70px); letter-spacing: .04em; }
