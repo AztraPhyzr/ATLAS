@@ -8,8 +8,9 @@
   <title>History Atlas — A living timeline</title>
   <script>
     try {
-      if (localStorage.getItem("history-atlas-theme-v1") === "dark") {
-        document.documentElement.dataset.theme = "dark";
+      const savedTheme = localStorage.getItem("history-atlas-theme-v1");
+      if (savedTheme === "light" || savedTheme === "dark") {
+        document.documentElement.dataset.theme = savedTheme;
       }
     } catch (error) {
       console.error("Could not read the saved color theme from this browser.", error);
@@ -67,6 +68,30 @@
       --inverse-muted: #5b5e56;
       --accent-foreground: #20211e;
     }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme]) {
+        color-scheme: dark;
+        --paper: #171916;
+        --paper-deep: #22251f;
+        --ink: #e9e7df;
+        --muted: #aaa99f;
+        --line: #41443d;
+        --accent: #e08768;
+        --accent-dark: #e89b7e;
+        --white: #252822;
+        --text-secondary: #d0cec5;
+        --surface-muted: #292c26;
+        --surface-soft: #30332d;
+        --index-color: #aaa89e;
+        --chat-bubble: #30332d;
+        --chat-user-bubble: #304035;
+        --error: #f09b86;
+        --inverse-background: #e9e7df;
+        --inverse-foreground: #20211e;
+        --inverse-muted: #5b5e56;
+        --accent-foreground: #20211e;
+      }
+    }
 
     * {
       box-sizing: border-box;
@@ -88,8 +113,17 @@
       transition: background-color .25s ease, color .25s ease, border-color .25s ease;
     }
     button, input, textarea { font: inherit; }
+    input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+    textarea, select {
+      border-color: color-mix(in srgb, var(--line) 76%, transparent);
+      background-color: color-mix(in srgb, var(--white) 34%, transparent);
+      -webkit-backdrop-filter: blur(14px) saturate(135%);
+      backdrop-filter: blur(14px) saturate(135%);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 62%, transparent), 0 3px 12px rgba(32,33,30,.05);
+      transition: background-color .25s ease, border-color .25s ease, box-shadow .25s ease;
+    }
     button { color: inherit; }
-    a { color: inherit; }
+    a { color: inherit; text-decoration: none; }
     button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
       outline: 3px solid #d7795e;
       outline-offset: 3px;
@@ -102,7 +136,8 @@
       justify-content: space-between;
       border-bottom: 1px solid var(--line);
       background: var(--paper);
-      position: relative;
+      position: sticky;
+      top: 0;
       z-index: 5;
     }
     .brand {
@@ -110,6 +145,7 @@
       align-items: center;
       text-decoration: none;
     }
+    .brand-group { display: flex; align-items: center; gap: 12px; }
     .brand-logo {
       display: block;
       width: auto;
@@ -138,17 +174,20 @@
       justify-content: space-between;
       gap: 8px;
       padding: 6px 10px;
-      border: 1px solid var(--line);
+      border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
       border-radius: 10px;
-      background: var(--white);
+      background: color-mix(in srgb, var(--white) 44%, transparent);
       color: var(--ink);
       cursor: pointer;
       font-size: 12px;
       text-align: left;
-      transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .16s ease;
+      -webkit-backdrop-filter: blur(12px) saturate(135%);
+      backdrop-filter: blur(12px) saturate(135%);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 58%, transparent), 0 4px 12px rgba(32,33,30,.07);
+      transition: background-color .25s ease, color .25s ease, border-color .25s ease, box-shadow .25s ease, transform .16s ease;
     }
     .language-trigger:active, .theme-toggle:active { transform: scale(.94); }
-    .language-trigger:hover, .language-trigger[aria-expanded="true"] { background: var(--paper-deep); }
+    .language-trigger:hover, .language-trigger[aria-expanded="true"] { background: color-mix(in srgb, var(--white) 68%, transparent); }
     .language-trigger-chevron { color: var(--muted); font-size: 10px; transition: transform .22s ease; }
     .language-trigger[aria-expanded="true"] .language-trigger-chevron { transform: rotate(180deg); }
     .language-short-label { display: none; }
@@ -163,10 +202,12 @@
       display: grid;
       gap: 2px;
       padding: 6px;
-      border: 1px solid var(--line);
+      border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
       border-radius: 12px;
-      background: var(--paper);
-      box-shadow: 0 12px 34px rgba(0,0,0,.2);
+      background: color-mix(in srgb, var(--paper) 72%, transparent);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      backdrop-filter: blur(18px) saturate(140%);
+      box-shadow: 0 12px 34px rgba(0,0,0,.2), inset 0 1px 0 color-mix(in srgb, var(--white) 38%, transparent);
       transform-origin: top right;
       animation: language-menu-enter .18s ease-out both;
     }
@@ -188,6 +229,86 @@
     }
     .language-option:hover, .language-option:focus-visible { background: var(--paper-deep); }
     .language-option[aria-selected="true"] { background: var(--surface-muted); color: var(--accent-dark); font-weight: 700; }
+    .language-menu .language-option {
+      border: 1px solid color-mix(in srgb, var(--white) 22%, transparent);
+      background: color-mix(in srgb, var(--white) 26%, transparent);
+      -webkit-backdrop-filter: blur(8px) saturate(135%);
+      backdrop-filter: blur(8px) saturate(135%);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 42%, transparent);
+      transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .language-menu .language-option:hover,
+    .language-menu .language-option:focus-visible {
+      border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+      background: color-mix(in srgb, var(--white) 48%, transparent);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 58%, transparent), 0 3px 10px rgba(32, 33, 30, .08);
+    }
+    .language-menu .language-option[aria-selected="true"] {
+      border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
+      background: color-mix(in srgb, var(--accent) 14%, color-mix(in srgb, var(--white) 38%, transparent));
+      color: var(--accent-dark);
+      font-weight: 700;
+    }
+    .site-select { position: relative; }
+    .site-select-native { display: none; }
+    .site-select-trigger {
+      display: flex;
+      width: 100%;
+      min-height: 40px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      border: 1px solid color-mix(in srgb, var(--line) 76%, transparent);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--white) 34%, transparent);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 12px;
+      text-align: left;
+      -webkit-backdrop-filter: blur(14px) saturate(135%);
+      backdrop-filter: blur(14px) saturate(135%);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 62%, transparent), 0 3px 12px rgba(32,33,30,.05);
+      transition: background-color .22s ease, border-color .22s ease, box-shadow .22s ease;
+    }
+    .site-select-trigger::after {
+      width: 7px;
+      height: 7px;
+      flex: 0 0 auto;
+      border-right: 1.5px solid var(--muted);
+      border-bottom: 1.5px solid var(--muted);
+      content: "";
+      transform: translateY(-2px) rotate(45deg);
+      transition: transform .2s ease;
+    }
+    .site-select-trigger:hover, .site-select-trigger[aria-expanded="true"] {
+      border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+      background: color-mix(in srgb, var(--white) 48%, transparent);
+    }
+    .site-select-trigger[aria-expanded="true"]::after { transform: translateY(2px) rotate(225deg); }
+    .site-select-trigger:focus-visible { outline: 3px solid #d7795e; outline-offset: 3px; }
+    .site-select-menu {
+      position: absolute;
+      z-index: 25;
+      top: calc(100% + 6px);
+      right: auto;
+      left: 0;
+      display: grid;
+      width: 100%;
+      min-width: 100%;
+      max-height: min(45vh, 280px);
+      gap: 2px;
+      padding: 6px;
+      overflow-y: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+      box-shadow: 0 12px 34px rgba(0,0,0,.2);
+      transform-origin: top left;
+      animation: language-menu-enter .18s ease-out both;
+    }
+    .site-select-menu[hidden] { display: none; }
+    .site-select-option { border-radius: 8px; }
     .theme-toggle {
       min-height: 38px;
       display: inline-flex;
@@ -195,17 +316,20 @@
       justify-content: center;
       gap: 6px;
       padding: 6px 10px;
-      border: 1px solid var(--line);
+      border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
       border-radius: 10px;
-      background: var(--white);
+      background: color-mix(in srgb, var(--white) 44%, transparent);
       color: var(--ink);
       cursor: pointer;
       font-size: 11px;
       font-weight: 600;
       white-space: nowrap;
-      transition: background-color .25s ease, color .25s ease, border-color .25s ease, transform .16s ease;
+      -webkit-backdrop-filter: blur(12px) saturate(135%);
+      backdrop-filter: blur(12px) saturate(135%);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 58%, transparent), 0 4px 12px rgba(32,33,30,.07);
+      transition: background-color .25s ease, color .25s ease, border-color .25s ease, box-shadow .25s ease, transform .16s ease;
     }
-    .theme-toggle:hover { background: var(--paper-deep); }
+    .theme-toggle:hover { background: color-mix(in srgb, var(--white) 68%, transparent); }
     .theme-toggle-icon { display: inline-block; font-size: 15px; line-height: 1; transition: transform .35s cubic-bezier(.2,.8,.2,1); }
     .theme-toggle[aria-pressed="true"] .theme-toggle-icon { transform: rotate(180deg) scale(1.12); }
     .top-link, .account-button {
@@ -217,66 +341,205 @@
       font-size: 13px;
       font-weight: 600;
     }
+    .account-button {
+      border: 1px solid color-mix(in srgb, var(--white) 48%, var(--line));
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--white) 48%, transparent);
+      color: var(--ink);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 52%, transparent), 0 4px 14px rgba(32, 33, 30, .08);
+      transition: background-color .24s ease, color .24s ease, border-color .24s ease, box-shadow .24s ease, transform .2s ease;
+    }
+    .account-button:hover {
+      border-color: color-mix(in srgb, var(--line) 75%, transparent);
+      background: color-mix(in srgb, var(--white) 72%, transparent);
+      transform: translateY(-1px);
+    }
     .top-link[aria-current="page"] { color: var(--accent-dark); }
     .account-button.primary {
-      background: var(--inverse-background);
-      color: var(--inverse-foreground);
-      border-radius: 10px;
+      border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+      background: color-mix(in srgb, color-mix(in srgb, var(--accent) 32%, var(--white)) 62%, transparent);
+      color: var(--ink);
       padding: 10px 16px;
     }
-    .account-button.primary:hover { background: var(--accent-dark); color: var(--accent-foreground); }
+    .account-button.primary:hover {
+      border-color: color-mix(in srgb, var(--accent) 62%, transparent);
+      background: color-mix(in srgb, color-mix(in srgb, var(--accent) 42%, var(--white)) 72%, transparent);
+      color: var(--ink);
+    }
     .sidebar-toggle {
       display: grid;
       width: 38px;
       height: 38px;
       place-content: center;
       gap: 5px;
-      border: 1px solid var(--line);
-      background: transparent;
+      border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+      background: color-mix(in srgb, var(--white) 38%, transparent);
       padding: 0;
       cursor: pointer;
       color: var(--accent-dark);
       border-radius: 10px;
+      -webkit-backdrop-filter: blur(12px) saturate(135%);
+      backdrop-filter: blur(12px) saturate(135%);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 52%, transparent), 0 4px 12px rgba(32,33,30,.08);
+      transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease;
     }
-    .sidebar-toggle:hover { background: var(--white); }
+    .sidebar-toggle:hover, .sidebar-toggle[aria-expanded="true"] {
+      border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+      background: color-mix(in srgb, var(--white) 66%, transparent);
+    }
+    .sidebar-toggle:active { transform: scale(.94); }
     .sidebar-toggle span {
       display: block;
       width: 19px;
       height: 2px;
       background: currentColor;
+      transition: transform .24s cubic-bezier(.2,.8,.2,1), opacity .18s ease;
     }
+    .sidebar-toggle[aria-expanded="true"] span:first-child { transform: translateY(7px) rotate(45deg); }
+    .sidebar-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+    .sidebar-toggle[aria-expanded="true"] span:last-child { transform: translateY(-7px) rotate(-45deg); }
 
     .page-layout {
       display: grid;
-      grid-template-columns: 250px minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1fr);
       max-width: 1600px;
       margin: 0 auto;
       min-height: calc(100vh - 68px);
-      transition: grid-template-columns .28s ease;
     }
     .sidebar {
-      min-width: 0;
-      overflow: hidden;
-      border-right: 1px solid var(--line);
+      position: fixed;
+      z-index: 4;
+      top: 136px;
+      left: max(12px, calc((100vw - 1600px) / 2 + 12px));
+      width: fit-content;
+      min-width: 200px;
+      max-width: min(320px, calc(100vw - 24px));
+      max-height: calc(100vh - 152px);
+      overflow-x: hidden;
+      overflow-y: auto;
+      border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+      border-radius: 18px;
+      background: color-mix(in srgb, var(--paper) 68%, transparent);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 16px 42px rgba(32, 33, 30, .16);
       padding: 36px 22px 28px 5.2vw;
-      transition: padding .28s ease, opacity .2s ease, border-color .28s ease, border-width .28s ease, visibility .28s linear;
-    }
-    .page-layout.sidebar-collapsed {
-      grid-template-columns: 0fr minmax(0, 1fr);
+      opacity: 1;
+      transform: translateX(0);
+      transition: opacity .32s ease, transform .48s cubic-bezier(.16,1,.3,1), visibility 0s linear;
     }
     .page-layout.sidebar-collapsed .sidebar {
-      height: 0;
-      min-height: 0;
-      padding-right: 0;
-      padding-top: 0;
-      padding-bottom: 0;
-      padding-left: 0;
-      border-right-width: 0;
-      border-color: transparent;
       opacity: 0;
       pointer-events: none;
       visibility: hidden;
+      transform: translateX(-100%);
+      transition-delay: 0s, 0s, .48s;
     }
+    .sidebar-search-popup {
+      position: fixed;
+      z-index: 6;
+      top: 80px;
+      left: max(12px, calc((100vw - 1600px) / 2 + 12px));
+      display: flex;
+      width: 48px;
+      height: 46px;
+      align-items: center;
+      gap: 4px;
+      overflow: hidden;
+      padding: 4px;
+      border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+      border-radius: 13px;
+      background: color-mix(in srgb, var(--paper) 88%, transparent);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 24px rgba(32, 33, 30, .16);
+      opacity: 1;
+      transform: translateX(0);
+      transition: width .32s cubic-bezier(.2,.8,.2,1), opacity .24s ease, transform .32s cubic-bezier(.2,.8,.2,1), visibility 0s linear;
+    }
+    .sidebar-search-popup.is-open { width: min(320px, calc(100vw - 24px)); }
+    .sidebar-search-popup:not(.is-open) {
+      border-color: transparent;
+      background: transparent;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      box-shadow: none;
+    }
+    .page-layout.sidebar-collapsed .sidebar-search-popup {
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+      transform: translateX(-10px);
+      transition-delay: 0s, 0s, 0s, .32s;
+    }
+    .sidebar-search-toggle {
+      display: grid;
+      flex: 0 0 36px;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border: 0;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--white) 42%, transparent);
+      color: var(--accent-dark);
+      cursor: pointer;
+      -webkit-backdrop-filter: blur(12px) saturate(135%);
+      backdrop-filter: blur(12px) saturate(135%);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 54%, transparent), 0 3px 10px rgba(32,33,30,.08);
+      transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+    }
+    .sidebar-search-toggle:hover, .sidebar-search-toggle[aria-expanded="true"] {
+      border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+      background: color-mix(in srgb, var(--white) 66%, transparent);
+      transform: translateY(-1px);
+    }
+    .sidebar-search-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+    .sidebar-search-form {
+      display: flex;
+      min-width: 0;
+      flex: 1;
+      align-items: center;
+      gap: 6px;
+    }
+    .sidebar-search-form[hidden] { display: none; }
+    .sidebar-search-form input {
+      width: 100%;
+      min-width: 0;
+      padding: 8px 9px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      outline: 0;
+      background: color-mix(in srgb, var(--white) 74%, transparent);
+      color: var(--ink);
+      font-size: 11px;
+      opacity: 0;
+      transition: opacity .18s ease .08s;
+    }
+    .sidebar-search-popup.is-open .sidebar-search-form input { opacity: 1; }
+    .sidebar-search-form input:focus {
+      border-color: color-mix(in srgb, var(--accent) 56%, var(--line));
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 14%, transparent);
+    }
+    .sidebar-search-close {
+      flex: 0 0 auto;
+      width: 28px;
+      height: 28px;
+      border: 1px solid color-mix(in srgb, var(--line) 54%, transparent);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--white) 30%, transparent);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 48%, transparent);
+      transition: background-color .2s ease, border-color .2s ease, color .2s ease;
+    }
+    .sidebar-search-close:hover { border-color: color-mix(in srgb, var(--accent) 32%, var(--line)); background: color-mix(in srgb, var(--white) 58%, transparent); color: var(--ink); }
+    .sidebar-search-empty { margin: 0; padding: 10px; color: var(--muted); font-size: 11px; }
     .sidebar-heading, .eyebrow {
       margin: 0;
       color: var(--muted);
@@ -294,20 +557,38 @@
       align-items: baseline;
       width: 100%;
       padding: 9px 10px;
-      border: 0;
+      border: 1px solid color-mix(in srgb, var(--white) 34%, transparent);
       border-radius: 10px;
-      background: transparent;
+      background: color-mix(in srgb, var(--white) 22%, transparent);
+      -webkit-backdrop-filter: blur(7px);
+      backdrop-filter: blur(7px);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 36%, transparent), 0 2px 8px rgba(32, 33, 30, .06);
       text-align: left;
       cursor: pointer;
       color: var(--text-secondary);
       font-size: 12px;
-      transition: background .18s, color .18s;
+      transition: background-color .24s ease, color .24s ease, border-color .24s ease, box-shadow .24s ease, transform .24s cubic-bezier(.2,.8,.2,1);
     }
-    .event-nav:hover { background: var(--surface-soft); color: var(--ink); }
+    .event-nav:hover {
+      background: color-mix(in srgb, var(--white) 52%, transparent);
+      border-color: color-mix(in srgb, var(--line) 75%, transparent);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 52%, transparent), 0 5px 12px rgba(32, 33, 30, .1);
+      color: var(--ink);
+      transform: translateY(-1px);
+    }
     .event-nav[aria-current="true"] {
-      background: var(--white);
+      background: color-mix(in srgb, var(--white) 72%, transparent);
+      border-color: color-mix(in srgb, var(--accent) 42%, transparent);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 58%, transparent), 0 4px 12px rgba(32, 33, 30, .09);
       color: var(--accent-dark);
       font-weight: 700;
+    }
+    .event-nav.chapter-selection-entering {
+      animation: chapter-button-enter .3s cubic-bezier(.2,.8,.2,1) both;
+    }
+    @keyframes chapter-button-enter {
+      from { opacity: .55; transform: translateX(-8px); }
+      to { opacity: 1; transform: translateX(0); }
     }
     .event-nav.contribution-nav {
       grid-template-columns: 30px 1fr;
@@ -315,7 +596,6 @@
       color: var(--text-secondary);
       font-size: 12px;
     }
-    .event-nav.contribution-nav:hover { background: var(--surface-soft); color: var(--ink); }
     .event-nav span:last-child {
       min-width: 0;
       white-space: normal;
@@ -350,17 +630,25 @@
     .sidebar-update {
       width: 100%;
       padding: 9px;
-      border: 0;
+      border: 1px solid color-mix(in srgb, var(--line) 54%, transparent);
       border-radius: 10px;
-      background: var(--white);
+      background: color-mix(in srgb, var(--white) 34%, transparent);
       color: var(--text-secondary);
       cursor: pointer;
       font-size: 10px;
       line-height: 1.5;
       text-align: left;
       overflow-wrap: anywhere;
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 48%, transparent), 0 3px 9px rgba(32,33,30,.05);
+      transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease;
     }
-    .sidebar-update:hover { background: var(--surface-soft); }
+    .sidebar-update:hover {
+      border-color: color-mix(in srgb, var(--accent) 32%, var(--line));
+      background: color-mix(in srgb, var(--white) 58%, transparent);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 60%, transparent), 0 5px 12px rgba(32,33,30,.09);
+    }
     .sidebar-update strong {
       display: block;
       margin-top: 3px;
@@ -405,18 +693,31 @@
     .page-layout.account-active { grid-template-columns: minmax(0, 1fr); }
     .page-layout.account-active .sidebar { display: none; }
     .page-layout.account-active main { min-height: calc(100vh - 68px); padding: 0; }
+    main.home-active > :not(#home-view) { display: none; }
+    #home-view { display: none; }
+    main.home-active > #home-view { display: flex; }
+    body.home-screen #sidebarToggle { display: none; }
     .page-layout.atlas-entering,
     .topbar.atlas-entering { animation: atlas-screen-enter .42s ease-out both; }
     @keyframes atlas-screen-enter {
       from { opacity: 0; transform: translateY(7px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    @keyframes home-search-panel-enter {
+      from { opacity: 0; transform: translateY(-5px) scaleY(.985); }
+      to { opacity: 1; transform: translateY(0) scaleY(1); }
+    }
+    @keyframes home-search-item-enter {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
     body.auth-screen #loginButton, body.auth-screen #signupButton,
-    body.auth-screen #aboutLink, body.auth-screen #exploreLink,
+    body.auth-screen #aboutLink,
     body.auth-screen #sidebarToggle, body.auth-screen #chatLauncher { display: none; }
-    body.auth-screen .topbar { justify-content: space-between; }
-    body.auth-screen .brand { display: none; }
-    body.auth-screen #accountBackButton { display: inline-flex; }
+    body.auth-screen .topbar { justify-content: flex-start; }
+    body.auth-screen .brand-group { display: none; }
+    body.auth-screen #accountBackButton { display: inline-flex; margin-right: auto; }
+    body.auth-screen .top-actions { margin-left: auto; }
     .account-view {
       position: relative;
       display: grid;
@@ -429,9 +730,16 @@
       padding: 0 clamp(28px, 7vw, 110px);
       overflow: hidden;
     }
+    .account-view.account-entering {
+      animation: account-screen-enter .36s ease-out both;
+    }
     .account-view.account-leaving {
       pointer-events: none;
       animation: account-screen-exit .28s ease-in both;
+    }
+    @keyframes account-screen-enter {
+      from { opacity: 0; transform: translateY(10px); filter: blur(2px); }
+      to { opacity: 1; transform: translateY(0); filter: blur(0); }
     }
     @keyframes account-screen-exit {
       to { opacity: 0; transform: translateY(10px); filter: blur(2px); }
@@ -479,7 +787,13 @@
       width: min(100%, 510px);
       align-self: center;
       justify-self: end;
-      padding: 34px 0;
+      padding: 28px;
+      border: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+      border-radius: 20px;
+      background: color-mix(in srgb, var(--white) 42%, transparent);
+      box-shadow: 0 18px 48px rgba(32, 33, 30, .1);
+      -webkit-backdrop-filter: blur(18px);
+      backdrop-filter: blur(18px);
     }
     .account-back {
       display: none;
@@ -528,7 +842,165 @@
     .account-view .legal-summary p { margin: 0; }
     body.auth-screen .chat-panel { display: none; }
     main.account-active > #account-view { display: grid; }
+    main.account-active > #home-view { display: none; }
+    .home-view {
+      display: flex;
+      min-height: calc(100vh - 138px);
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: clamp(42px, 8vh, 86px) 0;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .home-intro { max-width: 760px; margin: 0 auto 30px; text-align: center; }
+    .home-intro .eyebrow { color: var(--accent-dark); }
+    .home-title {
+      margin: 10px 0 12px;
+      font: 600 clamp(42px, 7vw, 82px)/1.05 var(--serif);
+      letter-spacing: -.045em;
+    }
+    .home-subtitle { max-width: 660px; margin: 0 auto; color: var(--text-secondary); font: 500 17px/1.7 var(--serif); }
+    .home-search-wrap { position: relative; z-index: 2; width: min(100%, 660px); margin: 0 auto; }
+    .home-search {
+      display: flex;
+      min-height: 60px;
+      align-items: center;
+      gap: 12px;
+      padding: 7px 8px 7px 18px;
+      border: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--white) 14%, transparent);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
+      backdrop-filter: blur(20px) saturate(140%);
+      box-shadow: none;
+      transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+    }
+    .home-search:focus-within {
+      border-color: color-mix(in srgb, var(--accent) 58%, var(--line));
+      background: color-mix(in srgb, var(--white) 22%, transparent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+    .home-search-icon { color: var(--accent-dark); font-size: 23px; line-height: 1; }
+    #homeSearchForm input[type="search"] {
+      min-width: 0;
+      flex: 1;
+      border: 0;
+      outline: 0;
+      border-color: transparent;
+      background-color: transparent;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      box-shadow: none;
+      color: var(--ink);
+      font-size: 14px;
+    }
+    #homeSearchForm input[type="search"]:focus-visible { outline: 0; }
+    .home-search-submit {
+      min-height: 42px;
+      padding: 8px 16px;
+      border: 1px solid color-mix(in srgb, var(--accent) 42%, var(--line));
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--accent) 14%, color-mix(in srgb, var(--white) 44%, transparent));
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+      -webkit-backdrop-filter: blur(12px) saturate(135%);
+      backdrop-filter: blur(12px) saturate(135%);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 58%, transparent), 0 4px 12px rgba(32, 33, 30, .08);
+      transition: background-color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+    }
+    .home-search-submit:hover,
+    .home-search-submit:focus-visible {
+      border-color: color-mix(in srgb, var(--accent) 58%, var(--line));
+      background: color-mix(in srgb, var(--accent) 20%, color-mix(in srgb, var(--white) 54%, transparent));
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 68%, transparent), 0 6px 16px rgba(32, 33, 30, .12);
+      transform: translateY(-1px);
+    }
+    .home-search-results {
+      display: grid;
+      max-height: min(300px, 42vh);
+      gap: 4px;
+      margin-top: 8px;
+      padding: 7px;
+      overflow-y: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--paper);
+      box-shadow: 0 14px 38px rgba(32, 33, 30, .14);
+    }
+    .home-search-results[hidden] { display: none; }
+    .home-search-results:not([hidden]) {
+      transform-origin: top;
+      animation: home-search-panel-enter .2s ease-out both;
+    }
+    .home-search-result {
+      display: flex;
+      width: 100%;
+      min-width: 0;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      text-align: left;
+      transition: background-color .18s ease, transform .18s ease;
+      animation: home-search-item-enter .18s ease-out both;
+    }
+    .home-search-result:nth-child(2) { animation-delay: 20ms; }
+    .home-search-result:nth-child(3) { animation-delay: 35ms; }
+    .home-search-result:nth-child(4) { animation-delay: 50ms; }
+    .home-search-result:nth-child(5) { animation-delay: 65ms; }
+    .home-search-result:hover { background: var(--surface-soft); transform: translateX(2px); }
+    .home-search-result span { min-width: 0; }
+    .home-search-result strong, .home-search-result small { display: block; }
+    .home-search-result strong { font: 600 14px var(--serif); }
+    .home-search-result small { margin-top: 2px; color: var(--muted); font: 9px var(--mono); }
+    .home-search-result .event-index { flex: 0 0 auto; }
+    .home-search-empty { margin: 0; padding: 10px 12px; color: var(--muted); font-size: 12px; animation: home-search-item-enter .18s ease-out both; }
+    .home-recommendations { width: min(100%, 900px); margin: 42px auto 0; }
+    .home-recommendations-head { margin-bottom: 14px; text-align: center; }
+    .home-recommendations-head .eyebrow { color: var(--accent-dark); }
+    .home-recommendations-head h2 { margin: 4px 0 0; font: 600 clamp(23px, 3vw, 30px) var(--serif); }
+    .home-recommendation-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .home-recommendation {
+      position: relative;
+      display: grid;
+      min-height: 190px;
+      align-content: start;
+      gap: 8px;
+      padding: 20px;
+      overflow: hidden;
+      border: 1px solid color-mix(in srgb, var(--line) 76%, transparent);
+      border-radius: 15px;
+      background: color-mix(in srgb, var(--white) 46%, transparent);
+      color: var(--ink);
+      cursor: pointer;
+      text-align: left;
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      backdrop-filter: blur(16px) saturate(140%);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 58%, transparent), 0 8px 24px rgba(32, 33, 30, .08);
+      transition: border-color .22s ease, box-shadow .22s ease, transform .22s ease, background-color .22s ease;
+    }
+    .home-recommendation:hover,
+    .home-recommendation:focus-visible {
+      border-color: color-mix(in srgb, var(--accent) 48%, var(--line));
+      background: color-mix(in srgb, var(--white) 62%, transparent);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 68%, transparent), 0 12px 30px rgba(32, 33, 30, .12);
+      transform: translateY(-3px);
+    }
+    .home-recommendation .eyebrow { color: var(--accent-dark); }
+    .home-recommendation-title { font: 600 23px/1.2 var(--serif); }
+    .home-recommendation-dates { color: var(--muted); font: 10px var(--mono); }
+    .home-recommendation-summary { display: -webkit-box; overflow: hidden; color: var(--text-secondary); font-size: 12px; line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .home-recommendation-action { margin-top: 2px; color: var(--accent-dark); font-size: 11px; font-weight: 700; }
     .about-view {
+      position: relative;
+      isolation: isolate;
       max-width: 970px;
       margin: 34px auto 0;
       padding: clamp(28px, 5vw, 58px);
@@ -537,6 +1009,16 @@
       border-radius: 0;
       background: transparent;
       box-shadow: none;
+    }
+    .about-view::before {
+      position: absolute;
+      z-index: -1;
+      inset: 0;
+      background: center / min(100%, 780px) auto no-repeat url("history-atlas-logo.png");
+      content: "";
+      opacity: .18;
+      filter: blur(5px);
+      pointer-events: none;
     }
     #about-view[hidden] { display: none; }
     .about-kicker {
@@ -558,24 +1040,6 @@
       border-radius: 0;
       background: transparent;
       box-shadow: none;
-    }
-    .team-gallery::before,
-    .team-gallery::after {
-      position: absolute;
-      z-index: 3;
-      right: 0;
-      left: 0;
-      height: 72px;
-      content: "";
-      pointer-events: none;
-    }
-    .team-gallery::before {
-      top: 0;
-      background: linear-gradient(to bottom, var(--paper) 0%, color-mix(in srgb, var(--paper) 72%, transparent) 25%, transparent 100%);
-    }
-    .team-gallery::after {
-      bottom: 0;
-      background: linear-gradient(to top, var(--paper) 0%, color-mix(in srgb, var(--paper) 72%, transparent) 25%, transparent 100%);
     }
     .team-members {
       display: grid;
@@ -608,15 +1072,18 @@
       width: clamp(100px, 14vw, 150px);
       aspect-ratio: 1;
       flex: 0 0 auto;
-      border: 6px solid var(--white);
+      border: 2px solid var(--white);
       border-radius: 50%;
       object-fit: cover;
       object-position: center 28%;
-      opacity: .7;
+      opacity: 1;
       transform: translateY(-50%) scale(.72);
+      filter: blur(0);
       box-shadow: 0 12px 36px rgba(32, 33, 30, .14);
-      transition: opacity .4s ease, transform .5s cubic-bezier(.2,.8,.2,1), box-shadow .5s ease;
+      transition: transform .5s cubic-bezier(.2,.8,0,1), filter .4s ease, box-shadow .5s ease;
     }
+    .team-member.is-adjacent img { filter: blur(2px); }
+    .team-member.is-far img { filter: blur(4px); }
     .team-member:nth-child(even) { --team-image-left: 30%; }
     .team-member h2 {
       position: absolute;
@@ -635,11 +1102,10 @@
     }
     .team-member h2 span {
       display: inline-block;
-      opacity: 0;
-      transform: translateX(-.08em);
+      opacity: 1;
+      transform: none;
     }
     .team-member.is-active img {
-      opacity: 1;
       transform: translateY(-50%) scale(1.5);
       box-shadow:
         0 0 18px 7px color-mix(in srgb, var(--accent) 42%, transparent),
@@ -648,13 +1114,6 @@
     }
     .team-member.is-active { position: relative; z-index: 1; }
     .team-member.is-active h2 { opacity: 1; }
-    .team-member.is-active h2 span {
-      animation: team-typewriter-letter .12s ease-out forwards;
-      animation-delay: calc(var(--letter-index) * .035s);
-    }
-    @keyframes team-typewriter-letter {
-      to { opacity: 1; transform: translateX(0); }
-    }
     @media (max-width: 620px) {
       .team-members {
         --team-card-height: 130px;
@@ -664,7 +1123,7 @@
       }
       .team-member { --team-image-left: 10%; }
       .team-member:nth-child(even) { --team-image-left: 22%; }
-      .team-member img { width: clamp(88px, 25vw, 105px); border-width: 4px; }
+      .team-member img { width: clamp(88px, 25vw, 105px); }
       .team-member.is-active img { transform: translateY(-50%) scale(1.3); }
       .team-member h2,
       .team-member:nth-child(even) h2 {
@@ -721,8 +1180,6 @@
       bottom: 14px;
       color: rgba(255,255,255,.8);
       font: 9px var(--mono);
-      text-decoration: underline;
-      text-underline-offset: 3px;
     }
     .intro-row {
       display: flex;
@@ -735,6 +1192,11 @@
     .intro-row p { margin: 0; color: var(--muted); font-size: 12px; }
     .intro-row .eyebrow { color: var(--accent-dark); }
     .event-content { max-width: 970px; margin: 0 auto; }
+    .event-content.chapter-entering { animation: chapter-enter .38s cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes chapter-enter {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
     .event-heading {
       padding: 41px 0 20px;
       display: flex;
@@ -759,6 +1221,63 @@
       margin: 0 0 30px;
       color: var(--text-secondary);
       font: 500 17px/1.75 var(--serif);
+    }
+    .wikipedia-summary { margin: 30px 0; }
+    .wikipedia-summary[hidden] { display: none; }
+    .wikipedia-summary::after { content: ""; display: block; clear: both; }
+    .wikipedia-summary h3 { margin: 0 0 12px; font: 600 24px var(--serif); }
+    .wikipedia-summary-status { margin: 0 0 12px; color: var(--muted); font-size: 12px; }
+    .wikipedia-portrait {
+      float: right;
+      width: min(220px, 30%);
+      margin: 0 0 16px 24px;
+      padding: 6px;
+      border: 1px solid color-mix(in srgb, var(--white) 48%, var(--line));
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--white) 38%, transparent);
+      box-shadow: 0 10px 28px rgba(32, 33, 30, .12);
+    }
+    .wikipedia-portrait[hidden] { display: none; }
+    .wikipedia-portrait img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      border-radius: 9px;
+      object-fit: cover;
+    }
+    .wikipedia-summary-body {
+      color: var(--text-secondary);
+      font: 15px/1.75 var(--serif);
+      overflow-wrap: anywhere;
+    }
+    .wikipedia-summary-body p { margin: 0; }
+    .wikipedia-summary-body a, .wikipedia-related a {
+      color: var(--accent-dark);
+    }
+    .wikipedia-related { margin-top: 20px; }
+    .wikipedia-related[hidden] { display: none; }
+    .wikipedia-related h3 { margin: 0 0 8px; font: 600 18px var(--serif); }
+    .wikipedia-related ul { display: flex; flex-wrap: wrap; gap: 7px; margin: 0; padding: 0; list-style: none; }
+    .wikipedia-related li {
+      padding: 5px 9px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--surface-muted);
+      font-size: 11px;
+    }
+    .wikipedia-related.is-glass li {
+      border: 1px solid transparent;
+      background: color-mix(in srgb, var(--white) 22%, transparent);
+      -webkit-backdrop-filter: blur(7px) saturate(135%);
+      backdrop-filter: blur(7px) saturate(135%);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 36%, transparent), 0 2px 8px rgba(32, 33, 30, .06);
+      transition: background-color .24s ease, border-color .24s ease, box-shadow .24s ease, transform .24s ease;
+    }
+    .wikipedia-related.is-glass li:hover {
+      border-color: color-mix(in srgb, var(--accent) 58%, transparent);
+      background: color-mix(in srgb, var(--white) 52%, transparent);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 52%, transparent), 0 5px 12px rgba(32, 33, 30, .1);
+      transform: translateY(-1px);
     }
     .facts {
       display: grid;
@@ -801,6 +1320,7 @@
     }
     .timeline-item time { color: var(--accent-dark); font: 10px var(--mono); }
     .timeline-item p { margin: 5px 0 0; color: var(--text-secondary); font-size: 11px; line-height: 1.6; }
+    .wikipedia-timeline-status { grid-column: 1 / -1; margin: 0; color: var(--muted); font-size: 12px; }
     .gallery {
       display: grid;
       grid-template-columns: 1.2fr 1fr;
@@ -811,8 +1331,12 @@
       min-width: 0;
       margin: 0;
       overflow: hidden;
+      border: 1px solid color-mix(in srgb, var(--white) 48%, var(--line));
       border-radius: 10px;
-      background: var(--paper-deep);
+      background: color-mix(in srgb, var(--white) 38%, transparent);
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      backdrop-filter: blur(16px) saturate(140%);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 45%, transparent), 0 12px 30px rgba(32, 33, 30, .1);
       transition: transform .25s ease;
     }
     .gallery-image-frame {
@@ -822,6 +1346,18 @@
       place-items: center;
       overflow: hidden;
       background: transparent;
+    }
+    .gallery-image-frame::after {
+      content: "";
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      border: 1px solid color-mix(in srgb, var(--white) 28%, transparent);
+      background: linear-gradient(135deg, rgba(255, 255, 255, .16), transparent 46%, rgba(255, 255, 255, .04));
+      -webkit-backdrop-filter: blur(1px) saturate(120%);
+      backdrop-filter: blur(1px) saturate(120%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .24);
+      pointer-events: none;
     }
     .gallery-image {
       width: 100%;
@@ -836,13 +1372,23 @@
       display: grid;
       place-items: center;
     }
-    .gallery-card figcaption { padding: 9px 11px 11px; border-radius: 0 0 10px 10px; color: var(--muted); font-size: 10px; }
+    .gallery-card figcaption {
+      padding: 9px 11px 11px;
+      border-top: 1px solid color-mix(in srgb, var(--white) 28%, var(--line));
+      border-radius: 0 0 10px 10px;
+      background: color-mix(in srgb, var(--white) 36%, transparent);
+      -webkit-backdrop-filter: blur(14px) saturate(135%);
+      backdrop-filter: blur(14px) saturate(135%);
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .gallery-card figcaption a { text-decoration: none; }
     .source-line {
       margin: 19px 0 0;
       color: var(--muted);
       font-size: 10px;
     }
-    .source-line a { color: var(--accent-dark); text-underline-offset: 2px; }
+    .source-line a { color: var(--accent-dark); }
     .user-notes { display: grid; gap: 10px; }
     .user-note {
       padding: 13px 15px;
@@ -914,16 +1460,24 @@
       gap: 9px;
       align-items: center;
       padding: 13px 17px;
-      border: 0;
+      border: 1px solid color-mix(in srgb, var(--white) 48%, var(--line));
       border-radius: 30px;
-      background: var(--inverse-background);
-      color: var(--inverse-foreground);
-      box-shadow: 0 8px 28px rgba(30,30,26,.2);
+      background: color-mix(in srgb, var(--white) 48%, transparent);
+      color: var(--ink);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 52%, transparent), 0 8px 28px rgba(30,30,26,.16);
       cursor: pointer;
       font-size: 12px;
       font-weight: 600;
+      transition: background-color .24s ease, color .24s ease, border-color .24s ease, box-shadow .24s ease, transform .2s ease;
     }
-    .chat-launcher:hover { background: var(--accent-dark); color: var(--accent-foreground); }
+    .chat-launcher:hover {
+      border-color: color-mix(in srgb, var(--line) 75%, transparent);
+      background: color-mix(in srgb, var(--white) 72%, transparent);
+      color: var(--ink);
+      transform: translateY(-2px);
+    }
     .chat-dot { width: 7px; height: 7px; border-radius: 50%; background: #89c9a0; }
     .chat-panel {
       position: fixed;
@@ -935,10 +1489,12 @@
       display: grid;
       grid-template-rows: auto 1fr auto auto;
       overflow: hidden;
-      border: 1px solid var(--line);
+      border: 1px solid color-mix(in srgb, var(--white) 38%, var(--line));
       border-radius: 14px;
-      background: var(--white);
-      box-shadow: 0 14px 50px rgba(30,30,26,.18);
+      background: color-mix(in srgb, var(--paper) 46%, transparent);
+      -webkit-backdrop-filter: blur(22px) saturate(145%);
+      backdrop-filter: blur(22px) saturate(145%);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 32%, transparent), 0 18px 54px rgba(30,30,26,.16);
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
@@ -952,7 +1508,7 @@
       pointer-events: auto;
       transform: translateY(0) scale(1);
     }
-    .chat-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 15px 11px 17px; background: var(--inverse-background); color: var(--inverse-foreground); }
+    .chat-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 15px 11px 17px; background: color-mix(in srgb, var(--inverse-background) 52%, transparent); color: var(--inverse-foreground); }
     .chat-header strong { display: block; font: 500 17px var(--serif); }
     .chat-header span { color: var(--inverse-muted); font-size: 10px; }
     .chat-mascot { width: 58px; height: 58px; flex: 0 0 auto; border: 2px solid rgba(255,255,255,.55); border-radius: 50%; background: #f0ede6; object-fit: cover; object-position: center 18%; }
@@ -963,15 +1519,22 @@
     }
     .chat-messages { display: flex; flex-direction: column; gap: 9px; overflow-y: auto; padding: 14px; }
     .chat-message {
+      align-self: flex-start;
       max-width: 88%;
-      padding: 9px 11px;
-      background: var(--chat-bubble);
+      padding: 10px 13px;
+      border-radius: 16px 16px 16px 4px;
+      background: color-mix(in srgb, var(--chat-bubble) 88%, transparent);
       color: var(--text-secondary);
       font-size: 11px;
       line-height: 1.55;
       white-space: pre-wrap;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
     }
-    .chat-message.user { align-self: flex-end; background: var(--chat-user-bubble); }
+    .chat-message.user {
+      align-self: flex-end;
+      border-radius: 16px 16px 4px 16px;
+      background: color-mix(in srgb, var(--chat-user-bubble) 88%, transparent);
+    }
     .chat-word { display: inline-block; animation: chat-word-reveal .12s ease-out both; animation-delay: calc(var(--word-index) * 6ms); }
     @keyframes chat-word-reveal {
       from { opacity: 0; transform: translateY(5px); }
@@ -1010,6 +1573,44 @@
       background: var(--paper);
       box-shadow: 0 18px 70px rgba(0,0,0,.24);
     }
+    #editorModal .modal,
+    #logoutConfirmModal .modal {
+      border: 1px solid color-mix(in srgb, var(--white) 72%, transparent);
+      background: color-mix(in srgb, var(--paper) 78%, transparent);
+      -webkit-backdrop-filter: blur(22px) saturate(145%);
+      backdrop-filter: blur(22px) saturate(145%);
+      box-shadow: 0 24px 80px rgba(0,0,0,.3), inset 0 1px 0 color-mix(in srgb, var(--white) 52%, transparent);
+    }
+    #logoutConfirmModal {
+      background: rgba(24, 24, 21, .28);
+      -webkit-backdrop-filter: blur(9px) saturate(125%);
+      backdrop-filter: blur(9px) saturate(125%);
+    }
+    #logoutConfirmModal .modal {
+      background: color-mix(in srgb, var(--paper) 56%, transparent);
+      -webkit-backdrop-filter: blur(28px) saturate(155%);
+      backdrop-filter: blur(28px) saturate(155%);
+    }
+    #logoutConfirmModal .confirm-cancel,
+    #logoutConfirmModal .modal-submit {
+      border-color: color-mix(in srgb, var(--white) 48%, var(--line));
+      background: color-mix(in srgb, var(--white) 36%, transparent);
+      -webkit-backdrop-filter: blur(12px) saturate(135%);
+      backdrop-filter: blur(12px) saturate(135%);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 58%, transparent), 0 4px 14px rgba(32, 33, 30, .08);
+      transition: background-color .24s ease, color .24s ease, border-color .24s ease, box-shadow .24s ease, transform .2s ease;
+    }
+    #logoutConfirmModal .modal-submit {
+      border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+      background: color-mix(in srgb, var(--accent) 18%, color-mix(in srgb, var(--white) 42%, transparent));
+    }
+    #logoutConfirmModal .confirm-cancel:hover,
+    #logoutConfirmModal .modal-submit:hover {
+      border-color: color-mix(in srgb, var(--accent) 54%, transparent);
+      background: color-mix(in srgb, var(--accent) 22%, color-mix(in srgb, var(--white) 54%, transparent));
+      color: var(--ink);
+      transform: translateY(-1px);
+    }
     .confirm-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 9px; }
     .confirm-cancel {
       margin-top: 8px;
@@ -1046,14 +1647,44 @@
     .field { display: grid; gap: 6px; margin: 13px 0; }
     .field[hidden] { display: none; }
     .field label { font-size: 11px; font-weight: 600; }
-    .field input, .field textarea {
+    .field input, .field textarea, .field select {
       width: 100%;
-      border: 1px solid var(--line);
+      border: 1px solid color-mix(in srgb, var(--line) 76%, transparent);
       border-radius: 10px;
-      background: var(--white);
+      background-color: color-mix(in srgb, var(--white) 34%, transparent);
+      -webkit-backdrop-filter: blur(14px) saturate(135%);
+      backdrop-filter: blur(14px) saturate(135%);
       padding: 10px 11px;
       color: var(--ink);
       font-size: 12px;
+    }
+    .field select {
+      min-height: 40px;
+      padding-right: 34px;
+      border-radius: 12px;
+      appearance: none;
+      background-image:
+        linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+        linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+      background-position: calc(100% - 17px) 50%, calc(100% - 12px) 50%;
+      background-repeat: no-repeat;
+      background-size: 5px 5px;
+      cursor: pointer;
+    }
+    .field select option { border-radius: 8px; background: var(--paper); color: var(--ink); }
+    .account-form-panel .field input,
+    .account-form-panel .field textarea,
+    .account-form-panel .field select {
+      border-color: color-mix(in srgb, var(--line) 76%, transparent);
+      background: color-mix(in srgb, var(--white) 54%, transparent);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+      transition: background-color .25s ease, border-color .25s ease, box-shadow .25s ease;
+    }
+    .account-form-panel .field input:focus,
+    .account-form-panel .field textarea:focus {
+      border-color: color-mix(in srgb, var(--accent) 56%, var(--line));
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
     }
     .field textarea { min-height: 120px; resize: vertical; }
     .file-hint, .prototype-note { color: var(--muted); font-size: 10px; line-height: 1.55; }
@@ -1064,6 +1695,8 @@
       border-radius: 10px;
       background: var(--surface-muted);
     }
+    .agreement-overview { margin: 0 0 10px; color: var(--text-secondary); font-size: 10px; line-height: 1.55; }
+    .agreement-block > details > summary { color: var(--accent-dark); cursor: pointer; font-size: 10px; font-weight: 700; }
     .agreement-copy { margin: 10px 0; color: var(--text-secondary); font-size: 10px; line-height: 1.6; }
     .agreement-copy p { margin: 0 0 9px; }
     .agreement-copy ol { margin: 0 0 9px; padding-left: 18px; }
@@ -1080,14 +1713,18 @@
     .agreement-accept label { cursor: pointer; }
     .modal-submit {
       margin-top: 8px;
-      border: 0;
+      border: 1px solid color-mix(in srgb, var(--accent) 34%, var(--line));
       border-radius: 10px;
-      background: var(--inverse-background);
-      color: var(--inverse-foreground);
+      background: color-mix(in srgb, var(--white) 56%, transparent);
+      color: var(--ink);
       padding: 11px 16px;
       cursor: pointer;
       font-size: 12px;
       font-weight: 600;
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 58%, transparent), 0 4px 14px rgba(32, 33, 30, .08);
+      transition: background-color .24s ease, color .24s ease, border-color .24s ease, box-shadow .24s ease, transform .2s ease;
     }
     #accountSubmit {
       display: block;
@@ -1095,7 +1732,41 @@
       margin: 14px auto 0;
       text-align: center;
     }
-    .modal-submit:hover { background: var(--accent-dark); color: var(--accent-foreground); }
+    .modal-submit:hover {
+      border-color: color-mix(in srgb, var(--accent) 54%, transparent);
+      background: color-mix(in srgb, var(--accent) 24%, var(--white) 62%, transparent);
+      color: var(--ink);
+      transform: translateY(-1px);
+    }
+    #editorModal button {
+      border: 1px solid color-mix(in srgb, var(--line) 68%, transparent);
+      background: color-mix(in srgb, var(--white) 36%, transparent);
+      -webkit-backdrop-filter: blur(12px) saturate(135%);
+      backdrop-filter: blur(12px) saturate(135%);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 54%, transparent), 0 4px 12px rgba(32, 33, 30, .07);
+      transition: background-color .24s ease, border-color .24s ease, box-shadow .24s ease, transform .2s ease;
+    }
+    #editorModal button:hover:not(:disabled) {
+      border-color: color-mix(in srgb, var(--accent) 46%, var(--line));
+      background: color-mix(in srgb, var(--white) 52%, transparent);
+      box-shadow: inset 0 1px 0 color-mix(in srgb, var(--white) 62%, transparent), 0 6px 16px rgba(32, 33, 30, .1);
+      transform: translateY(-1px);
+    }
+    #editorModal button.modal-submit {
+      border-color: color-mix(in srgb, var(--accent) 36%, var(--line));
+      background: color-mix(in srgb, var(--accent) 14%, color-mix(in srgb, var(--white) 40%, transparent));
+    }
+    #editorModal button.modal-submit:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--accent) 22%, color-mix(in srgb, var(--white) 52%, transparent));
+    }
+    #editorModal .modal-close,
+    #editorModal .incident-remove {
+      border-radius: 10px;
+    }
+    #editorModal .site-select-option[aria-selected="true"] {
+      background: color-mix(in srgb, var(--accent) 14%, color-mix(in srgb, var(--white) 42%, transparent));
+      color: var(--accent-dark);
+    }
     .form-error { min-height: 18px; margin: 8px 0 0; color: var(--error); font-size: 11px; }
     .signed-in { display: none; }
     .signed-in.visible { display: block; }
@@ -1133,13 +1804,14 @@
     .incident-editor-card textarea { min-height: 76px; }
 
     @media (min-width: 1500px) {
-      .sidebar { padding-left: 72px; }
+      .sidebar { padding-left: 24px; }
       main { padding-right: 72px; padding-left: 72px; }
       .hero { margin-right: -72px; margin-left: -72px; padding-right: 72px; padding-left: 72px; }
     }
     @media (max-width: 850px) {
-      .page-layout { grid-template-columns: 205px minmax(0, 1fr); }
-      .sidebar { padding-left: 20px; }
+      .page-layout { grid-template-columns: minmax(0, 1fr); }
+      .sidebar { width: 190px; padding-left: 16px; }
+      .sidebar-search-popup { left: 12px; }
       main { padding-right: 25px; padding-left: 25px; }
       .account-view { grid-template-columns: minmax(0, .9fr) minmax(340px, 1.1fr); gap: 28px; padding-right: 32px; padding-left: 32px; }
       .account-branding h1 { font-size: clamp(48px, 7vw, 72px); }
@@ -1171,19 +1843,25 @@
       .account-branding-copy { padding: 25px 0; }
       .account-branding-kicker { margin-bottom: 1px; font-size: clamp(11.5px, 3.25vw, 17.5px); }
       .account-branding h1 { font-size: clamp(46px, 13vw, 70px); }
-      .account-form-panel { width: min(100%, 520px); justify-self: center; padding: 0 0 20px; }
+      .account-form-panel { width: min(100%, 520px); justify-self: center; padding: 20px; }
       .account-view #accountPrivacy { margin-bottom: 12px; }
-      .page-layout { display: grid; grid-template-columns: minmax(96px, 30vw) minmax(0, 1fr); min-height: calc(100vh - 60px); }
-      .page-layout.sidebar-collapsed { grid-template-columns: 0fr minmax(0, 1fr); }
+      .page-layout { display: grid; grid-template-columns: minmax(0, 1fr); min-height: calc(100vh - 60px); }
       .page-layout.account-active { grid-template-columns: minmax(0, 1fr); }
-      .sidebar { min-width: 0; padding: 15px 6px; border-right: 1px solid var(--line); border-bottom: 0; }
+      .sidebar {
+        top: 128px;
+        width: fit-content;
+        min-width: min(150px, calc(100vw - 24px));
+        max-width: calc(100vw - 24px);
+        max-height: calc(100vh - 140px);
+        padding: 15px 6px;
+      }
+      .sidebar-search-popup { top: 72px; left: 12px; }
       .sidebar-heading { margin: 0 0 9px 4px; font-size: 8px; }
       .event-list { display: grid; gap: 3px; overflow: visible; padding-bottom: 0; }
       .event-nav, .event-nav.contribution-nav {
         grid-template-columns: 20px minmax(0, 1fr);
         width: 100%;
         padding: 7px 4px;
-        border: 0;
         white-space: normal;
         text-align: left;
         font-size: 10px;
@@ -1198,7 +1876,17 @@
       main { min-width: 0; padding: 0 12px 45px; }
       .about-view { margin-top: 16px; padding: 24px 16px; }
       .about-view h1 { margin-bottom: 18px; }
-      .team-gallery::before, .team-gallery::after { height: 52px; }
+      .home-view { min-height: calc(100vh - 120px); padding: 36px 0 48px; }
+      .home-intro { margin-bottom: 22px; }
+      .home-title { font-size: clamp(38px, 12vw, 58px); }
+      .home-subtitle { font-size: 14px; }
+      .home-search { min-height: 54px; gap: 8px; padding-left: 12px; }
+      .home-search input { font-size: 12px; }
+      .home-search-submit { min-height: 38px; padding: 7px 10px; }
+      .home-recommendations { margin-top: 30px; }
+      .home-recommendation-grid { grid-template-columns: 1fr; gap: 9px; }
+      .home-recommendation { min-height: 0; padding: 15px; }
+      .home-recommendation-title { font-size: 20px; }
       .hero { min-height: 260px; margin: 0 -12px; padding: 34px 12px; }
       .hero h1 { font-size: clamp(43px, 13vw, 70px); letter-spacing: .04em; }
       .hero-subtitle { max-width: 320px; font-size: 12px; }
@@ -1206,6 +1894,7 @@
       .event-heading { padding-top: 30px; align-items: start; flex-direction: column; gap: 8px; }
       .event-date { text-align: left; }
       .event-summary { font-size: 15px; }
+      .wikipedia-portrait { width: min(140px, 34%); margin: 0 0 12px 16px; }
       .facts { grid-template-columns: 1fr; }
       .fact, .fact + .fact { padding: 12px 0; border-left: 0; }
       .fact + .fact { border-top: 1px solid var(--line); }
@@ -1235,16 +1924,18 @@
     }
   </style>
 </head>
-<body>
+<body class="home-screen">
   <header class="topbar">
-    <a class="brand" href="#" aria-label="History Atlas home">
-      <img class="brand-logo" src="history-atlas-logo.png" alt="History Atlas — Navigate the past, shape the future">
-    </a>
-    <button class="account-back" id="accountBackButton" type="button" data-i18n="backToAtlas">Back to Atlas</button>
-    <div class="top-actions">
+    <div class="brand-group">
       <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Show chapters" title="Show chapters" data-i18n-aria="showChapters" data-i18n-title="showChapters" aria-expanded="false" aria-controls="atlasSidebar">
         <span></span><span></span><span></span>
       </button>
+      <a class="brand" href="#" aria-label="History Atlas home">
+        <img class="brand-logo" src="history-atlas-logo.png" alt="History Atlas — Navigate the past, shape the future">
+      </a>
+    </div>
+    <button class="account-back" id="accountBackButton" type="button" data-i18n="backToAtlas">Back to Atlas</button>
+    <div class="top-actions">
       <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode" aria-pressed="false">
         <span class="theme-toggle-icon" id="themeToggleIcon" aria-hidden="true">☾</span>
         <span class="theme-toggle-label" id="themeToggleLabel">Dark</span>
@@ -1258,7 +1949,6 @@
         <div class="language-menu" id="languageMenu" role="listbox" aria-label="Language" hidden></div>
       </div>
       <a class="top-link about-link" id="aboutLink" href="#about" data-i18n="about">About</a>
-      <a class="top-link" id="exploreLink" href="#event-detail" data-i18n="exploreAtlas">Explore the atlas</a>
       <button class="account-button" id="loginButton" type="button" data-i18n="login">Log in</button>
       <button class="account-button primary" id="signupButton" type="button" data-i18n="signUp">Sign up</button>
       <button class="account-button" id="editorButton" type="button" hidden data-i18n="editAtlas">Edit atlas</button>
@@ -1267,6 +1957,16 @@
   </header>
 
   <div class="page-layout sidebar-collapsed">
+    <div class="sidebar-search-popup" id="sidebarSearchPopup">
+      <button class="sidebar-search-toggle" id="sidebarSearchToggle" type="button" aria-expanded="false" aria-controls="sidebarSearchForm" data-i18n-aria="searchHistory" data-i18n-title="searchHistory" title="Search history">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.4"></circle><path d="m15.5 15.5 5 5"></path></svg>
+      </button>
+      <form class="sidebar-search-form" id="sidebarSearchForm" role="search" hidden>
+        <label class="visually-hidden" for="sidebarSearchInput" data-i18n="searchHistory">Search history</label>
+        <input id="sidebarSearchInput" type="search" autocomplete="off" data-i18n-placeholder="searchPlaceholder" placeholder="Search events, dates, or topics…">
+        <button class="sidebar-search-close" id="sidebarSearchClose" type="button" aria-label="Close" data-i18n-aria="close">&times;</button>
+      </form>
+    </div>
     <aside class="sidebar" id="atlasSidebar" aria-label="Choose a historical event" data-i18n-aria="chooseEvent">
       <p class="sidebar-heading" data-i18n="turningPoints">A history of turning points</p>
       <nav class="event-list" id="eventList" aria-label="Historical events" data-i18n-aria="historicalEvents"></nav>
@@ -1280,7 +1980,30 @@
       </section>
     </aside>
 
-    <main>
+    <main class="home-active">
+      <section class="home-view" id="home-view" aria-labelledby="homeTitle">
+        <div class="home-intro">
+          <p class="eyebrow" data-i18n="illustratedGuide">An illustrated guide to the past</p>
+          <h1 class="home-title" id="homeTitle">HISTORY ATLAS</h1>
+          <p class="home-subtitle" data-i18n="heroSubtitle">The moments that changed how we live, and the people whose stories still shape our world.</p>
+        </div>
+        <div class="home-search-wrap">
+          <form class="home-search" id="homeSearchForm" role="search" data-i18n-aria="searchHistory">
+            <label class="visually-hidden" for="homeSearchInput" data-i18n="searchHistory">Search history</label>
+            <span class="home-search-icon" aria-hidden="true">⌕</span>
+            <input id="homeSearchInput" type="search" autocomplete="off" aria-controls="homeSearchResults" data-i18n-placeholder="searchPlaceholder" placeholder="Search events, dates, or topics…">
+            <button class="home-search-submit" type="submit" data-i18n="searchButton">Search</button>
+          </form>
+          <div class="home-search-results" id="homeSearchResults" aria-live="polite" hidden></div>
+        </div>
+        <section class="home-recommendations" aria-labelledby="recommendedHistoriesTitle" data-i18n-aria="recommendedHistories">
+          <div class="home-recommendations-head">
+            <p class="eyebrow" data-i18n="historyInContext">History, in context</p>
+            <h2 id="recommendedHistoriesTitle" data-i18n="recommendedHistories">Recommended histories</h2>
+          </div>
+          <div class="home-recommendation-grid" id="homeRecommendations"></div>
+        </section>
+      </section>
       <section class="account-view" id="account-view" aria-labelledby="accountModeTitle" hidden>
         <div class="account-branding">
           <div class="account-branding-copy">
@@ -1396,6 +2119,18 @@
         </div>
         <p class="event-summary" id="eventSummary"></p>
 
+        <section class="wikipedia-summary" id="wikipediaSummarySection" hidden aria-labelledby="wikipediaSummaryHeading">
+          <h3 id="wikipediaSummaryHeading">Wikipedia summary</h3>
+          <p class="wikipedia-summary-status" id="wikipediaSummaryStatus" role="status"></p>
+          <figure class="wikipedia-portrait" id="wikipediaPortrait" hidden>
+            <img id="wikipediaPortraitImage" alt="">
+          </figure>
+          <div class="wikipedia-summary-body" id="wikipediaSummaryBody"></div>
+        </section>
+        <section class="wikipedia-related" id="wikipediaRelatedSection" hidden aria-labelledby="wikipediaRelatedHeading">
+          <h3 id="wikipediaRelatedHeading">Related articles</h3>
+          <ul id="wikipediaRelatedArticles"></ul>
+        </section>
         <section class="facts" id="eventFacts" aria-label="Key facts" data-i18n-aria="keyFacts"></section>
 
         <div class="section-title" id="timelineHeading">
@@ -1563,16 +2298,28 @@
             <input id="editorContributionTitle" type="text" maxlength="120" placeholder="Give this information a title" data-i18n-placeholder="informationTitlePlaceholder">
           </div>
           <div class="field">
-            <label for="editorContributionRegion" data-i18n="eventRegion">Region</label>
-            <select id="editorContributionRegion" required>
+            <label id="editorContributionRegionLabel" for="editorContributionRegionTrigger" data-i18n="eventRegion">Region</label>
+            <div class="site-select">
+              <select id="editorContributionRegion" class="site-select-native" aria-hidden="true" tabindex="-1">
               <option value="" data-i18n="selectRegion">Select a region</option>
-            </select>
+              </select>
+              <button class="site-select-trigger" id="editorContributionRegionTrigger" type="button" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="editorContributionRegionMenu" aria-labelledby="editorContributionRegionLabel editorContributionRegionValue" aria-required="true">
+                <span id="editorContributionRegionValue" data-i18n="selectRegion">Select a region</span>
+              </button>
+              <div class="site-select-menu" id="editorContributionRegionMenu" role="listbox" aria-labelledby="editorContributionRegionLabel" hidden></div>
+            </div>
           </div>
           <div class="field">
-            <label for="editorContributionTopic" data-i18n="eventTopic">Topic</label>
-            <select id="editorContributionTopic" required>
+            <label id="editorContributionTopicLabel" for="editorContributionTopicTrigger" data-i18n="eventTopic">Topic</label>
+            <div class="site-select">
+              <select id="editorContributionTopic" class="site-select-native" aria-hidden="true" tabindex="-1">
               <option value="" data-i18n="selectTopic">Select a topic</option>
-            </select>
+              </select>
+              <button class="site-select-trigger" id="editorContributionTopicTrigger" type="button" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="editorContributionTopicMenu" aria-labelledby="editorContributionTopicLabel editorContributionTopicValue" aria-required="true">
+                <span id="editorContributionTopicValue" data-i18n="selectTopic">Select a topic</span>
+              </button>
+              <div class="site-select-menu" id="editorContributionTopicMenu" role="listbox" aria-labelledby="editorContributionTopicLabel" hidden></div>
+            </div>
           </div>
           <div class="field">
             <label for="editorIncidentDate" data-i18n="incidentDate">Date the incident occurred</label>
@@ -1649,8 +2396,9 @@
 
   <template id="factualityAgreementTemplate">
     <div class="agreement-block">
-      <details open>
-        <summary>Agreement for Adding or Updating Information</summary>
+      <p class="agreement-overview" data-i18n="agreementOverview">By contributing, you confirm that information is factual, respectful, and appropriate to share. Expand to review the full standards.</p>
+      <details>
+        <summary data-i18n="agreementDetailsSummary">Review the full contribution standards</summary>
         <div class="agreement-copy">
           <p>Before saving information to this browser, please read and agree to the following standards. They apply to all text, dates, sources, images, captions, and timeline entries you add or change.</p>
           <ol>
@@ -1801,6 +2549,14 @@
     let siteUpdates = readJson(storageKeys.updates, []);
     if (!Array.isArray(siteUpdates)) siteUpdates = [];
     const imageCache = new Map();
+    const wikipediaPages = new Map();
+    const wikipediaSummaryCache = new Map();
+    const wikipediaTimelineCache = new Map();
+    const wikipediaEventTypeCache = new Map();
+    const wikipediaSearchState = {
+      home: { query: "", results: [], status: "", timer: null, requestId: 0 },
+      sidebar: { query: "", results: [], status: "", timer: null, requestId: 0 }
+    };
     let heroImageTimer = null;
     let heroImageTransitionTimeout = null;
     let heroRenderVersion = 0;
@@ -1817,6 +2573,8 @@
     const languageOrder = ["en", "zh", "ja", "ko", "ru", "de", "id", "es", "el", "it", "th", "ms", "hi"];
     // Translation values follow languageOrder; event and contribution text intentionally stays as entered.
     const translations = {
+      agreementOverview: ["By contributing, you confirm that information is factual, respectful, and appropriate to share. Expand to review the full standards.", "提交内容即表示你确认信息真实、尊重他人且适合分享。展开可查看完整规范。", "投稿することで、内容が事実に基づき、他者を尊重し、共有に適切であることを確認します。展開してすべての基準を確認してください。", "기여하면 정보가 사실에 근거하고, 타인을 존중하며, 공유하기에 적절함을 확인하는 것입니다. 펼쳐서 전체 기준을 확인하세요.", "Отправляя материал, вы подтверждаете, что информация достоверна, уважительна и подходит для публикации. Разверните, чтобы ознакомиться со всеми правилами.", "Mit deinem Beitrag bestätigst du, dass die Angaben sachlich, respektvoll und zum Teilen geeignet sind. Klappe den Abschnitt auf, um alle Standards zu lesen.", "Dengan menyumbang, anda mengesahkan bahawa maklumat adalah berfakta, menghormati orang lain dan sesuai untuk dikongsi. Kembangkan untuk melihat semua piawaian.", "Al contribuir, confirmas que la información es veraz, respetuosa y adecuada para compartir. Despliega la sección para consultar todas las normas.", "Με τη συνεισφορά σας, επιβεβαιώνετε ότι οι πληροφορίες είναι τεκμηριωμένες, σεβαστές και κατάλληλες για κοινοποίηση. Αναπτύξτε την ενότητα για να δείτε όλα τα πρότυπα.", "Contribuendo, confermi che le informazioni sono veritiere, rispettose e adatte alla condivisione. Espandi per consultare tutti gli standard.", "เมื่อส่งข้อมูล คุณยืนยันว่าข้อมูลเป็นข้อเท็จจริง ให้เกียรติผู้อื่น และเหมาะสมที่จะแบ่งปัน ขยายเพื่ออ่านมาตรฐานทั้งหมด", "Dengan menyumbang, anda mengesahkan bahawa maklumat adalah berfakta, menghormati orang lain dan sesuai untuk dikongsi. Kembangkan untuk melihat semua piawaian.", "योगदान देकर आप पुष्टि करते हैं कि जानकारी तथ्यात्मक, सम्मानजनक और साझा करने योग्य है। सभी मानक पढ़ने के लिए इसे खोलें।"],
+      agreementDetailsSummary: ["Review the full contribution standards", "查看完整贡献规范", "投稿基準の全文を確認する", "전체 기여 기준 보기", "Ознакомиться с полными правилами публикации", "Vollständige Beitragsstandards lesen", "Lihat semua piawaian sumbangan", "Consultar todas las normas de contribución", "Δείτε όλα τα πρότυπα συνεισφοράς", "Consulta tutti gli standard per i contributi", "อ่านมาตรฐานการส่งข้อมูลฉบับเต็ม", "Lihat semua piawaian sumbangan", "सभी योगदान मानक पढ़ें"],
       language: ["Language", "语言", "言語", "언어", "Язык", "Sprache", "Bahasa", "Idioma", "Γλώσσα", "Lingua", "ภาษา", "Bahasa", "भाषा"],
       darkMode: ["Dark", "深色", "ダーク", "다크", "Тёмная", "Dunkel", "Gelap", "Oscuro", "Σκοτεινή", "Scuro", "มืด", "Gelap", "गहरा"],
       lightMode: ["Light", "浅色", "ライト", "라이트", "Светлая", "Hell", "Cerah", "Claro", "Φωτεινή", "Chiaro", "สว่าง", "Cerah", "हल्का"],
@@ -1827,6 +2585,8 @@
       chooseEvent: ["Choose a historical event", "选择一个历史事件", "歴史上の出来事を選択", "역사적 사건 선택", "Выберите историческое событие", "Historisches Ereignis auswählen", "Pilih peristiwa sejarah", "Elige un acontecimiento histórico", "Επιλέξτε ένα ιστορικό γεγονός", "Scegli un evento storico", "เลือกเหตุการณ์ทางประวัติศาสตร์", "Pilih peristiwa sejarah", "ऐतिहासिक घटना चुनें"],
       historicalEvents: ["Historical events", "历史事件", "歴史上の出来事", "역사적 사건", "Исторические события", "Historische Ereignisse", "Peristiwa sejarah", "Acontecimientos históricos", "Ιστορικά γεγονότα", "Eventi storici", "เหตุการณ์ทางประวัติศาสตร์", "Peristiwa sejarah", "ऐतिहासिक घटनाएँ"],
       openPage: ["Open", "打开", "開く", "열기", "Открыть", "Öffnen", "Buka", "Abrir", "Άνοιγμα", "Apri", "เปิด", "Buka", "खोलें"],
+      mostImpactful: ["Most impactful", "影响深远", "影響の大きい出来事", "가장 큰 영향을 준 사건", "Сильнейшее влияние", "Besonders prägend", "Paling berdampak", "Mayor impacto", "Μεγαλύτερος αντίκτυπος", "Di maggiore impatto", "ส่งผลกระทบมากที่สุด", "Paling berpengaruh", "सबसे अधिक प्रभावशाली"],
+      mostRecent: ["Most recent", "最近事件", "最も新しい出来事", "가장 최근 사건", "Самое недавнее", "Jüngstes Ereignis", "Terbaru", "Más reciente", "Πιο πρόσφατο", "Più recente", "ล่าสุด", "Paling terkini", "सबसे हालिया"],
       openIndependentPage: ["Open independent page", "打开独立页面", "独立ページを開く", "독립 페이지 열기", "Открыть отдельную страницу", "Eigenständige Seite öffnen", "Buka halaman bebas", "Abrir página independiente", "Άνοιγμα ανεξάρτητης σελίδας", "Apri pagina indipendente", "เปิดหน้าแยก", "Buka halaman bebas", "स्वतंत्र पृष्ठ खोलें"],
       addedInfoForChapter: ["Added information for this chapter", "本章的补充信息", "この章への追加情報", "이 장에 추가된 정보", "Дополнительная информация к главе", "Zusätzliche Informationen zu diesem Kapitel", "Informasi tambahan untuk bab ini", "Información añadida a este capítulo", "Πρόσθετες πληροφορίες για αυτό το κεφάλαιο", "Informazioni aggiuntive per questo capitolo", "ข้อมูลเพิ่มเติมสำหรับบทนี้", "Maklumat tambahan untuk bab ini", "इस अध्याय के लिए अतिरिक्त जानकारी"],
       turningPoints: ["A history of turning points", "历史转折", "歴史の転換点", "역사의 전환점", "История переломных событий", "Eine Geschichte voller Wendepunkte", "Sejarah titik perubahan", "Una historia de momentos decisivos", "Μια ιστορία σημείων καμπής", "Una storia di svolte", "ประวัติศาสตร์แห่งจุดเปลี่ยน", "Sejarah titik perubahan", "इतिहास के निर्णायक मोड़"],
@@ -1843,7 +2603,23 @@
       sidebarNote: ["Nine chapters. Centuries of change. Choose a moment to explore its context, key dates and lasting impact.", "九个章节，数百年的变迁。选择一个时刻，了解其背景、重要日期和深远影响。", "9つの章、数世紀にわたる変化。出来事を選び、背景や重要な日付、その影響を探りましょう。", "9개 장, 수 세기에 걸친 변화. 사건을 선택해 배경, 주요 날짜와 지속적인 영향을 살펴보세요.", "Девять глав. Столетия перемен. Выберите событие, чтобы изучить его контекст, важные даты и последствия.", "Neun Kapitel. Jahrhunderte des Wandels. Wähle ein Ereignis und entdecke Hintergründe, wichtige Daten und Folgen.", "Sembilan bab. Berabad-abad perubahan. Pilih peristiwa untuk menjelajahi konteks, tanggal penting, dan dampaknya.", "Nueve capítulos. Siglos de cambios. Elige un momento para conocer su contexto, fechas clave e impacto duradero.", "Εννέα κεφάλαια. Αιώνες αλλαγών. Επιλέξτε μια στιγμή για να εξερευνήσετε το πλαίσιο, τις σημαντικές ημερομηνίες και τον αντίκτυπό της.", "Nove capitoli. Secoli di cambiamenti. Scegli un evento per scoprirne il contesto, le date chiave e l'impatto duraturo.", "เก้าบท หลายศตวรรษแห่งความเปลี่ยนแปลง เลือกเหตุการณ์เพื่อสำรวจบริบท วันที่สำคัญ และผลกระทบที่ยั่งยืน", "Sembilan bab. Berabad-abad perubahan. Pilih peristiwa untuk meneroka konteks, tarikh penting dan kesannya.", "नौ अध्याय। सदियों के बदलाव। संदर्भ, महत्वपूर्ण तारीख़ें और दीर्घकालिक प्रभाव जानने के लिए कोई घटना चुनें।"],
       illustratedGuide: ["An illustrated guide to the past", "图文并茂的历史指南", "過去をたどる図解ガイド", "과거를 살펴보는 그림 안내서", "Иллюстрированный путеводитель по прошлому", "Ein illustrierter Wegweiser in die Vergangenheit", "Panduan bergambar tentang masa lalu", "Una guía ilustrada del pasado", "Ένας εικονογραφημένος οδηγός στο παρελθόν", "Una guida illustrata al passato", "คู่มือภาพประกอบเรื่องราวในอดีต", "Panduan bergambar tentang masa lalu", "अतीत की सचित्र मार्गदर्शिका"],
       heroSubtitle: ["The moments that changed how we live, and the people whose stories still shape our world.", "改变我们生活方式的时刻，以及至今仍影响世界的人们。", "暮らしを変えた出来事と、今も世界を形づくる人々の物語。", "우리의 삶을 바꾼 순간과 지금도 세상을 만드는 사람들의 이야기.", "Моменты, изменившие нашу жизнь, и люди, чьи истории продолжают формировать мир.", "Momente, die unser Leben veränderten, und Menschen, deren Geschichten unsere Welt bis heute prägen.", "Peristiwa yang mengubah cara hidup kita dan kisah tokoh yang masih membentuk dunia.", "Los momentos que cambiaron nuestra forma de vivir y las personas cuyas historias aún dan forma al mundo.", "Στιγμές που άλλαξαν τον τρόπο ζωής μας και άνθρωποι των οποίων οι ιστορίες διαμορφώνουν ακόμη τον κόσμο.", "I momenti che hanno cambiato il nostro modo di vivere e le persone le cui storie plasmano ancora il mondo.", "ช่วงเวลาที่เปลี่ยนวิถีชีวิตของเรา และผู้คนที่เรื่องราวยังคงหล่อหลอมโลก", "Peristiwa yang mengubah cara hidup kita dan kisah tokoh yang masih membentuk dunia.", "वे पल जिन्होंने हमारा जीवन बदला, और वे लोग जिनकी कहानियाँ आज भी दुनिया को आकार देती हैं।"],
-      exploreAtlas: ["Explore the atlas", "探索历史图册", "アトラスを探索", "아틀라스 둘러보기", "Изучить атлас", "Atlas erkunden", "Jelajahi atlas", "Explorar el atlas", "Εξερευνήστε τον άτλαντα", "Esplora l'atlante", "สำรวจแอตลาส", "Teroka atlas", "एटलस देखें"],
+      searchHistory: ["Search history", "搜索历史", "歴史を検索", "역사 검색", "Поиск по истории", "Geschichte durchsuchen", "Cari sejarah", "Buscar historia", "Αναζήτηση ιστορίας", "Cerca nella storia", "ค้นหาประวัติศาสตร์", "Cari sejarah", "इतिहास खोजें"],
+      searchButton: ["Search", "搜索", "検索", "검색", "Найти", "Suchen", "Cari", "Buscar", "Αναζήτηση", "Cerca", "ค้นหา", "Cari", "खोजें"],
+      searchPlaceholder: ["Search events, dates, or topics…", "搜索事件、日期或主题…", "出来事、日付、テーマを検索…", "사건, 날짜 또는 주제 검색…", "Ищите события, даты или темы…", "Suche nach Ereignissen, Daten oder Themen …", "Cari peristiwa, tarikh atau topik…", "Busca acontecimientos, fechas o temas…", "Αναζητήστε γεγονότα, ημερομηνίες ή θέματα…", "Cerca eventi, date o argomenti…", "ค้นหาเหตุการณ์ วันที่ หรือหัวข้อ…", "Cari peristiwa, tarikh atau topik…", "घटनाएँ, तारीख़ें या विषय खोजें…"],
+      wikipediaLabel: ["Wikipedia", "维基百科", "ウィキペディア", "위키백과", "Википедия", "Wikipedia", "Wikipedia", "Wikipedia", "Βικιπαίδεια", "Wikipedia", "วิกิพีเดีย", "Wikipedia", "विकिपीडिया"],
+      wikipediaSearching: ["Searching Wikipedia…", "正在搜索维基百科…", "ウィキペディアを検索中…", "위키백과 검색 중…", "Поиск в Википедии…", "Wikipedia wird durchsucht …", "Sedang mencari di Wikipedia…", "Buscando en Wikipedia…", "Αναζήτηση στη Βικιπαίδεια…", "Ricerca su Wikipedia…", "กำลังค้นหาในวิกิพีเดีย…", "Sedang mencari di Wikipedia…", "विकिपीडिया पर खोज रहे हैं…"],
+      wikipediaSearchUnavailable: ["Wikipedia search is unavailable. Check your connection and try again.", "无法搜索维基百科。请检查网络连接后重试。", "ウィキペディアを検索できません。接続を確認して再試行してください。", "위키백과를 검색할 수 없습니다. 연결을 확인하고 다시 시도하세요.", "Поиск в Википедии недоступен. Проверьте подключение и повторите попытку.", "Wikipedia-Suche nicht verfügbar. Prüfe die Verbindung und versuche es erneut.", "Carian Wikipedia tidak tersedia. Semak sambungan dan cuba lagi.", "La búsqueda de Wikipedia no está disponible. Comprueba tu conexión e inténtalo de nuevo.", "Η αναζήτηση στη Βικιπαίδεια δεν είναι διαθέσιμη. Ελέγξτε τη σύνδεσή σας και δοκιμάστε ξανά.", "Ricerca su Wikipedia non disponibile. Controlla la connessione e riprova.", "ค้นหาวิกิพีเดียไม่ได้ โปรดตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง", "Carian Wikipedia tidak tersedia. Semak sambungan dan cuba lagi.", "विकिपीडिया खोज उपलब्ध नहीं है। अपना कनेक्शन जाँचें और फिर कोशिश करें।"],
+      wikipediaHistoryOnlyNotice: ["Only Wikipedia results with a connection to history are shown.", "仅显示与历史相关的维基百科搜索结果。", "歴史に関連するウィキペディアの記事のみ表示します。", "역사와 관련된 위키백과 결과만 표시됩니다.", "Показываются только статьи Википедии, связанные с историей.", "Es werden nur Wikipedia-Ergebnisse mit historischem Bezug angezeigt.", "Hanya hasil Wikipedia yang berkaitan dengan sejarah dipaparkan.", "Solo se muestran resultados de Wikipedia relacionados con la historia.", "Εμφανίζονται μόνο αποτελέσματα της Βικιπαίδειας που σχετίζονται με την ιστορία.", "Vengono mostrati solo risultati di Wikipedia collegati alla storia.", "แสดงเฉพาะผลการค้นหาวิกิพีเดียที่เกี่ยวข้องกับประวัติศาสตร์", "Hanya hasil Wikipedia yang berkaitan dengan sejarah dipaparkan.", "केवल इतिहास से जुड़े विकिपीडिया परिणाम दिखाए जाते हैं।"],
+      wikipediaSummaryHeading: ["Wikipedia summary", "维基百科摘要", "ウィキペディアの概要", "위키백과 요약", "Краткое содержание Википедии", "Wikipedia-Zusammenfassung", "Ringkasan Wikipedia", "Resumen de Wikipedia", "Σύνοψη της Βικιπαίδειας", "Riassunto di Wikipedia", "สรุปจากวิกิพีเดีย", "Ringkasan Wikipedia", "विकिपीडिया सारांश"],
+      wikipediaSummaryLoading: ["Loading the Wikipedia summary…", "正在加载维基百科摘要…", "ウィキペディアの概要を読み込み中…", "위키백과 요약을 불러오는 중…", "Загрузка краткого содержания Википедии…", "Wikipedia-Zusammenfassung wird geladen …", "Memuatkan ringkasan Wikipedia…", "Cargando el resumen de Wikipedia…", "Φόρτωση σύνοψης από τη Βικιπαίδεια…", "Caricamento del riassunto di Wikipedia…", "กำลังโหลดสรุปจากวิกิพีเดีย…", "Memuatkan ringkasan Wikipedia…", "विकिपीडिया सारांश लोड हो रहा है…"],
+      wikipediaSummaryUnavailable: ["Could not load the Wikipedia summary. Check your connection or open the article on Wikipedia.", "无法加载维基百科摘要。请检查网络连接或前往维基百科查看全文。", "ウィキペディアの概要を読み込めませんでした。接続を確認するか、記事を開いてください。", "위키백과 요약을 불러올 수 없습니다. 연결을 확인하거나 문서를 여세요.", "Не удалось загрузить краткое содержание. Проверьте подключение или откройте статью в Википедии.", "Wikipedia-Zusammenfassung konnte nicht geladen werden. Prüfe die Verbindung oder öffne den Artikel.", "Tidak dapat memuatkan ringkasan. Semak sambungan atau buka rencana di Wikipedia.", "No se pudo cargar el resumen de Wikipedia. Comprueba tu conexión o abre el artículo en Wikipedia.", "Δεν ήταν δυνατή η φόρτωση της σύνοψης. Ελέγξτε τη σύνδεση ή ανοίξτε το άρθρο στη Βικιπαίδεια.", "Impossibile caricare il riassunto. Controlla la connessione o apri l'articolo su Wikipedia.", "โหลดสรุปวิกิพีเดียไม่ได้ โปรดตรวจสอบการเชื่อมต่อหรือเปิดบทความในวิกิพีเดีย", "Tidak dapat memuatkan ringkasan. Semak sambungan atau buka rencana di Wikipedia.", "विकिपीडिया सारांश लोड नहीं हो सका। अपना कनेक्शन जाँचें या लेख विकिपीडिया पर खोलें।"],
+      wikipediaTimelineLoading: ["Loading important moments from Wikipedia…", "正在从维基百科加载重要时刻…", "ウィキペディアから重要な出来事を読み込み中…", "위키백과에서 주요 순간을 불러오는 중…", "Загрузка важных моментов из Википедии…", "Wichtige Momente werden aus Wikipedia geladen …", "Memuatkan detik penting daripada Wikipedia…", "Cargando momentos importantes de Wikipedia…", "Φόρτωση σημαντικών στιγμών από τη Βικιπαίδεια…", "Caricamento dei momenti importanti da Wikipedia…", "กำลังโหลดช่วงเวลาสำคัญจากวิกิพีเดีย…", "Memuatkan detik penting daripada Wikipedia…", "विकिपीडिया से महत्वपूर्ण पल लोड हो रहे हैं…"],
+      wikipediaTimelineUnavailable: ["Could not load timeline moments. Check your connection and try again.", "无法加载时间线事件。请检查网络连接后重试。", "年表の出来事を読み込めませんでした。接続を確認して再試行してください。", "타임라인 순간을 불러올 수 없습니다. 연결을 확인하고 다시 시도하세요.", "Не удалось загрузить события хронологии. Проверьте подключение и повторите попытку.", "Zeitstrahl-Momente konnten nicht geladen werden. Prüfe die Verbindung und versuche es erneut.", "Tidak dapat memuatkan detik garis masa. Semak sambungan dan cuba lagi.", "No se pudieron cargar los momentos de la cronología. Comprueba la conexión e inténtalo de nuevo.", "Δεν ήταν δυνατή η φόρτωση των στιγμών του χρονολογίου. Ελέγξτε τη σύνδεση και δοκιμάστε ξανά.", "Impossibile caricare i momenti della cronologia. Controlla la connessione e riprova.", "โหลดช่วงเวลาในเส้นเวลาไม่ได้ โปรดตรวจสอบการเชื่อมต่อแล้วลองอีกครั้ง", "Tidak dapat memuatkan detik garis masa. Semak sambungan dan cuba lagi.", "समयरेखा के पल लोड नहीं हो सके। अपना कनेक्शन जाँचें और फिर कोशिश करें।"],
+      wikipediaTimelineNoMoments: ["No dated moments were found in this article.", "这篇文章中没有找到带日期的重要时刻。", "この記事に日付のある出来事は見つかりませんでした。", "이 문서에서 날짜가 있는 순간을 찾을 수 없습니다.", "В этой статье не найдены датированные события.", "In diesem Artikel wurden keine datierten Momente gefunden.", "Tiada detik bertarikh ditemukan dalam rencana ini.", "No se encontraron momentos fechados en este artículo.", "Δεν βρέθηκαν χρονολογημένες στιγμές σε αυτό το άρθρο.", "Non sono stati trovati momenti datati in questo articolo.", "ไม่พบช่วงเวลาที่ระบุวันที่ในบทความนี้", "Tiada detik bertarikh ditemukan dalam rencana ini.", "В этой статье не найдено датированных событий."],
+      wikipediaRelatedHeading: ["Related articles", "相关文章", "関連記事", "관련 문서", "Связанные статьи", "Verwandte Artikel", "Rencana berkaitan", "Artículos relacionados", "Σχετικά άρθρα", "Articoli correlati", "บทความที่เกี่ยวข้อง", "Rencana berkaitan", "संबंधित लेख"],
+      wikipediaSourcePrefix: ["Summary from", "摘要来自", "概要の出典：", "요약 출처:", "Краткое содержание из", "Zusammenfassung von", "Ringkasan daripada", "Resumen de", "Σύνοψη από", "Riassunto da", "สรุปจาก", "Ringkasan daripada", "सारांश स्रोत:"],
+      recommendedHistories: ["Recommended histories", "推荐历史", "おすすめの歴史", "추천 역사", "Рекомендуем изучить", "Empfohlene Geschichten", "Sejarah yang disyorkan", "Historias recomendadas", "Προτεινόμενες ιστορίες", "Storie consigliate", "ประวัติศาสตร์แนะนำ", "Sejarah yang disyorkan", "सुझाए गए इतिहास"],
+      noSearchResults: ["No results found. Try another search.", "没有找到结果。请尝试其他搜索词。", "結果が見つかりません。別の語句をお試しください。", "결과를 찾을 수 없습니다. 다른 검색어를 입력해 보세요.", "Ничего не найдено. Попробуйте другой запрос.", "Keine Ergebnisse gefunden. Versuche eine andere Suche.", "Tiada hasil ditemukan. Cuba carian lain.", "No se encontraron resultados. Prueba otra búsqueda.", "Δεν βρέθηκαν αποτελέσματα. Δοκιμάστε άλλη αναζήτηση.", "Nessun risultato trovato. Prova un'altra ricerca.", "ไม่พบผลลัพธ์ ลองค้นหาใหม่", "Tiada hasil ditemukan. Cuba carian lain.", "कोई परिणाम नहीं मिला। कोई दूसरा शब्द खोजें।"],
       about: ["About", "关于", "概要", "소개", "О нас", "Über uns", "Tentang", "Acerca de", "Σχετικά", "Chi siamo", "เกี่ยวกับ", "Perihal", "परिचय"],
       exploreCollection: ["Explore the collection", "探索馆藏", "コレクションを見る", "컬렉션 둘러보기", "Изучить коллекцию", "Sammlung erkunden", "Jelajahi koleksi", "Explorar la colección", "Εξερευνήστε τη συλλογή", "Esplora la raccolta", "สำรวจคอลเลกชัน", "Teroka koleksi", "संग्रह देखें"],
       historyInContext: ["History, in context", "了解历史背景", "歴史を文脈から見る", "맥락 속의 역사", "История в контексте", "Geschichte im Kontext", "Sejarah dalam konteks", "La historia en contexto", "Η ιστορία στο πλαίσιό της", "La storia nel suo contesto", "ประวัติศาสตร์ในบริบท", "Sejarah dalam konteks", "संदर्भ सहित इतिहास"],
@@ -1942,7 +2718,7 @@
       independentHistoricalEntry: ["Independent historical entry", "独立历史条目", "独立した歴史記事", "독립 역사 항목", "Самостоятельная историческая статья", "Eigenständiger historischer Eintrag", "Entri sejarah bebas", "Entrada histórica independiente", "Ανεξάρτητη ιστορική καταχώριση", "Voce storica indipendente", "รายการประวัติศาสตร์อิสระ", "Entri sejarah bebas", "स्वतंत्र ऐतिहासिक प्रविष्टि"],
       backgroundReading: ["Background reading:", "背景阅读：", "参考資料：", "배경 자료:", "Материалы для чтения:", "Hintergrundinformationen:", "Bacaan latar:", "Lectura complementaria:", "Πρόσθετη ανάγνωση:", "Approfondimenti:", "อ่านเพิ่มเติม:", "Bacaan latar:", "पृष्ठभूमि पाठ:"],
       suggestedReferenceOrganizations: ["Suggested reference organizations:", "推荐参考机构：", "参考機関：", "추천 참고 기관:", "Рекомендуемые справочные организации:", "Empfohlene Referenzorganisationen:", "Organisasi rujukan yang disyorkan:", "Organizaciones de referencia sugeridas:", "Προτεινόμενοι φορείς αναφοράς:", "Organizzazioni di riferimento suggerite:", "องค์กรอ้างอิงที่แนะนำ:", "Organisasi rujukan yang disyorkan:", "सुझाए गए संदर्भ संगठन:"],
-      imagesLinkToSource: ["Images link to their source pages.", "图片链接至其来源页面。", "画像は出典ページにリンクしています。", "이미지는 출처 페이지로 연결됩니다.", "Изображения ведут на страницы источников.", "Bilder verlinken auf ihre Quellseiten.", "Imej dipautkan ke halaman sumber.", "Las imágenes enlazan con sus fuentes.", "Οι εικόνες συνδέονται με τις πηγές τους.", "Le immagini rimandano alle fonti.", "รูปภาพเชื่อมโยงไปยังหน้าแหล่งที่มา", "Imej dipautkan ke halaman sumber.", "चित्र स्रोत पृष्ठों से जुड़े हैं।"],
+      imagesLinkToSource: ["Images in Continue exploring open related articles on this site.", "“继续探索”中的图片会在本站打开相关文章。", "「さらに探索」の画像から、このサイトで関連記事を開けます。", "계속 둘러보기 이미지에서 이 사이트의 관련 문서를 열 수 있습니다.", "Изображения в разделе «Продолжить изучение» открывают связанные статьи на этом сайте.", "Bilder unter „Weiter erkunden“ öffnen verwandte Artikel auf dieser Website.", "Imej dalam Teruskan meneroka membuka artikel berkaitan di laman ini.", "Las imágenes de «Sigue explorando» abren artículos relacionados en este sitio.", "Οι εικόνες στην ενότητα «Συνεχίστε την εξερεύνηση» ανοίγουν σχετικά άρθρα σε αυτόν τον ιστότοπο.", "Le immagini in «Continua a esplorare» aprono articoli correlati su questo sito.", "รูปภาพในส่วน “สำรวจต่อ” จะเปิดบทความที่เกี่ยวข้องบนเว็บไซต์นี้", "Imej dalam Teruskan meneroka membuka artikel berkaitan di laman ini.", "“आगे खोजें” में मौजूद चित्र इसी वेबसाइट पर संबंधित लेख खोलते हैं।"],
       imageAndOverview: ["Image & overview:", "图片与概览：", "画像と概要：", "이미지 및 개요:", "Изображение и обзор:", "Bild & Überblick:", "Imej & gambaran keseluruhan:", "Imagen y descripción general:", "Εικόνα και επισκόπηση:", "Immagine e panoramica:", "รูปภาพและภาพรวม:", "Imej & gambaran keseluruhan:", "चित्र और अवलोकन:"],
       imageLabel: ["Image:", "图片：", "画像：", "이미지:", "Изображение:", "Bild:", "Imej:", "Imagen:", "Εικόνα:", "Immagine:", "รูปภาพ:", "Imej:", "चित्र:"],
       communitySubmittedEntry: ["Community-submitted entry", "社区提交的条目", "コミュニティ投稿の記事", "커뮤니티 제출 항목", "Материал от сообщества", "Von der Community eingereichter Eintrag", "Entri yang dihantar komuniti", "Entrada enviada por la comunidad", "Καταχώριση από την κοινότητα", "Voce inviata dalla comunità", "รายการที่ส่งโดยชุมชน", "Entri yang dihantar komuniti", "समुदाय द्वारा भेजी गई प्रविष्टि"],
@@ -2004,6 +2780,114 @@
 
     mountFactualityAgreement("editorFactualityAgreement", "editorFactualityConfirmed");
     mountFactualityAgreement("timelineFactualityAgreement", "timelineFactualityConfirmed");
+
+    function createSiteSelect(select, labelId, valueId, menuId) {
+      const wrapper = select.closest(".site-select");
+      const trigger = document.getElementById(`${select.id}Trigger`);
+      const label = document.getElementById(labelId);
+      const value = document.getElementById(valueId);
+      const menu = document.getElementById(menuId);
+      const optionButtons = [];
+
+      function sync() {
+        value.textContent = select.selectedOptions[0]?.textContent || "";
+        optionButtons.forEach(button => {
+          button.setAttribute("aria-selected", String(button.dataset.value === select.value));
+        });
+      }
+
+      function close(restoreFocus = false) {
+        menu.hidden = true;
+        trigger.setAttribute("aria-expanded", "false");
+        if (restoreFocus) trigger.focus();
+      }
+
+      function open() {
+        menu.hidden = false;
+        trigger.setAttribute("aria-expanded", "true");
+        const selectedOption = optionButtons.find(button => button.dataset.value === select.value);
+        (selectedOption || optionButtons[0])?.focus();
+      }
+
+      function refresh() {
+        menu.replaceChildren();
+        optionButtons.length = 0;
+        [...select.options].forEach((option, index) => {
+          const button = document.createElement("button");
+          button.className = "language-option site-select-option";
+          button.type = "button";
+          button.id = `${menuId}-option-${index}`;
+          button.dataset.value = option.value;
+          button.setAttribute("role", "option");
+          button.setAttribute("aria-selected", String(option.value === select.value));
+          button.tabIndex = -1;
+          button.textContent = option.textContent;
+          button.addEventListener("click", () => {
+            select.value = option.value;
+            select.dispatchEvent(new Event("change", { bubbles: true }));
+            close(true);
+          });
+          optionButtons.push(button);
+          menu.append(button);
+        });
+        sync();
+      }
+
+      trigger.addEventListener("click", () => {
+        if (menu.hidden) open();
+        else close();
+      });
+      trigger.addEventListener("keydown", event => {
+        if (["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) {
+          event.preventDefault();
+          if (menu.hidden) open();
+          else (event.key === "ArrowUp" ? optionButtons[optionButtons.length - 1] : optionButtons[0])?.focus();
+        } else if (event.key === "Escape" && !menu.hidden) {
+          event.preventDefault();
+          event.stopPropagation();
+          close(true);
+        }
+      });
+      menu.addEventListener("keydown", event => {
+        const currentIndex = optionButtons.indexOf(document.activeElement);
+        let nextIndex = currentIndex;
+        if (event.key === "ArrowDown") nextIndex = (currentIndex + 1) % optionButtons.length;
+        else if (event.key === "ArrowUp") nextIndex = (currentIndex - 1 + optionButtons.length) % optionButtons.length;
+        else if (event.key === "Home") nextIndex = 0;
+        else if (event.key === "End") nextIndex = optionButtons.length - 1;
+        else if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          close(true);
+          return;
+        } else return;
+        event.preventDefault();
+        optionButtons[nextIndex]?.focus();
+      });
+      wrapper.addEventListener("focusout", event => {
+        if (!wrapper.contains(event.relatedTarget)) close();
+      });
+      document.addEventListener("pointerdown", event => {
+        if (!wrapper.contains(event.target)) close();
+      });
+      select.addEventListener("change", sync);
+      label.htmlFor = trigger.id;
+      refresh();
+      return { focus: () => trigger.focus(), refresh, sync };
+    }
+
+    const regionPicker = createSiteSelect(
+      regionSelect,
+      "editorContributionRegionLabel",
+      "editorContributionRegionValue",
+      "editorContributionRegionMenu"
+    );
+    const topicPicker = createSiteSelect(
+      topicSelect,
+      "editorContributionTopicLabel",
+      "editorContributionTopicValue",
+      "editorContributionTopicMenu"
+    );
 
     function updateLanguagePicker() {
       const selected = languageOptions.find(([code]) => code === currentLanguage);
@@ -2088,7 +2972,7 @@
     }
 
     function updateThemeToggle() {
-      const isDark = document.documentElement.dataset.theme === "dark";
+      const isDark = getEffectiveTheme() === "dark";
       const labelKey = isDark ? "lightMode" : "darkMode";
       const actionKey = isDark ? "switchToLightMode" : "switchToDarkMode";
       themeToggle.setAttribute("aria-pressed", String(isDark));
@@ -2098,6 +2982,15 @@
       document.getElementById("themeToggleLabel").textContent = t(labelKey);
       document.querySelector('meta[name="theme-color"]').content = isDark ? "#171916" : "#f4f1eb";
     }
+
+    function getEffectiveTheme() {
+      return document.documentElement.dataset.theme
+        || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+
+    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      if (!document.documentElement.dataset.theme) updateThemeToggle();
+    });
 
     function setTheme(theme, persist = true) {
       document.documentElement.dataset.theme = theme;
@@ -2110,7 +3003,7 @@
       }
     }
     themeToggle.addEventListener("click", () => {
-      setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+      setTheme(getEffectiveTheme() === "dark" ? "light" : "dark");
     });
 
     function setLanguage(language) {
@@ -2119,6 +3012,8 @@
       updateLanguagePicker();
       document.documentElement.lang = language === "zh" ? "zh-CN" : language;
       translateUI();
+      regionPicker.refresh();
+      topicPicker.refresh();
       updateThemeToggle();
       const sidebarLabel = t(sidebarToggle.getAttribute("aria-expanded") === "true" ? "hideChapters" : "showChapters");
       sidebarToggle.setAttribute("aria-label", sidebarLabel);
@@ -2127,6 +3022,8 @@
       renderUpdates();
       renderNav();
       renderEvent();
+      if (homeSearchInput.value.trim()) queueWikipediaSearch("home", homeSearchInput, renderHomeSearch);
+      if (sidebarSearchInput.value.trim()) queueWikipediaSearch("sidebar", sidebarSearchInput, renderNav);
       try {
         localStorage.setItem(storageKeys.language, language);
       } catch (error) {
@@ -2145,6 +3042,10 @@
     updateThemeToggle();
 
     const eventList = document.getElementById("eventList");
+    const homeSearchForm = document.getElementById("homeSearchForm");
+    const homeSearchInput = document.getElementById("homeSearchInput");
+    const homeSearchResults = document.getElementById("homeSearchResults");
+    const homeRecommendations = document.getElementById("homeRecommendations");
     const hero = document.getElementById("hero");
     const heroCredit = document.getElementById("heroCredit");
     const editorButton = document.getElementById("editorButton");
@@ -2152,11 +3053,17 @@
     const addTimelineButton = document.getElementById("addTimelineButton");
     const deleteEventButton = document.getElementById("deleteEventButton");
     const heroImageLayers = [...document.querySelectorAll(".hero-image-layer")];
+    const wikipediaPortrait = document.getElementById("wikipediaPortrait");
+    const wikipediaPortraitImage = document.getElementById("wikipediaPortraitImage");
     const sidebarToggle = document.getElementById("sidebarToggle");
+    const sidebarSearchPopup = document.getElementById("sidebarSearchPopup");
+    const sidebarSearchToggle = document.getElementById("sidebarSearchToggle");
+    const sidebarSearchForm = document.getElementById("sidebarSearchForm");
+    const sidebarSearchInput = document.getElementById("sidebarSearchInput");
+    const sidebarSearchClose = document.getElementById("sidebarSearchClose");
     const pageLayout = document.querySelector(".page-layout");
     const mainContent = document.querySelector("main");
     const aboutLink = document.getElementById("aboutLink");
-    const exploreLink = document.getElementById("exploreLink");
     const teamMembers = document.getElementById("teamMembers");
     const teamMemberCards = [...teamMembers.querySelectorAll(".team-member")];
     let teamScrollFrame = 0;
@@ -2186,11 +3093,13 @@
           closestDistance = distance;
         }
       }
-      for (const member of teamMemberCards) {
-        const isActive = member === closestMember;
-        if (member.classList.contains("is-active") === isActive) continue;
-        member.classList.toggle("is-active", isActive);
-      }
+      const activeIndex = teamMemberCards.indexOf(closestMember);
+      teamMemberCards.forEach((member, index) => {
+        const distance = Math.abs(index - activeIndex);
+        member.classList.toggle("is-active", distance === 0);
+        member.classList.toggle("is-adjacent", distance === 1);
+        member.classList.toggle("is-far", distance > 1);
+      });
     }
 
     teamMembers.addEventListener("scroll", () => {
@@ -2203,6 +3112,10 @@
     function showAbout(show) {
       if (pageLayout.classList.contains("account-active")) closeAccountScreen(false);
       mainContent.classList.toggle("about-active", show);
+      if (show) {
+        mainContent.classList.remove("home-active");
+        document.body.classList.remove("home-screen");
+      }
       document.getElementById("about-view").hidden = !show;
       if (show) {
         aboutLink.setAttribute("aria-current", "page");
@@ -2214,23 +3127,106 @@
       }
     }
 
+    function showHome(show) {
+      if (show) {
+        showAbout(false);
+        setSidebarExpanded(false);
+        resetSidebarSearch();
+      }
+      mainContent.classList.toggle("home-active", show);
+      document.body.classList.toggle("home-screen", show);
+    }
+
+    function animateAtlasEntrance() {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      window.clearTimeout(atlasEnterTimer);
+      const topbar = document.querySelector(".topbar");
+      pageLayout.classList.remove("atlas-entering");
+      topbar.classList.remove("atlas-entering");
+      void pageLayout.offsetWidth;
+      pageLayout.classList.add("atlas-entering");
+      topbar.classList.add("atlas-entering");
+      atlasEnterTimer = window.setTimeout(() => {
+        pageLayout.classList.remove("atlas-entering");
+        topbar.classList.remove("atlas-entering");
+        atlasEnterTimer = null;
+      }, 420);
+    }
+
     aboutLink.addEventListener("click", event => {
       event.preventDefault();
       closeAccountScreen(false);
       showAbout(true);
       history.replaceState(null, "", "#about");
     });
-    exploreLink.addEventListener("click", () => showAbout(false));
-    document.querySelector(".brand").addEventListener("click", () => showAbout(false));
+    document.querySelector(".brand").addEventListener("click", event => {
+      event.preventDefault();
+      const wasHome = mainContent.classList.contains("home-active");
+      showHome(true);
+      history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+      if (!wasHome) animateAtlasEntrance();
+    });
     if (window.location.hash === "#about") showAbout(true);
+    else if (window.location.hash === "#event-detail") showHome(false);
 
-    sidebarToggle.addEventListener("click", () => {
-      const isExpanded = sidebarToggle.getAttribute("aria-expanded") === "true";
-      pageLayout.classList.toggle("sidebar-collapsed", isExpanded);
-      sidebarToggle.setAttribute("aria-expanded", String(!isExpanded));
-      const label = t(isExpanded ? "showChapters" : "hideChapters");
+    function setSidebarExpanded(expanded) {
+      pageLayout.classList.toggle("sidebar-collapsed", !expanded);
+      sidebarToggle.setAttribute("aria-expanded", String(expanded));
+      const label = t(expanded ? "hideChapters" : "showChapters");
       sidebarToggle.setAttribute("aria-label", label);
       sidebarToggle.title = label;
+    }
+
+    function resetSidebarSearch() {
+      sidebarSearchInput.value = "";
+      sidebarSearchForm.hidden = true;
+      sidebarSearchPopup.classList.remove("is-open");
+      sidebarSearchToggle.setAttribute("aria-expanded", "false");
+      const state = wikipediaSearchState.sidebar;
+      clearTimeout(state.timer);
+      state.requestId += 1;
+      state.query = "";
+      state.results = [];
+      state.status = "";
+    }
+
+    sidebarToggle.addEventListener("click", () => {
+      setSidebarExpanded(sidebarToggle.getAttribute("aria-expanded") !== "true");
+    });
+    sidebarSearchToggle.addEventListener("click", () => {
+      if (!sidebarSearchForm.hidden) {
+        resetSidebarSearch();
+        renderNav();
+        return;
+      }
+      sidebarSearchForm.hidden = false;
+      sidebarSearchPopup.classList.add("is-open");
+      sidebarSearchToggle.setAttribute("aria-expanded", "true");
+      sidebarSearchInput.focus();
+    });
+    sidebarSearchInput.addEventListener("input", () => {
+      renderNav();
+      queueWikipediaSearch("sidebar", sidebarSearchInput, renderNav);
+    });
+    sidebarSearchForm.addEventListener("submit", event => event.preventDefault());
+    sidebarSearchClose.addEventListener("click", () => {
+      resetSidebarSearch();
+      renderNav();
+      sidebarSearchToggle.focus();
+    });
+    sidebarSearchInput.addEventListener("keydown", event => {
+      if (event.key !== "Escape") return;
+      event.preventDefault();
+      resetSidebarSearch();
+      renderNav();
+      sidebarSearchToggle.focus();
+    });
+    document.addEventListener("click", event => {
+      if (sidebarSearchForm.hidden
+        || sidebarSearchPopup.contains(event.target)) return;
+      sidebarSearchForm.hidden = true;
+      sidebarSearchPopup.classList.remove("is-open");
+      sidebarSearchToggle.setAttribute("aria-expanded", "false");
     });
 
     function readJson(key, fallback) {
@@ -2362,8 +3358,9 @@
       document.getElementById("signupButton").hidden = Boolean(email);
       editorButton.hidden = !email;
       document.getElementById("headerLogoutButton").hidden = !email;
-      editInfoButton.hidden = !email || (!selectedContribution && !selectedEvent);
-      deleteEventButton.hidden = !email || (!selectedContribution && !selectedEvent);
+      const editableEvent = selectedEvent && !selectedEvent.wikipediaPage;
+      editInfoButton.hidden = !email || (!selectedContribution && !editableEvent);
+      deleteEventButton.hidden = !email || (!selectedContribution && !editableEvent);
       updateTimelineControls();
       editorButton.textContent = t("editAtlas");
     }
@@ -2374,44 +3371,430 @@
       document.getElementById("timelineHeading").hidden =
         !hasMoments && (!currentUser() || (!selectedContribution && !selectedEvent));
       timeline.hidden = !hasMoments;
-      addTimelineButton.hidden = !currentUser() || !selectedEvent;
-      editInfoButton.hidden = !currentUser() || (!selectedContribution && !selectedEvent);
-      deleteEventButton.hidden = !currentUser() || (!selectedContribution && !selectedEvent);
+      const editableEvent = selectedEvent && !selectedEvent.wikipediaPage;
+      addTimelineButton.hidden = !currentUser() || !editableEvent;
+      editInfoButton.hidden = !currentUser() || (!selectedContribution && !editableEvent);
+      deleteEventButton.hidden = !currentUser() || (!selectedContribution && !editableEvent);
     }
 
-    function renderNav() {
+    function renderHome() {
+      const available = availableEvents();
+      const impactfulEvent = available.find(event => event.id === "world-war-two")
+        || available.find(event => event.id === "french-revolution")
+        || available[0];
+      const recentEvent = available
+        .filter(event => event !== impactfulEvent)
+        .sort((first, second) => incidentYear(getEventDetails(second).dates) - incidentYear(getEventDetails(first).dates))[0];
+      const recommendations = [
+        impactfulEvent && { event: impactfulEvent, label: "mostImpactful" },
+        recentEvent && { event: recentEvent, label: "mostRecent" }
+      ].filter(Boolean);
+      homeRecommendations.innerHTML = recommendations.map(recommendation => {
+        const { event } = recommendation;
+        const details = getEventDetails(event);
+        return `<button class="home-recommendation" type="button" data-event-id="${escapeHtml(event.id)}" aria-label="${escapeHtml(t("openPage"))} ${escapeHtml(details.name)}">
+          <span class="eyebrow">${escapeHtml(t(recommendation.label))}</span>
+          <span class="home-recommendation-title">${escapeHtml(details.name)}</span>
+          <span class="home-recommendation-dates">${escapeHtml(details.category)} · ${escapeHtml(details.dates)}</span>
+          <span class="home-recommendation-summary">${escapeHtml(details.summary)}</span>
+          <span class="home-recommendation-action">${escapeHtml(t("openPage"))} <span aria-hidden="true">→</span></span>
+        </button>`;
+      }).join("");
+      homeRecommendations.querySelectorAll(".home-recommendation").forEach(button => {
+        button.addEventListener("click", () => selectEvent(button.dataset.eventId));
+      });
+    }
+
+    function wikipediaApiUrl(language = currentLanguage) {
+      return `https://${language}.wikipedia.org/w/api.php`;
+    }
+
+    function wikipediaPageUrl(page) {
+      return `https://${page.language}.wikipedia.org/wiki/${encodeURIComponent(page.key)}`;
+    }
+
+    function registerWikipediaPage(key, language = "en") {
+      const normalizedKey = String(key).replaceAll(" ", "_");
+      const id = `${language}:related:${encodeURIComponent(normalizedKey)}`;
+      const page = wikipediaPages.get(id) || {
+        id,
+        key: normalizedKey,
+        title: normalizedKey.replaceAll("_", " "),
+        description: "",
+        language
+      };
+      wikipediaPages.set(id, page);
+      if (wikipediaPages.size > 50) wikipediaPages.delete(wikipediaPages.keys().next().value);
+      return page;
+    }
+
+    async function findHistoricalWikidataTypes(itemIds) {
+      const validIds = [...new Set(itemIds.filter(id => /^Q\d+$/.test(id)))];
+      const uncachedIds = validIds.filter(id => !wikipediaEventTypeCache.has(id));
+      const eventTypeIds = ["Q1190554", "Q13418847", "Q350604", "Q11514315", "Q3839081", "Q645883"];
+      for (let offset = 0; offset < uncachedIds.length; offset += 100) {
+        const batch = uncachedIds.slice(offset, offset + 100);
+        const itemValues = batch.map(id => `wd:${id}`).join(" ");
+        const eventTypeValues = eventTypeIds.map(id => `wd:${id}`).join(" ");
+        const query = `SELECT DISTINCT ?item ?eventType WHERE {
+          VALUES ?item { ${itemValues} }
+          VALUES ?eventType { ${eventTypeValues} }
+          ?item wdt:P31/wdt:P279* ?eventType .
+          FILTER EXISTS {
+            ?item (wdt:P585|wdt:P580|wdt:P582) ?date .
+            FILTER(?date < NOW())
+          }
+        }`;
+        const wikidataUrl = new URL("https://query.wikidata.org/sparql");
+        wikidataUrl.searchParams.set("query", query);
+        wikidataUrl.searchParams.set("format", "json");
+        const response = await fetch(wikidataUrl, {
+          headers: { Accept: "application/sparql-results+json" }
+        });
+        if (!response.ok) throw new Error(`Historical relevance lookup failed: ${response.status}`);
+        const result = await response.json();
+        if (!Array.isArray(result.results?.bindings)) {
+          throw new Error("Wikidata returned an invalid historical relevance response.");
+        }
+        const typesByItem = new Map(batch.map(id => [id, new Set()]));
+        result.results.bindings.forEach(binding => {
+          const itemId = binding.item.value.split("/").pop();
+          const eventTypeId = binding.eventType.value.split("/").pop();
+          typesByItem.get(itemId)?.add(eventTypeId);
+        });
+        typesByItem.forEach((types, id) => {
+          wikipediaEventTypeCache.set(id, types);
+          if (wikipediaEventTypeCache.size > 1000) {
+            wikipediaEventTypeCache.delete(wikipediaEventTypeCache.keys().next().value);
+          }
+        });
+      }
+      return new Map(validIds.map(id => [id, wikipediaEventTypeCache.get(id) || new Set()]));
+    }
+
+    function isPastWikidataTime(value) {
+      const match = String(value || "").match(/^([+-])(\d{4,6})-(\d{2})-(\d{2})/);
+      if (!match) return false;
+      if (match[1] === "-") return true;
+      const [, , yearText, monthText, dayText] = match;
+      const [year, month, day] = [yearText, monthText, dayText].map(Number);
+      const now = new Date();
+      return year < now.getUTCFullYear()
+        || (year === now.getUTCFullYear() && month < now.getUTCMonth() + 1)
+        || (year === now.getUTCFullYear() && month === now.getUTCMonth() + 1 && day < now.getUTCDate());
+    }
+
+    async function searchWikipedia(query) {
+      const language = currentLanguage;
+      const url = `https://${language}.wikipedia.org/w/rest.php/v1/search/page?q=${encodeURIComponent(query)}&limit=5`;
+      const response = await fetch(url, { headers: { Accept: "application/json" } });
+      if (!response.ok) throw new Error(`Wikipedia search failed: ${response.status}`);
+      const result = await response.json();
+      if (!Array.isArray(result.pages)) throw new Error("Wikipedia search returned an invalid response.");
+      const candidates = result.pages;
+      if (!candidates.length) return { pages: [], hasExcludedResults: false };
+
+      const pageIds = candidates.map(page => {
+        if (!Number.isInteger(Number(page.id))) {
+          throw new Error("Wikipedia search returned a page without a valid ID.");
+        }
+        return String(page.id);
+      });
+      const pagePropertiesParameters = new URLSearchParams({
+        action: "query",
+        pageids: pageIds.join("|"),
+        prop: "pageprops",
+        ppprop: "wikibase_item",
+        format: "json",
+        origin: "*"
+      });
+      const pagePropertiesResponse = await fetch(`${wikipediaApiUrl(language)}?${pagePropertiesParameters}`);
+      if (!pagePropertiesResponse.ok) {
+        throw new Error(`Wikipedia page metadata request failed: ${pagePropertiesResponse.status}`);
+      }
+      const pagePropertiesResult = await pagePropertiesResponse.json();
+      if (!pagePropertiesResult.query?.pages) {
+        throw new Error("Wikipedia returned no page metadata for the search results.");
+      }
+      const wikidataByPageId = new Map(
+        Object.values(pagePropertiesResult.query.pages)
+          .filter(page => typeof page.pageprops?.wikibase_item === "string")
+          .map(page => [String(page.pageid), page.pageprops.wikibase_item])
+      );
+      const candidateIds = [...new Set(pageIds
+        .map(pageId => wikidataByPageId.get(pageId))
+        .filter(id => /^Q\d+$/.test(id || "")))];
+      if (!candidateIds.length) return { pages: [], hasExcludedResults: true };
+
+      const entitiesUrl = new URL("https://www.wikidata.org/w/api.php");
+      entitiesUrl.search = new URLSearchParams({
+        action: "wbgetentities",
+        ids: candidateIds.join("|"),
+        props: "claims",
+        format: "json",
+        origin: "*"
+      });
+      const entitiesResponse = await fetch(entitiesUrl);
+      if (!entitiesResponse.ok) {
+        throw new Error(`Wikidata entity lookup failed: ${entitiesResponse.status}`);
+      }
+      const entitiesResult = await entitiesResponse.json();
+      if (!entitiesResult.entities) throw new Error("Wikidata returned no entity data for the search results.");
+
+      const relatedIdsByCandidate = new Map();
+      const historyItemIds = new Set(candidateIds);
+      for (const id of candidateIds) {
+        const claims = entitiesResult.entities[id]?.claims || {};
+        const relatedIds = [];
+        for (const propertyId of ["P793", "P1344", "P607"]) {
+          for (const claim of claims[propertyId] || []) {
+            const relatedId = claim.mainsnak?.datavalue?.value?.id;
+            if (/^Q\d+$/.test(relatedId || "") && !relatedIds.includes(relatedId)) {
+              relatedIds.push(relatedId);
+            }
+            if (relatedIds.length >= 20) break;
+          }
+          if (relatedIds.length >= 20) break;
+        }
+        relatedIdsByCandidate.set(id, relatedIds);
+        relatedIds.forEach(relatedId => historyItemIds.add(relatedId));
+      }
+
+      const historicalTypesById = await findHistoricalWikidataTypes([...historyItemIds]);
+      const historyRelatedTypeIds = new Set(["Q13418847", "Q350604", "Q11514315", "Q3839081", "Q645883"]);
+      const hasHistoryRelatedType = types =>
+        [...types].some(typeId => historyRelatedTypeIds.has(typeId));
+      const candidateQidByPageId = new Map(pageIds.map(pageId => [
+        pageId,
+        wikidataByPageId.get(pageId)
+      ]));
+      const historicalPersonPageIds = new Set();
+      const historicalPages = candidates.filter(page => {
+        const id = candidateQidByPageId.get(String(page.id));
+        if (!id) return false;
+        const entity = entitiesResult.entities[id];
+        if (!entity) return false;
+        const claims = entity.claims || {};
+        const isHistoricalEvent = historicalTypesById.get(id)?.size > 0;
+        const isHistoricalPerson = (claims.P31 || []).some(claim =>
+          claim.mainsnak?.datavalue?.value?.id === "Q5"
+        ) && (claims.P570 || []).some(claim =>
+          isPastWikidataTime(claim.mainsnak?.datavalue?.value?.time)
+        );
+        if (isHistoricalPerson) historicalPersonPageIds.add(String(page.id));
+        const isHistoryRelated = (relatedIdsByCandidate.get(id) || []).some(relatedId =>
+          hasHistoryRelatedType(historicalTypesById.get(relatedId) || new Set())
+        );
+        return isHistoricalEvent || isHistoricalPerson || isHistoryRelated;
+      });
+      const pages = historicalPages.map(page => {
+        const entry = {
+          id: `${language}:${page.id}`,
+          key: page.key,
+          title: page.title,
+          description: page.description || "",
+          isHistoricalPerson: historicalPersonPageIds.has(String(page.id)),
+          language
+        };
+        wikipediaPages.set(entry.id, entry);
+        if (wikipediaPages.size > 50) wikipediaPages.delete(wikipediaPages.keys().next().value);
+        return entry;
+      });
+      return { pages, hasExcludedResults: pages.length < candidates.length };
+    }
+
+    function queueWikipediaSearch(target, input, render) {
+      const state = wikipediaSearchState[target];
+      const query = input.value.trim();
+      const requestId = ++state.requestId;
+      clearTimeout(state.timer);
+      state.query = query;
+      state.results = [];
+      state.status = "";
+      if (query.length < 2) {
+        render();
+        return;
+      }
+      state.status = t("wikipediaSearching");
+      render();
+      state.timer = setTimeout(async () => {
+        try {
+          const searchResult = await searchWikipedia(query);
+          if (requestId !== state.requestId || query !== input.value.trim()) return;
+          state.results = searchResult.pages;
+          state.status = searchResult.hasExcludedResults ? t("wikipediaHistoryOnlyNotice") : "";
+        } catch (error) {
+          if (requestId !== state.requestId || query !== input.value.trim()) return;
+          console.error("Could not search Wikipedia for this query.", error);
+          state.status = t("wikipediaSearchUnavailable");
+        }
+        render();
+      }, 300);
+    }
+
+    function renderHomeSearch() {
+      const queryText = homeSearchInput.value.trim();
+      const query = queryText.toLocaleLowerCase();
+      if (!query) {
+        homeSearchResults.hidden = true;
+        homeSearchResults.replaceChildren();
+        return [];
+      }
+      const eventMatches = availableEvents().flatMap(event => {
+        const details = getEventDetails(event);
+        const facts = Array.isArray(details.facts) ? details.facts.flat().join(" ") : "";
+        const moments = Array.isArray(details.moments) ? details.moments.flat().join(" ") : "";
+        const searchableText = `${details.name} ${details.dates} ${details.category} ${details.summary || ""} ${facts} ${moments}`.toLocaleLowerCase();
+        return searchableText.includes(query)
+          ? [{ type: "event", id: event.id, title: details.name, meta: `${details.dates} · ${details.category}` }]
+          : [];
+      });
+      const pageMatches = collectInformationPages(readJson(storageKeys.contributions, {})).flatMap(page => {
+        const title = String(page.title || "");
+        const date = String(page.date || "");
+        const category = String(page.category || "");
+        const searchableText = `${title} ${date} ${category} ${page.summary || ""} ${page.description || ""} ${page.content || ""}`.toLocaleLowerCase();
+        return searchableText.includes(query)
+          ? [{ type: "page", id: page.id, title, meta: `${date}${category ? ` · ${category}` : ""}` }]
+          : [];
+      });
+      const localTitles = new Set([...eventMatches, ...pageMatches].map(match => match.title.toLocaleLowerCase()));
+      const wikiState = wikipediaSearchState.home;
+      const wikiMatches = wikiState.query === queryText
+        ? wikiState.results
+            .filter(page => !localTitles.has(page.title.toLocaleLowerCase()))
+            .map(page => ({
+              type: "wikipedia",
+              id: page.id,
+              title: page.title,
+              meta: `${t("wikipediaLabel")}${page.description ? ` · ${page.description}` : ""}`
+            }))
+        : [];
+      const matches = [...eventMatches, ...pageMatches, ...wikiMatches];
+      homeSearchResults.hidden = false;
+      const status = wikiState.query === queryText && wikiState.status
+        ? `<p class="home-search-empty" role="status">${escapeHtml(wikiState.status)}</p>`
+        : "";
+      homeSearchResults.innerHTML = `${matches.length
+        ? matches.map((match, index) => `<button class="home-search-result" type="button" data-search-type="${match.type}" data-search-id="${escapeHtml(match.id)}">
+            <span><strong>${escapeHtml(match.title)}</strong><small>${escapeHtml(match.meta)}</small></span>
+            <span class="event-index">${String(index + 1).padStart(2, "0")}</span>
+          </button>`).join("")
+        : wikiState.query !== queryText || !wikiState.status
+          ? `<p class="home-search-empty">${escapeHtml(t("noSearchResults"))}</p>`
+          : ""}${status}`;
+      homeSearchResults.querySelectorAll(".home-search-result").forEach(button => {
+        button.addEventListener("click", () => {
+          if (button.dataset.searchType === "page") selectContribution(button.dataset.searchId);
+          else if (button.dataset.searchType === "wikipedia") selectWikipediaPage(button.dataset.searchId);
+          else selectEvent(button.dataset.searchId);
+        });
+      });
+      return matches;
+    }
+
+    homeSearchInput.addEventListener("input", () => {
+      renderHomeSearch();
+      queueWikipediaSearch("home", homeSearchInput, renderHomeSearch);
+    });
+    homeSearchForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      let matches = renderHomeSearch();
+      const query = homeSearchInput.value.trim();
+      if (!matches.length && query.length >= 2) {
+        const state = wikipediaSearchState.home;
+        const requestId = ++state.requestId;
+        clearTimeout(state.timer);
+        state.query = query;
+        state.status = t("wikipediaSearching");
+        renderHomeSearch();
+        try {
+          const searchResult = await searchWikipedia(query);
+          if (requestId !== state.requestId || query !== homeSearchInput.value.trim()) return;
+          state.results = searchResult.pages;
+          state.status = searchResult.hasExcludedResults ? t("wikipediaHistoryOnlyNotice") : "";
+        } catch (error) {
+          if (requestId !== state.requestId || query !== homeSearchInput.value.trim()) return;
+          console.error("Could not search Wikipedia for this query.", error);
+          state.status = t("wikipediaSearchUnavailable");
+        }
+        matches = renderHomeSearch();
+      }
+      const firstMatch = matches[0];
+      if (!firstMatch) return;
+      if (firstMatch.type === "page") selectContribution(firstMatch.id);
+      else if (firstMatch.type === "wikipedia") selectWikipediaPage(firstMatch.id);
+      else selectEvent(firstMatch.id);
+    });
+
+    function renderNav(animateSelection = false) {
       const contributions = readJson(storageKeys.contributions, {});
       const informationPages = collectInformationPages(contributions);
-      const navigationItems = availableEvents().map(event => ({
-        year: incidentYear(getEventDetails(event).dates),
-        name: getEventDetails(event).name,
-        eventId: event.id,
-        type: "event"
-      }));
+      const navigationItems = availableEvents().map(event => {
+        const details = getEventDetails(event);
+        return {
+          year: incidentYear(details.dates),
+          name: details.name,
+          searchText: `${details.dates || ""} ${details.category || ""} ${details.summary || ""}`,
+          eventId: event.id,
+          type: "event"
+        };
+      });
       informationPages.forEach(page => navigationItems.push({
         year: incidentYear(page.date),
         name: page.title,
+        searchText: `${page.date || ""} ${page.category || ""} ${page.summary || ""} ${page.description || ""} ${page.content || ""}`,
         pageId: page.id,
         type: "contribution"
       }));
+      const sidebarQuery = sidebarSearchInput.value.trim();
+      const localTitles = new Set(navigationItems.map(item => item.name.toLocaleLowerCase()));
+      const sidebarWikiState = wikipediaSearchState.sidebar;
+      if (sidebarWikiState.query === sidebarQuery) {
+        sidebarWikiState.results
+          .filter(page => !localTitles.has(page.title.toLocaleLowerCase()))
+          .forEach(page => navigationItems.push({
+            year: Number.POSITIVE_INFINITY,
+            name: page.title,
+            searchText: `${sidebarQuery} ${page.description || ""} ${t("wikipediaLabel")}`,
+            wikipediaId: page.id,
+            type: "wikipedia"
+          }));
+      }
       navigationItems.sort((first, second) => first.year - second.year);
-      eventList.innerHTML = navigationItems.map((item, index) => {
-        const isSelected = item.type === "event"
-          ? item.eventId === selectedEvent.id && !selectedContribution
-          : selectedContribution?.id === item.pageId;
-        const itemClass = item.type !== "event" ? " contribution-nav" : "";
-        const itemData = item.type === "contribution"
-          ? ` data-page-id="${escapeHtml(item.pageId)}"`
+      const query = sidebarQuery.toLocaleLowerCase();
+      const visibleItems = query
+        ? navigationItems.filter(item => `${item.name} ${item.searchText}`.toLocaleLowerCase().includes(query))
+        : navigationItems;
+      const sidebarStatus = sidebarWikiState.query === sidebarQuery ? sidebarWikiState.status : "";
+      eventList.innerHTML = `${visibleItems.length
+        ? visibleItems.map((item, index) => {
+          const isSelected = item.type === "event"
+            ? item.eventId === selectedEvent.id && !selectedContribution
+            : selectedContribution?.id === item.pageId;
+          const itemClass = item.type !== "event" ? " contribution-nav" : "";
+          const itemData = item.type === "contribution"
+            ? ` data-page-id="${escapeHtml(item.pageId)}"`
             : "";
-        const eventData = item.type === "event" ? ` data-event="${item.eventId}"` : "";
-        const label = item.type === "contribution"
-          ? `${t("openIndependentPage")} ${item.name}`
-          : `${t("openPage")} ${item.name}`;
-        return `<button type="button" class="event-nav${itemClass}"${eventData}${itemData} aria-current="${isSelected}" aria-label="${escapeHtml(label)}"><span class="event-index">${String(index + 1).padStart(2, "0")}</span><span>${escapeHtml(item.name)}</span></button>`;
-      }).join("");
+          const eventData = item.type === "event" ? ` data-event="${item.eventId}"` : "";
+          const wikipediaData = item.type === "wikipedia" ? ` data-wikipedia-id="${escapeHtml(item.wikipediaId)}"` : "";
+          const label = item.type === "contribution"
+            ? `${t("openIndependentPage")} ${item.name}`
+            : `${t("openPage")} ${item.name}`;
+          const wikiClass = item.type === "wikipedia" ? " wikipedia-nav" : "";
+          return `<button type="button" class="event-nav${itemClass}${wikiClass}"${eventData}${itemData}${wikipediaData} aria-current="${isSelected}" aria-label="${escapeHtml(label)}"><span class="event-index">${String(index + 1).padStart(2, "0")}</span><span>${escapeHtml(item.name)}</span></button>`;
+        }).join("")
+        : `<p class="sidebar-search-empty" role="status">${escapeHtml(sidebarStatus || t("noSearchResults"))}</p>`}${visibleItems.length && sidebarStatus
+          ? `<p class="sidebar-search-empty" role="status">${escapeHtml(sidebarStatus)}</p>`
+          : ""}`;
+      if (animateSelection) {
+        eventList.querySelector('.event-nav[aria-current="true"]')?.classList.add("chapter-selection-entering");
+      }
       eventList.querySelectorAll(".event-nav").forEach(button => {
         button.addEventListener("click", () => {
-          if (button.classList.contains("contribution-nav")) {
+          if (button.dataset.wikipediaId) {
+            selectWikipediaPage(button.dataset.wikipediaId);
+          } else if (button.classList.contains("contribution-nav")) {
             if (button.dataset.pageId) selectContribution(button.dataset.pageId);
             else selectEvent(button.dataset.event);
           } else {
@@ -2419,15 +3802,61 @@
           }
         });
       });
+      renderHome();
     }
 
     function selectEvent(id) {
+      resetSidebarSearch();
+      setSidebarExpanded(false);
+      const openingFromHome = mainContent.classList.contains("home-active");
       showAbout(false);
+      showHome(false);
       selectedEvent = availableEvents().find(event => event.id === id) || availableEvents()[0] || null;
       selectedContribution = null;
-      renderNav();
-      renderEvent();
+      renderNav(true);
+      renderEvent(true);
+      if (openingFromHome) scrollToEventDetails();
     }
+
+    async function selectWikipediaPage(pageId) {
+      const page = wikipediaPages.get(pageId);
+      if (!page) {
+        console.error(`Could not find Wikipedia search result ${pageId}.`);
+        return;
+      }
+      resetSidebarSearch();
+      setSidebarExpanded(false);
+      const openingFromHome = mainContent.classList.contains("home-active");
+      showAbout(false);
+      showHome(false);
+      selectedEvent = {
+        id: `wikipedia-${pageId.replace(":", "-")}`,
+        name: page.title,
+        dates: "",
+        category: page.description || t("wikipediaLabel"),
+        page: page.key,
+        related: [],
+        summary: page.description || "",
+        facts: [],
+        moments: [],
+        source: "",
+        wikipediaPage: page
+      };
+      selectedContribution = null;
+      renderNav(true);
+      const rendering = renderEvent(true);
+      if (openingFromHome) scrollToEventDetails();
+      await rendering;
+    }
+
+    mainContent.addEventListener("click", clickEvent => {
+      const target = clickEvent.target instanceof Element
+        ? clickEvent.target.closest("[data-wikipedia-page-id]")
+        : null;
+      if (!target) return;
+      clickEvent.preventDefault();
+      selectWikipediaPage(target.dataset.wikipediaPageId);
+    });
 
     function collectInformationPages(contributions) {
       const pages = Array.isArray(contributions.informationPages)
@@ -2448,7 +3877,11 @@
     }
 
     function selectContribution(pageId) {
+      resetSidebarSearch();
+      setSidebarExpanded(false);
+      const openingFromHome = mainContent.classList.contains("home-active");
       showAbout(false);
+      showHome(false);
       const all = readJson(storageKeys.contributions, {});
       const pages = collectInformationPages(all);
       const index = pages.findIndex(page => page.id === pageId);
@@ -2462,8 +3895,14 @@
       }
       selectedContribution = { entry, id: pageId, index };
       if (!selectedEvent) selectedEvent = events[0];
-      renderNav();
-      renderEvent();
+      renderNav(true);
+      renderEvent(true);
+      if (openingFromHome) scrollToEventDetails();
+    }
+
+    function scrollToEventDetails() {
+      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      document.getElementById("event-detail").scrollIntoView({ behavior, block: "start" });
     }
 
     function availableEvents() {
@@ -2472,8 +3911,100 @@
       return events.filter(event => !deletedIds.has(event.id));
     }
 
-    function wikiUrl(page) {
-      return `https://en.wikipedia.org/wiki/${page}`;
+    function wikiUrl(page, language = "en") {
+      return `https://${language}.wikipedia.org/wiki/${encodeURIComponent(page)}`;
+    }
+
+    async function loadWikipediaSummary(page) {
+      if (wikipediaSummaryCache.has(page.id)) {
+        const cached = wikipediaSummaryCache.get(page.id);
+        wikipediaSummaryCache.delete(page.id);
+        wikipediaSummaryCache.set(page.id, cached);
+        return cached;
+      }
+      const parameters = new URLSearchParams({
+        action: "parse",
+        page: page.key,
+        prop: "text",
+        section: "0",
+        format: "json",
+        origin: "*",
+        redirects: "1"
+      });
+      const response = await fetch(`${wikipediaApiUrl(page.language)}?${parameters}`);
+      if (!response.ok) throw new Error(`Wikipedia summary request failed: ${response.status}`);
+      const result = await response.json();
+      const parsedPage = result.parse;
+      if (!parsedPage || typeof parsedPage.text?.["*"] !== "string") {
+        throw new Error(`Wikipedia returned no summary for ${page.title}.`);
+      }
+      const title = parsedPage.title || page.title;
+      const canonicalPage = { ...page, key: title.replaceAll(" ", "_") };
+      const historyUrl = new URL("w/index.php", `https://${page.language}.wikipedia.org/`);
+      historyUrl.searchParams.set("title", title);
+      historyUrl.searchParams.set("action", "history");
+      const loaded = {
+        title,
+        html: parsedPage.text["*"],
+        url: wikipediaPageUrl(canonicalPage),
+        historyUrl: historyUrl.href
+      };
+      wikipediaSummaryCache.set(page.id, loaded);
+      if (wikipediaSummaryCache.size > 5) wikipediaSummaryCache.delete(wikipediaSummaryCache.keys().next().value);
+      return loaded;
+    }
+
+    function extractWikipediaMoments(extract) {
+      const text = extract.replace(/\[\d+\]/g, "").replace(/\s+/g, " ").trim();
+      const sentences = text.match(/[^.!?]+(?:[.!?]+|$)/g) || [];
+      const momentsByYear = new Map();
+      const currentYear = new Date().getFullYear();
+      sentences.forEach(sentence => {
+        const description = sentence.trim();
+        if (description.length < 35 || description.length > 420) return;
+        const dateMatch = description.match(/\b(?:\d{3,4}(?:\s*(?:BCE|BC|CE|AD))?|\d{1,3}\s*(?:BCE|BC))\b/i);
+        if (!dateMatch) return;
+        const date = dateMatch[0].replace(/\s+/g, " ");
+        const numericYear = Number(date.match(/\d+/)?.[0]);
+        const year = /BCE|BC/i.test(date) ? -numericYear : numericYear;
+        if (year > currentYear || momentsByYear.has(year)) return;
+        momentsByYear.set(year, { date, description });
+      });
+      return [...momentsByYear.entries()]
+        .sort(([firstYear], [secondYear]) => firstYear - secondYear)
+        .slice(0, 8)
+        .map(([, moment]) => moment);
+    }
+
+    async function loadWikipediaMoments(page) {
+      if (wikipediaTimelineCache.has(page.id)) {
+        const cached = wikipediaTimelineCache.get(page.id);
+        wikipediaTimelineCache.delete(page.id);
+        wikipediaTimelineCache.set(page.id, cached);
+        return cached;
+      }
+      const parameters = new URLSearchParams({
+        action: "query",
+        prop: "extracts",
+        titles: page.key,
+        explaintext: "1",
+        exchars: "20000",
+        format: "json",
+        origin: "*"
+      });
+      const response = await fetch(`${wikipediaApiUrl(page.language)}?${parameters}`);
+      if (!response.ok) throw new Error(`Wikipedia timeline request failed: ${response.status}`);
+      const result = await response.json();
+      const article = Object.values(result.query?.pages || {})[0];
+      if (typeof article?.extract !== "string") {
+        throw new Error(`Wikipedia returned no article text for ${page.title}.`);
+      }
+      const moments = extractWikipediaMoments(article.extract);
+      wikipediaTimelineCache.set(page.id, moments);
+      if (wikipediaTimelineCache.size > 10) {
+        wikipediaTimelineCache.delete(wikipediaTimelineCache.keys().next().value);
+      }
+      return moments;
     }
 
     function fallbackImage(title, index) {
@@ -2487,8 +4018,8 @@
       return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
     }
 
-    async function getPageSummary(page) {
-      const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(page)}`;
+    async function getPageSummary(page, language = "en") {
+      const url = `https://${language}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(page)}`;
       const response = await fetch(url, { headers: { Accept: "application/json" } });
       if (!response.ok) throw new Error(`Wikipedia image request failed: ${response.status}`);
       return response.json();
@@ -2497,18 +4028,35 @@
     async function loadEventImages(event) {
       if (imageCache.has(event.id)) return imageCache.get(event.id);
       const pages = [event.page, ...event.related];
+      const language = event.wikipediaPage?.language || "en";
       const images = await Promise.all(pages.map(async (page, index) => {
+        const articlePage = index === 0 && event.wikipediaPage
+          ? event.wikipediaPage
+          : registerWikipediaPage(page, language);
         try {
-          const summary = await getPageSummary(page);
+          const summary = await getPageSummary(page, language);
+          articlePage.key = (summary.title || articlePage.title).replaceAll(" ", "_");
+          articlePage.title = summary.title || articlePage.title;
+          const portraitUrl = summary.thumbnail?.source || summary.originalimage?.source || null;
           return {
-            url: summary.thumbnail?.source || summary.originalimage?.source || fallbackImage(event.name, index),
+            url: portraitUrl || fallbackImage(event.name, index),
+            portraitUrl,
+            portraitAlt: summary.thumbnail?.description || `Portrait of ${summary.title || event.name}`,
             alt: summary.thumbnail?.description || summary.title || event.name,
-            page: summary.content_urls?.desktop?.page || wikiUrl(page),
-            title: summary.title || event.name
+            page: summary.content_urls?.desktop?.page || wikiUrl(page, language),
+            title: summary.title || event.name,
+            wikipediaPage: articlePage
           };
         } catch (error) {
           console.warn(`Could not load an image for ${page}; using an illustration instead.`, error);
-          return { url: fallbackImage(event.name, index), alt: `${event.name} illustration`, page: wikiUrl(page), title: event.name };
+          return {
+            url: fallbackImage(event.name, index),
+            portraitUrl: null,
+            alt: `${articlePage.title} illustration`,
+            page: wikiUrl(page, language),
+            title: articlePage.title,
+            wikipediaPage: articlePage
+          };
         }
       }));
       imageCache.set(event.id, images);
@@ -2579,11 +4127,13 @@
       })[char]);
     }
 
-    function supportingImageMarkup(source, alt, link = "") {
+    function supportingImageMarkup(source, alt, link = "", wikipediaPageId = "") {
       const image = `<img class="gallery-image" src="${escapeHtml(source)}" alt="${escapeHtml(alt)}">`;
-      const foreground = /^https?:\/\//i.test(link)
-        ? `<a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">${image}</a>`
-        : image;
+      const foreground = wikipediaPageId
+        ? `<a href="#event-detail" data-wikipedia-page-id="${escapeHtml(wikipediaPageId)}">${image}</a>`
+        : /^https?:\/\//i.test(link)
+          ? `<a href="${escapeHtml(link)}" target="_blank" rel="noreferrer">${image}</a>`
+          : image;
       return `<div class="gallery-image-frame">${foreground}</div>`;
     }
 
@@ -2618,7 +4168,163 @@
       if (images.length > 1) heroImageTimer = setInterval(showHeroImage, 3000);
     }
 
-    async function renderEvent() {
+    function renderWikipediaLead(html, page, body) {
+      const parsed = new DOMParser().parseFromString(html, "text/html");
+      const content = parsed.querySelector(".mw-parser-output") || parsed.body;
+      const lead = [...content.children].find(element =>
+        element.tagName === "P" && element.textContent.trim()
+      );
+      if (!lead) throw new Error(`Wikipedia returned no lead paragraph for ${page.title}.`);
+
+      const relatedPages = new Map();
+      const safeTags = new Set(["B", "STRONG", "I", "EM", "SPAN", "SUB", "BR"]);
+      const copySafeNode = (node, parent) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          parent.append(document.createTextNode(node.textContent));
+          return;
+        }
+        if (node.nodeType !== Node.ELEMENT_NODE) return;
+        if (node.matches("script, style, sup, .reference, .mw-editsection, .noprint")) return;
+        if (node.tagName === "A") {
+          const href = node.getAttribute("href") || "";
+          const match = href.match(/^\/wiki\/([^?#]+)/);
+          let relatedPage = null;
+          if (match) {
+            try {
+              const key = decodeURIComponent(match[1]);
+              const title = key.replaceAll("_", " ");
+              if (!key.includes(":") && title.toLocaleLowerCase() !== page.title.toLocaleLowerCase()) {
+                relatedPage = registerWikipediaPage(key, page.language);
+                relatedPages.set(relatedPage.id, relatedPage);
+              }
+            } catch (error) {
+              console.warn("Could not decode a related Wikipedia article link.", error);
+            }
+          }
+          if (!relatedPage) {
+            for (const child of node.childNodes) copySafeNode(child, parent);
+            return;
+          }
+          const link = document.createElement("a");
+          link.href = wikipediaPageUrl(relatedPage);
+          link.dataset.wikipediaPageId = relatedPage.id;
+          for (const child of node.childNodes) copySafeNode(child, link);
+          parent.append(link);
+          return;
+        }
+        if (!safeTags.has(node.tagName)) {
+          for (const child of node.childNodes) copySafeNode(child, parent);
+          return;
+        }
+        const element = document.createElement(node.tagName.toLocaleLowerCase());
+        for (const child of node.childNodes) copySafeNode(child, element);
+        parent.append(element);
+      };
+
+      const paragraph = document.createElement("p");
+      for (const child of lead.childNodes) copySafeNode(child, paragraph);
+      body.replaceChildren(paragraph);
+      return [...relatedPages.values()].slice(0, 5);
+    }
+
+    function renderRelatedArticles(pages, useGlass = false) {
+      const section = document.getElementById("wikipediaRelatedSection");
+      const list = document.getElementById("wikipediaRelatedArticles");
+      section.classList.toggle("is-glass", useGlass);
+      document.getElementById("wikipediaRelatedHeading").textContent = t("wikipediaRelatedHeading");
+      list.replaceChildren();
+      pages.forEach(page => {
+        const item = document.createElement("li");
+        const link = document.createElement("a");
+        link.href = "#event-detail";
+        link.dataset.wikipediaPageId = page.id;
+        link.textContent = page.title;
+        item.append(link);
+        list.append(item);
+      });
+      section.hidden = pages.length === 0;
+    }
+
+    async function renderWikipediaSummary(event, renderVersion) {
+      const status = document.getElementById("wikipediaSummaryStatus");
+      const body = document.getElementById("wikipediaSummaryBody");
+      const source = document.getElementById("eventSource");
+      status.textContent = t("wikipediaSummaryLoading");
+      body.replaceChildren();
+      renderRelatedArticles([], true);
+      try {
+        const article = await loadWikipediaSummary(event.wikipediaPage);
+        if (renderVersion !== heroRenderVersion || event.id !== selectedEvent?.id) return;
+        const relatedPages = renderWikipediaLead(article.html, event.wikipediaPage, body);
+        const summary = body.textContent.trim();
+        selectedEvent.name = article.title;
+        selectedEvent.summary = summary;
+        selectedEvent.related = relatedPages.map(page => page.key);
+        document.getElementById("eventTitle").textContent = article.title;
+        renderRelatedArticles(relatedPages, true);
+        status.textContent = "";
+        const createLink = (href, label) => {
+          const link = document.createElement("a");
+          link.href = href;
+          link.target = "_blank";
+          link.rel = "noreferrer";
+          link.textContent = label;
+          return link;
+        };
+        source.replaceChildren(
+          document.createTextNode(`${t("wikipediaSourcePrefix")} `),
+          createLink(article.historyUrl, "Wikipedia contributors"),
+          document.createTextNode(` · ${article.title} · `),
+          createLink(article.url, t("wikipediaLabel")),
+          document.createTextNode(" · CC BY-SA 4.0")
+        );
+        source.append(" (");
+        source.append(createLink("https://creativecommons.org/licenses/by-sa/4.0/", "license"));
+        source.append(")");
+      } catch (error) {
+        if (renderVersion !== heroRenderVersion || event.id !== selectedEvent?.id) return;
+        console.error(`Could not load the Wikipedia summary for ${event.name}.`, error);
+        status.textContent = t("wikipediaSummaryUnavailable");
+      }
+    }
+
+    async function renderWikipediaTimeline(event, renderVersion) {
+      const timelineHeading = document.getElementById("timelineHeading");
+      const timeline = document.getElementById("eventTimeline");
+      const setStatus = message => {
+        const status = document.createElement("p");
+        status.className = "wikipedia-timeline-status";
+        status.setAttribute("role", "status");
+        status.textContent = message;
+        timeline.replaceChildren(status);
+      };
+      timelineHeading.hidden = false;
+      timeline.hidden = false;
+      setStatus(t("wikipediaTimelineLoading"));
+      try {
+        const moments = await loadWikipediaMoments(event.wikipediaPage);
+        if (renderVersion !== heroRenderVersion || event.id !== selectedEvent?.id) return;
+        if (!moments.length) {
+          setStatus(t("wikipediaTimelineNoMoments"));
+          return;
+        }
+        timeline.innerHTML = moments.map(moment =>
+          `<div class="timeline-item"><time>${escapeHtml(moment.date)}</time><p>${escapeHtml(moment.description)}</p></div>`
+        ).join("");
+      } catch (error) {
+        if (renderVersion !== heroRenderVersion || event.id !== selectedEvent?.id) return;
+        console.error(`Could not load timeline moments for Wikipedia article ${event.name}.`, error);
+        setStatus(t("wikipediaTimelineUnavailable"));
+      }
+    }
+
+    async function renderEvent(animateChapter = false) {
+      if (animateChapter) {
+        const eventContent = document.getElementById("event-detail");
+        eventContent.classList.remove("chapter-entering");
+        void eventContent.offsetWidth;
+        eventContent.classList.add("chapter-entering");
+      }
       if (heroImageTimer !== null) {
         clearInterval(heroImageTimer);
         heroImageTimer = null;
@@ -2632,6 +4338,9 @@
         layer.style.backgroundImage = "";
       });
       const renderVersion = ++heroRenderVersion;
+      wikipediaPortrait.hidden = true;
+      wikipediaPortraitImage.removeAttribute("src");
+      wikipediaPortraitImage.alt = "";
       const event = selectedEvent ? getEventDetails(selectedEvent) : null;
       const contribution = selectedContribution?.entry;
       if (!event && !contribution) {
@@ -2642,8 +4351,14 @@
         document.getElementById("eventFacts").hidden = true;
         document.getElementById("eventFacts").replaceChildren();
         document.getElementById("eventTimeline").replaceChildren();
+        document.getElementById("eventTimeline").hidden = false;
+        document.getElementById("timelineHeading").hidden = false;
         updateTimelineControls();
         document.getElementById("eventSource").textContent = "";
+        document.getElementById("wikipediaSummarySection").hidden = true;
+        document.getElementById("wikipediaSummaryBody").replaceChildren();
+        document.getElementById("wikipediaRelatedSection").hidden = true;
+        document.getElementById("wikipediaRelatedArticles").replaceChildren();
         document.getElementById("communitySection").hidden = true;
         document.getElementById("communityIncidentsSection").hidden = true;
         document.getElementById("sidebarContributions").hidden = true;
@@ -2662,12 +4377,25 @@
       document.getElementById("eventTitle").textContent = contribution?.title || event.name;
       document.getElementById("eventDates").textContent = contribution?.date || event.dates;
       document.getElementById("eventSummary").textContent = contribution?.description || event.summary;
+      const wikipediaSummarySection = document.getElementById("wikipediaSummarySection");
+      wikipediaSummarySection.hidden = !event.wikipediaPage;
+      document.getElementById("eventSummary").hidden = Boolean(event.wikipediaPage);
+      document.getElementById("wikipediaSummaryHeading").textContent = t("wikipediaSummaryHeading");
+      if (!event.wikipediaPage) {
+        document.getElementById("wikipediaSummaryStatus").textContent = "";
+        document.getElementById("wikipediaSummaryBody").replaceChildren();
+        document.getElementById("wikipediaRelatedSection").hidden = true;
+        document.getElementById("wikipediaRelatedArticles").replaceChildren();
+      }
       const facts = document.getElementById("eventFacts");
       facts.hidden = Boolean(contribution);
       facts.innerHTML = contribution ? "" : event.facts.map(([label, text]) =>
         `<div class="fact"><strong>${escapeHtml(label)}</strong><span>${escapeHtml(text)}</span></div>`
       ).join("");
       const timeline = document.getElementById("eventTimeline");
+      const timelineHeading = document.getElementById("timelineHeading");
+      timeline.hidden = false;
+      timelineHeading.hidden = false;
       const additionalMoments = readJson(storageKeys.contributions, {}).eventTimelines?.[event.id] || [];
       const moments = contribution
         ? contribution.timeline || []
@@ -2679,19 +4407,60 @@
         `<div class="timeline-item"><time>${escapeHtml(moment.date)}</time><p>${escapeHtml(moment.description)}</p></div>`
       ).join("");
       updateTimelineControls();
+      const eventUrl = event.wikipediaPage ? wikipediaPageUrl(event.wikipediaPage) : wikiUrl(event.page);
       document.getElementById("eventSource").innerHTML = contribution
         ? sourceMarkup(contribution.source)
-        : `${t("backgroundReading")} <a href="${wikiUrl(event.page)}" target="_blank" rel="noreferrer">${escapeHtml(event.name)} (Wikipedia)</a>. ${t("suggestedReferenceOrganizations")} ${escapeHtml(event.source.replace(/^Sources: /, ""))}. ${t("imagesLinkToSource")}`;
+        : event.wikipediaPage
+          ? `${escapeHtml(t("wikipediaSourcePrefix"))} <a href="${escapeHtml(eventUrl)}" target="_blank" rel="noreferrer">${escapeHtml(t("wikipediaLabel"))}</a>.`
+          : `${t("backgroundReading")} <a href="${eventUrl}" target="_blank" rel="noreferrer">${escapeHtml(event.name)} (Wikipedia)</a>. ${t("suggestedReferenceOrganizations")} ${escapeHtml(event.source.replace(/^Sources: /, ""))}. ${t("imagesLinkToSource")}`;
       renderContributions();
 
       hero.style.backgroundImage = "";
-      heroCredit.href = wikiUrl(event.page);
+      heroCredit.href = eventUrl;
       heroCredit.textContent = `${t("imageAndOverview")} ${event.name}`;
       const gallery = document.getElementById("eventGallery");
       const galleryHeading = document.getElementById("galleryHeading");
       const communitySection = document.getElementById("communitySection");
       const communityIncidentsSection = document.getElementById("communityIncidentsSection");
       const userGallery = document.getElementById("userGallery");
+      renderRelatedArticles(!contribution && !event.wikipediaPage
+        ? event.related.map(page => registerWikipediaPage(page))
+        : []);
+      heroCredit.href = "#event-detail";
+      delete heroCredit.dataset.wikipediaPageId;
+      if (event.wikipediaPage) {
+        facts.hidden = true;
+        communitySection.hidden = true;
+        communityIncidentsSection.hidden = true;
+        document.getElementById("sidebarContributions").hidden = true;
+        galleryHeading.hidden = true;
+        gallery.replaceChildren();
+        userGallery.hidden = true;
+        userGallery.replaceChildren();
+        const timelineRendering = renderWikipediaTimeline(event, renderVersion);
+        await renderWikipediaSummary(event, renderVersion);
+        if (renderVersion !== heroRenderVersion || event.id !== selectedEvent?.id) return;
+        await timelineRendering;
+        if (renderVersion !== heroRenderVersion || event.id !== selectedEvent?.id) return;
+        const images = await loadEventImages(event);
+        if (renderVersion !== heroRenderVersion || event.id !== selectedEvent?.id) return;
+        const portrait = event.wikipediaPage.isHistoricalPerson ? images[0] : null;
+        if (portrait?.portraitUrl) {
+          wikipediaPortraitImage.src = portrait.portraitUrl;
+          wikipediaPortraitImage.alt = portrait.portraitAlt;
+          wikipediaPortrait.hidden = false;
+        }
+        startHeroImageSlideshow(images, renderVersion, image => {
+          heroCredit.href = "#event-detail";
+          heroCredit.dataset.wikipediaPageId = image.wikipediaPage.id;
+          heroCredit.textContent = `${t("imageLabel")} ${image.title}`;
+        });
+        galleryHeading.hidden = images.length < 2;
+        gallery.innerHTML = images.slice(1).map(image =>
+          `<figure class="gallery-card">${supportingImageMarkup(image.url, image.alt, "", image.wikipediaPage.id)}<figcaption><a href="#event-detail" data-wikipedia-page-id="${escapeHtml(image.wikipediaPage.id)}">${escapeHtml(image.title)}</a></figcaption></figure>`
+        ).join("");
+        return;
+      }
       if (contribution) {
         const supportingImages = Array.isArray(contribution.images)
           ? contribution.images
@@ -2729,7 +4498,9 @@
       communitySection.hidden = false;
       communityIncidentsSection.hidden = false;
       userGallery.hidden = false;
-      heroCredit.href = wikiUrl(event.page);
+      const eventWikipediaPage = registerWikipediaPage(event.page);
+      heroCredit.href = "#event-detail";
+      heroCredit.dataset.wikipediaPageId = eventWikipediaPage.id;
       heroCredit.textContent = `${t("imageAndOverview")} ${event.name}`;
       galleryHeading.hidden = false;
       const eventIndex = events.findIndex(candidate => candidate.id === event.id);
@@ -2748,11 +4519,17 @@
       const images = [...savedImages, ...(await loadEventImages(event))];
       if (renderVersion !== heroRenderVersion || event.id !== selectedEvent?.id || contribution !== selectedContribution?.entry) return;
       startHeroImageSlideshow(images, renderVersion, image => {
-        heroCredit.href = image.page;
+        if (image.wikipediaPage) {
+          heroCredit.href = "#event-detail";
+          heroCredit.dataset.wikipediaPageId = image.wikipediaPage.id;
+        } else {
+          heroCredit.href = "#event-detail";
+          delete heroCredit.dataset.wikipediaPageId;
+        }
         heroCredit.textContent = `${t("imageLabel")} ${image.title}`;
       });
       gallery.innerHTML = images.slice(1).map(image =>
-        `<figure class="gallery-card">${supportingImageMarkup(image.url, image.alt, image.page)}<figcaption><a href="${escapeHtml(image.page)}" target="_blank" rel="noreferrer">${escapeHtml(image.title)}</a></figcaption></figure>`
+        `<figure class="gallery-card">${image.wikipediaPage ? supportingImageMarkup(image.url, image.alt, "", image.wikipediaPage.id) : supportingImageMarkup(image.url, image.alt)}<figcaption>${image.wikipediaPage ? `<a href="#event-detail" data-wikipedia-page-id="${escapeHtml(image.wikipediaPage.id)}">${escapeHtml(image.title)}</a>` : escapeHtml(image.title)}</figcaption></figure>`
       ).join("");
     }
 
@@ -2838,8 +4615,14 @@
 
     function openAccount() {
       window.clearTimeout(atlasEnterTimer);
+      window.clearTimeout(accountEnterTimer);
+      window.clearTimeout(accountExitTimer);
+      accountEnterTimer = null;
+      accountExitTimer = null;
       pageLayout.classList.remove("atlas-entering");
       document.querySelector(".topbar").classList.remove("atlas-entering");
+      const accountView = document.getElementById("account-view");
+      accountView.classList.remove("account-entering", "account-leaving");
       document.getElementById("accountForm").hidden = Boolean(currentUser());
       if (!currentUser()) {
         ["accountPrivacyAgreement", "accountTermsAgreement", "accountEulaAgreement"]
@@ -2857,53 +4640,65 @@
       pageLayout.classList.add("account-active");
       mainContent.classList.add("account-active");
       document.body.classList.add("auth-screen");
-      document.getElementById("account-view").hidden = false;
+      accountView.hidden = false;
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        void accountView.offsetWidth;
+        accountView.classList.add("account-entering");
+        accountEnterTimer = window.setTimeout(() => {
+          accountView.classList.remove("account-entering");
+          accountEnterTimer = null;
+        }, 360);
+      }
       document.getElementById("accountEmail").focus();
     }
 
     let accountReturnToAbout = false;
     let accountExitTimer = null;
+    let accountEnterTimer = null;
     let atlasEnterTimer = null;
-    function closeAccountScreen(restorePreviousView = true, animateAtlas = false) {
+    function closeAccountScreen(restorePreviousView = true, animateAtlas = false, returnToHome = false) {
+      window.clearTimeout(accountEnterTimer);
+      accountEnterTimer = null;
       window.clearTimeout(accountExitTimer);
       accountExitTimer = null;
       window.clearTimeout(atlasEnterTimer);
-      document.getElementById("account-view").classList.remove("account-leaving");
+      const accountView = document.getElementById("account-view");
+      accountView.classList.remove("account-entering", "account-leaving");
       pageLayout.classList.remove("account-active");
       mainContent.classList.remove("account-active");
       document.body.classList.remove("auth-screen");
       document.getElementById("account-view").hidden = true;
-      const returnToAbout = restorePreviousView && accountReturnToAbout;
+      const returnToAbout = restorePreviousView && accountReturnToAbout && !returnToHome;
       accountReturnToAbout = false;
       mainContent.classList.toggle("about-active", returnToAbout);
+      if (returnToHome) {
+        mainContent.classList.add("home-active");
+        document.body.classList.add("home-screen");
+        setSidebarExpanded(false);
+        resetSidebarSearch();
+      } else if (returnToAbout) {
+        mainContent.classList.remove("home-active");
+        document.body.classList.remove("home-screen");
+      }
       document.getElementById("about-view").hidden = !returnToAbout;
       if (!returnToAbout && window.location.hash === "#about") {
         history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
       }
-      if (animateAtlas) {
-        const topbar = document.querySelector(".topbar");
-        pageLayout.classList.remove("atlas-entering");
-        topbar.classList.remove("atlas-entering");
-        void pageLayout.offsetWidth;
-        pageLayout.classList.add("atlas-entering");
-        topbar.classList.add("atlas-entering");
-        atlasEnterTimer = window.setTimeout(() => {
-          pageLayout.classList.remove("atlas-entering");
-          topbar.classList.remove("atlas-entering");
-          atlasEnterTimer = null;
-        }, 420);
-      }
+      if (animateAtlas) animateAtlasEntrance();
     }
 
     function returnToAtlas() {
       if (document.getElementById("account-view").classList.contains("account-leaving")) return;
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        closeAccountScreen();
+        closeAccountScreen(true, false, true);
         return;
       }
       const accountView = document.getElementById("account-view");
+      window.clearTimeout(accountEnterTimer);
+      accountEnterTimer = null;
+      accountView.classList.remove("account-entering");
       accountView.classList.add("account-leaving");
-      accountExitTimer = window.setTimeout(() => closeAccountScreen(true, true), 280);
+      accountExitTimer = window.setTimeout(() => closeAccountScreen(true, true, true), 280);
     }
 
     function openEditor(pageId = null, eventId = null) {
@@ -2940,6 +4735,8 @@
       const [region, topic] = String(page?.category || eventDetails?.category || "").split(" · ");
       regionSelect.value = region || "";
       topicSelect.value = topic || "";
+      regionPicker.sync();
+      topicPicker.sync();
       document.getElementById("editorIncidentDate").value = page?.date || eventDetails?.dates || "";
       document.getElementById("editorNote").value = page?.description || eventDetails?.summary || "";
       document.getElementById("editorSource").value = page?.source || eventDetails?.source || "";
@@ -3403,6 +5200,10 @@
       const hasInformation = title || category || incidentDate || note || source || factsText || imageCards.length > 0 || timeline.length > 0;
       if (hasInformation && (!title || !category || !incidentDate)) {
         error.textContent = "Add a title, category and the date the incident occurred for this information.";
+        if (!title) document.getElementById("editorContributionTitle").focus();
+        else if (!region) regionPicker.focus();
+        else if (!topic) topicPicker.focus();
+        else document.getElementById("editorIncidentDate").focus();
         return;
       }
       if (hasIncompleteTimelineEntry) {
